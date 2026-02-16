@@ -10,7 +10,9 @@ import {
   ChatBubbleLeftRightIcon,
   Cog6ToothIcon,
   UserCircleIcon,
-  HomeIcon
+  HomeIcon,
+  Bars3Icon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 const navigation = [
@@ -29,11 +31,12 @@ const secondaryNavigation = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      // Show sidebar when mouse is within 50px of left edge
-      if (e.clientX < 50) {
+      // Only on desktop (window width > 768px)
+      if (window.innerWidth > 768 && e.clientX < 50) {
         setIsExpanded(true);
       }
     };
@@ -43,26 +46,54 @@ export default function Sidebar() {
   }, []);
 
   const handleMouseLeave = () => {
-    setIsExpanded(false);
+    if (window.innerWidth > 768) {
+      setIsExpanded(false);
+    }
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   return (
     <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-[#1F2933] text-[#F9FAFB] rounded-lg border border-[#1F2933] hover:border-[#CBD5E1]/20 transition-colors"
+        aria-label="Toggle menu"
+      >
+        {isMobileMenuOpen ? (
+          <XMarkIcon className="h-6 w-6" />
+        ) : (
+          <Bars3Icon className="h-6 w-6" />
+        )}
+      </button>
+
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+          onClick={closeMobileMenu}
+        />
+      )}
+
       {/* Glassmorphism Sidebar */}
       <div 
-        className={`fixed left-0 top-0 h-screen flex flex-col bg-[#0B0F14] backdrop-blur-xl text-[#F9FAFB] border-r border-[#1F2933] shadow-2xl transition-all duration-300 ease-in-out z-50 ${
-          isExpanded ? 'w-64' : 'w-16'
-        }`}
+        className={`fixed left-0 top-0 h-screen flex flex-col bg-[#0B0F14] backdrop-blur-xl text-[#F9FAFB] border-r border-[#1F2933] shadow-2xl transition-all duration-300 ease-in-out z-50 
+        ${isExpanded ? 'w-64' : 'w-16'}
+        ${isMobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'}
+        md:w-auto`}
         onMouseLeave={handleMouseLeave}
       >
         {/* Logo/Brand */}
         <div className="flex h-16 items-center justify-start border-b border-[#1F2933] px-4">
-        <Link href="/dashboard" className="flex items-center">
+        <Link href="/dashboard" className="flex items-center" onClick={closeMobileMenu}>
           <img 
-            src={isExpanded ? "/Logo.png" : "/Logo-shrink.png"}
+            src={isExpanded || isMobileMenuOpen ? "/Logo.png" : "/Logo-shrink.png"}
             alt="Serendib AI Logo" 
             className={`object-contain transition-all duration-300 ${
-              isExpanded ? 'h-12 w-auto' : 'w-10 h-10'
+              isExpanded || isMobileMenuOpen ? 'h-12 w-auto' : 'w-10 h-10'
             }`}
           />
         </Link>
@@ -77,6 +108,7 @@ export default function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={closeMobileMenu}
                 className={`
                   group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
                   ${isActive 
@@ -86,11 +118,15 @@ export default function Sidebar() {
                 `}
               >
                 <item.icon
-                  className={`mr-3 h-5 w-5 flex-shrink-0 ${
+                  className={`flex-shrink-0 h-5 w-5 transition-all ${
+                    isExpanded || isMobileMenuOpen ? 'mr-3' : 'mr-0'
+                  } ${
                     isActive ? 'text-[#22C55E]' : 'text-[#CBD5E1] group-hover:text-[#F9FAFB]'
                   }`}
                 />
-                <span className="truncate">{item.shortName}</span>
+                <span className={`truncate transition-all duration-300 ${
+                  isExpanded || isMobileMenuOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 md:opacity-100 md:w-auto'
+                }`}>{item.shortName}</span>
               </Link>
             );
           })}
@@ -104,6 +140,7 @@ export default function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={closeMobileMenu}
                 className={`
                   group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
                   ${isActive 
@@ -111,17 +148,17 @@ export default function Sidebar() {
                     : 'text-[#CBD5E1] hover:bg-[#1F2933] hover:text-[#F9FAFB]'
                   }
                 `}
-                title={!isExpanded ? item.shortName : ''}
+                title={!isExpanded && !isMobileMenuOpen ? item.shortName : ''}
               >
                 <item.icon
                   className={`h-5 w-5 flex-shrink-0 transition-all ${
-                    isExpanded ? 'mr-3' : 'mr-0'
+                    isExpanded || isMobileMenuOpen ? 'mr-3' : 'mr-0'
                   } ${
                     isActive ? 'text-[#22C55E]' : 'text-[#CBD5E1] group-hover:text-[#F9FAFB]'
                   }`}
                 />
                 <span className={`truncate transition-all duration-300 ${
-                  isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'
+                  isExpanded || isMobileMenuOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 md:opacity-100 md:w-auto'
                 }`}>{item.shortName}</span>
               </Link>
             );
@@ -132,7 +169,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="border-t border-[#1F2933] p-4">
         <div className={`text-xs text-[#CBD5E1] text-center transition-all duration-300 ${
-          isExpanded ? 'opacity-100' : 'opacity-0'
+          isExpanded || isMobileMenuOpen ? 'opacity-100' : 'opacity-0'
         }`}>
           <p>AI-Powered Marketing</p>
           <p className="text-[#CBD5E1]/70">Optimization Platform</p>
@@ -141,7 +178,7 @@ export default function Sidebar() {
     </div>
 
     {/* Spacer to prevent content overlap when sidebar is hidden */}
-    <div className="w-16 flex-shrink-0" />
+    <div className="w-0 md:w-16 flex-shrink-0" />
     </>
   );
 }

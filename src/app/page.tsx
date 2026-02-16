@@ -225,17 +225,17 @@ export default function Home() {
         <div className="min-h-screen">
           {/* Header */}
           <header className="border-b border-[#1F2933] bg-[#0B0F14]">
-            <div className="max-w-4xl mx-auto px-8 py-8">
-              <div className="flex items-center justify-between">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl font-semibold text-[#F9FAFB] mb-1">Serendib AI</h1>
-                  <p className="text-[#CBD5E1] text-sm">
+                  <h1 className="text-xl sm:text-2xl font-semibold text-[#F9FAFB] mb-1">Serendib AI</h1>
+                  <p className="text-[#CBD5E1] text-xs sm:text-sm">
                     Get personalized marketing strategies tailored to your business
                   </p>
                 </div>
                 <a
                   href="/dashboard"
-                  className="px-6 py-2.5 bg-[#22C55E] text-[#0B0F14] rounded-lg hover:bg-[#16A34A] transition-colors font-medium text-sm"
+                  className="px-4 sm:px-6 py-2 sm:py-2.5 bg-[#22C55E] text-[#0B0F14] rounded-lg hover:bg-[#16A34A] transition-colors font-medium text-sm whitespace-nowrap"
                 >
                   Go to Dashboard
                 </a>
@@ -244,7 +244,7 @@ export default function Home() {
           </header>
 
           {/* Step Indicator */}
-          <div className="max-w-4xl mx-auto px-8 py-12">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             <StepIndicator 
               steps={STEPS} 
               currentStepIndex={currentStepIndex}
@@ -253,14 +253,14 @@ export default function Home() {
           </div>
 
           {/* Main Content */}
-          <div className="max-w-4xl mx-auto px-8 pb-20">
-            <div className="bg-[#0B0F14] border border-[#1F2933] rounded-2xl p-10">
-              <div className="mb-10">
-                <h2 className="text-2xl font-semibold text-[#F9FAFB] mb-2">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-20">
+            <div className="bg-[#0B0F14] border border-[#1F2933] rounded-xl sm:rounded-2xl p-6 sm:p-8 lg:p-10">
+              <div className="mb-8 sm:mb-10">
+                <h2 className="text-xl sm:text-2xl font-semibold text-[#F9FAFB] mb-2">
                   {currentStep.title}
                 </h2>
                 {currentStep.description && (
-                  <p className="text-[#CBD5E1]">
+                  <p className="text-[#CBD5E1] text-sm sm:text-base">
                     {currentStep.description}
                   </p>
                 )}
@@ -270,18 +270,18 @@ export default function Home() {
 
               {/* Navigation Buttons */}
               {currentStep.id !== 'review' && (
-                <div className="flex justify-between mt-12 pt-8 border-t border-[#1F2933]">
+                <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-[#1F2933]">
                   <button
                     onClick={handlePrevious}
                     disabled={currentStepIndex === 0}
-                    className="px-6 py-3 bg-[#0B0F14] text-[#F9FAFB] rounded-lg border border-[#1F2933] hover:border-[#CBD5E1]/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-6 py-3 bg-[#0B0F14] text-[#F9FAFB] rounded-lg border border-[#1F2933] hover:border-[#CBD5E1]/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed order-2 sm:order-1"
                   >
                     Previous
                   </button>
                   
                   <button
                     onClick={handleNext}
-                    className="px-6 py-3 bg-[#22C55E] text-[#0B0F14] rounded-lg font-medium hover:bg-[#16A34A] transition-all"
+                    className="w-full sm:w-auto px-6 py-3 bg-[#22C55E] text-[#0B0F14] rounded-lg font-medium hover:bg-[#16A34A] transition-all order-1 sm:order-2"
                   >
                     {currentStepIndex === STEPS.length - 2 ? 'Review' : 'Next'}
                   </button>

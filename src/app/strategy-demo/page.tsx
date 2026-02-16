@@ -72,32 +72,32 @@ export default function StrategyDemoPage() {
   const [showStrategy, setShowStrategy] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#0B0F14]">
       {/* Header */}
-      <header className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <h1 className="text-4xl font-bold mb-2">Strategy Generator Demo</h1>
-          <p className="text-blue-100">
+      <header className="bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-[#0B0F14] border-b border-[#1F2933]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">Strategy Generator Demo</h1>
+          <p className="text-[#0B0F14]/80 text-sm sm:text-base">
             See what your personalized marketing strategy looks like
           </p>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {!showStrategy ? (
-          <div className="text-center py-16">
-            <div className="bg-white rounded-lg shadow-lg p-12 max-w-2xl mx-auto">
-              <div className="text-6xl mb-6">🎯</div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center py-8 sm:py-16">
+            <div className="bg-[#0B0F14] border border-[#1F2933] rounded-lg shadow-lg p-8 sm:p-12 max-w-2xl mx-auto">
+              <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">🎯</div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#F9FAFB] mb-4">
                 Ready to See Your Strategy?
               </h2>
-              <p className="text-gray-600 mb-8 text-lg">
+              <p className="text-[#CBD5E1] mb-6 sm:mb-8 text-sm sm:text-base lg:text-lg">
                 This demo shows what your AI-generated marketing strategy will look like.
                 It includes marketing pillars, content ideas, platform strategies, and budget allocation.
               </p>
               <button
                 onClick={() => setShowStrategy(true)}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105 text-lg font-semibold shadow-lg"
+                className="bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-[#0B0F14] px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:from-[#16A34A] hover:to-[#15803D] transition-all transform hover:scale-105 text-base sm:text-lg font-semibold shadow-lg w-full sm:w-auto"
               >
                 Generate Demo Strategy
               </button>

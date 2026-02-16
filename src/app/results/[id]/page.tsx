@@ -87,10 +87,10 @@ export default function ResultsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-800 border-t-gray-400 mx-auto mb-4"></div>
-          <p className="text-gray-400 text-sm font-medium">Loading submission details...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-[#1F2933] border-t-[#22C55E] mx-auto mb-4"></div>
+          <p className="text-[#CBD5E1] text-sm font-medium">Loading submission details...</p>
         </div>
       </div>
     );

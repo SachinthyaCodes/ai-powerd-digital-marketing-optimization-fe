@@ -37,34 +37,34 @@ export default function StrategyPage() {
     <div className="min-h-screen bg-[#0B0F14]">
       {/* Hero Section */}
       <div className="border-b border-[#1F2933]">
-        <div className="max-w-7xl mx-auto px-8 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
           <div className="max-w-2xl">
-            <h1 className="text-5xl font-semibold text-[#F9FAFB] mb-4 tracking-tight">Marketing Strategy Generator</h1>
-            <p className="text-[#CBD5E1] text-lg">Choose your approach to get started</p>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#F9FAFB] mb-3 sm:mb-4 tracking-tight">Marketing Strategy Generator</h1>
+            <p className="text-[#CBD5E1] text-base sm:text-lg">Choose your approach to get started</p>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           
           {/* Section 1: Quick Strategy */}
           <div className="group">
             <div className="bg-[#0B0F14] border border-[#1F2933] rounded-2xl overflow-hidden hover:border-[#CBD5E1]/20 transition-colors h-full flex flex-col">
               {/* Header */}
-              <div className="p-10 border-b border-[#1F2933]">
-                <div className="mb-8">
-                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#1F2933] mb-6">
+              <div className="p-6 sm:p-8 lg:p-10 border-b border-[#1F2933]">
+                <div className="mb-6 sm:mb-8">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#1F2933] mb-4 sm:mb-6">
                     <BoltIcon className="h-5 w-5 text-[#F9FAFB]" />
                   </div>
-                  <h2 className="text-2xl font-semibold text-[#F9FAFB] mb-2">Quick Strategy</h2>
-                  <p className="text-[#CBD5E1] text-sm">Get instant insights in seconds</p>
+                  <h2 className="text-xl sm:text-2xl font-semibold text-[#F9FAFB] mb-2">Quick Strategy</h2>
+                  <p className="text-[#CBD5E1] text-xs sm:text-sm">Get instant insights in seconds</p>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="p-10 flex-1 flex flex-col">
+              <div className="p-6 sm:p-8 lg:p-10 flex-1 flex flex-col">
                 <div className="mb-8 flex-1">
                   <label htmlFor="prompt" className="block text-sm font-medium text-[#F9FAFB] mb-3">
                     Describe your challenge
@@ -138,19 +138,19 @@ export default function StrategyPage() {
           <div className="group">
             <div className="bg-[#0B0F14] border border-[#1F2933] rounded-2xl overflow-hidden hover:border-[#CBD5E1]/20 transition-colors h-full flex flex-col">
               {/* Header */}
-              <div className="p-10 border-b border-[#1F2933]">
-                <div className="mb-8">
-                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#22C55E]/10 mb-6">
+              <div className="p-6 sm:p-8 lg:p-10 border-b border-[#1F2933]">
+                <div className="mb-6 sm:mb-8">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#22C55E]/10 mb-4 sm:mb-6">
                     <ChartBarIcon className="h-5 w-5 text-[#22C55E]" />
                   </div>
-                  <h2 className="text-2xl font-semibold text-[#F9FAFB] mb-2">Complete Strategy</h2>
-                  <p className="text-[#CBD5E1] text-sm">Comprehensive marketing plan</p>
+                  <h2 className="text-xl sm:text-2xl font-semibold text-[#F9FAFB] mb-2">Complete Strategy</h2>
+                  <p className="text-[#CBD5E1] text-xs sm:text-sm">Comprehensive marketing plan</p>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="p-10 flex-1 flex flex-col">
-                <div className="space-y-8 mb-10 flex-1">
+              <div className="p-6 sm:p-8 lg:p-10 flex-1 flex flex-col">
+                <div className="space-y-6 sm:space-y-8 mb-8 sm:mb-10 flex-1">
                   <div>
                     <h3 className="font-medium text-[#F9FAFB] mb-2">Detailed Form-Based Analysis</h3>
                     <p className="text-[#CBD5E1] text-sm leading-relaxed">Comprehensive questions about your business, target audience, and goals</p>
