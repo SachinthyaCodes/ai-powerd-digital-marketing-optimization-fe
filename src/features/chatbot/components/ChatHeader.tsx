@@ -17,14 +17,15 @@ export default function ChatHeader({ onNewChat, onClearHistory }: ChatHeaderProp
   const [showMenu, setShowMenu] = useState(false);
 
   return (
-    <div className="border-b border-[#1F2933] bg-[#0B0F14] px-6 py-4">
+    <div className="border-b border-[#1F2933] bg-[#0B0F14] px-4 sm:px-6 py-3 sm:py-4">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-white flex items-center gap-2">
+          <h1 className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
             <span className="w-2 h-2 bg-[#22C55E] rounded-full animate-pulse" />
-            AI Smart Chatbot
+            <span className="hidden sm:inline">AI Smart Chatbot</span>
+            <span className="sm:hidden">AI Assistant</span>
           </h1>
-          <p className="text-sm text-white mt-1 opacity-70">
+          <p className="text-xs sm:text-sm text-white mt-1 opacity-70">
             Your intelligent marketing assistant
           </p>
         </div>
@@ -33,10 +34,10 @@ export default function ChatHeader({ onNewChat, onClearHistory }: ChatHeaderProp
           {/* New Chat Button */}
           <button
             onClick={onNewChat}
-            className="px-4 py-2 bg-[#1F2933] text-white rounded-lg text-sm font-medium hover:bg-[#2D3748] transition-colors flex items-center gap-2"
+            className="px-3 sm:px-4 py-2 bg-[#1F2933] text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-[#2D3748] transition-colors flex items-center gap-2"
           >
             <ArrowPathIcon className="w-4 h-4" />
-            New Chat
+            <span className="hidden sm:inline">New Chat</span>
           </button>
 
           {/* Menu Button */}

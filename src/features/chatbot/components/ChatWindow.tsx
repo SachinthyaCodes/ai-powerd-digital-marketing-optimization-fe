@@ -36,17 +36,17 @@ export default function ChatWindow({ messages, isLoading = false, onPromptSelect
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6">
+    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
       <div className="max-w-4xl mx-auto">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full min-h-[450px] text-center px-4">
-            <div className="inline-flex items-center gap-2 mb-6">
-              <SparklesIcon className="w-8 h-8 text-[#22C55E]" />
-              <h3 className="text-2xl font-bold text-white">
+          <div className="flex flex-col items-center justify-center h-full min-h-[300px] sm:min-h-[450px] text-center px-4">
+            <div className="inline-flex items-center gap-2 mb-4 sm:mb-6">
+              <SparklesIcon className="w-6 h-6 sm:w-8 sm:h-8 text-[#22C55E]" />
+              <h3 className="text-xl sm:text-2xl font-bold text-white">
                 AI Marketing Assistant
               </h3>
             </div>
-            <p className="text-white text-sm mb-10 max-w-lg opacity-90">
+            <p className="text-white text-xs sm:text-sm mb-8 sm:mb-10 max-w-lg opacity-90">
               Ask me anything about marketing strategies, campaigns, content creation, or get personalized recommendations.
             </p>
             

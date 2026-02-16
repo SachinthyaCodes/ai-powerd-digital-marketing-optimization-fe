@@ -26,12 +26,12 @@ export default function ChatInput({ onSendMessage, isLoading = false }: ChatInpu
   };
 
   return (
-    <div className="border-t border-[#1F2933] bg-[#0B0F14] p-5">
+    <div className="border-t border-[#1F2933] bg-[#0B0F14] p-3 sm:p-5">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-2">
-          {/* Attachment Button */}
+          {/* Attachment Button - Hidden on mobile */}
           <button
-            className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-[#1A1F2E] text-white hover:bg-[#252B3B] hover:text-white transition-all opacity-60 hover:opacity-100"
+            className="hidden sm:flex flex-shrink-0 w-10 h-10 items-center justify-center rounded-lg bg-[#1A1F2E] text-white hover:bg-[#252B3B] hover:text-white transition-all opacity-60 hover:opacity-100"
             title="Attach file"
           >
             <PaperClipIcon className="w-4 h-4" />
@@ -71,7 +71,7 @@ export default function ChatInput({ onSendMessage, isLoading = false }: ChatInpu
         </div>
 
         {/* Helper Text */}
-        <div className="flex items-center gap-2 mt-2.5 ml-12 text-xs text-white opacity-60">
+        <div className="hidden sm:flex items-center gap-2 mt-2.5 ml-12 text-xs text-white opacity-60">
           <kbd className="px-1.5 py-0.5 bg-[#1A1F2E] rounded text-white font-mono text-xs border border-[#2D3748] opacity-80">Enter</kbd>
           <span>to send</span>
           <kbd className="px-1.5 py-0.5 bg-[#1A1F2E] rounded text-white font-mono text-xs border border-[#2D3748] opacity-80">Shift + Enter</kbd>

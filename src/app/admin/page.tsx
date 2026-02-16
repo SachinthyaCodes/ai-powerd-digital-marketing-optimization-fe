@@ -60,32 +60,32 @@ export default function AdminPage() {
 
   if (loading && submissions.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading submissions...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#22C55E] mx-auto mb-4"></div>
+          <p className="text-[#CBD5E1]">Loading submissions...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#0B0F14]">
       {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+      <header className="bg-[#0B0F14] border-b border-[#1F2933]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#F9FAFB]">
                 Admin Dashboard
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-[#CBD5E1] mt-1 text-sm">
                 Manage marketing strategy form submissions
               </p>
             </div>
             <button
               onClick={() => router.push('/')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="w-full sm:w-auto bg-[#22C55E] text-[#0B0F14] px-4 py-2 rounded-lg hover:bg-[#16A34A] transition-colors font-medium whitespace-nowrap"
             >
               New Form
             </button>
@@ -93,119 +93,119 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-gray-900">{stats.total_submissions}</div>
-              <div className="text-sm text-gray-600">Total Submissions</div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+            <div className="bg-[#0B0F14] border border-[#1F2933] p-4 sm:p-6 rounded-lg">
+              <div className="text-xl sm:text-2xl font-bold text-[#F9FAFB]">{stats.total_submissions}</div>
+              <div className="text-xs sm:text-sm text-[#CBD5E1] mt-1">Total Submissions</div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-green-600">{stats.submitted}</div>
-              <div className="text-sm text-gray-600">Submitted</div>
+            <div className="bg-[#0B0F14] border border-[#1F2933] p-4 sm:p-6 rounded-lg">
+              <div className="text-xl sm:text-2xl font-bold text-[#22C55E]">{stats.submitted}</div>
+              <div className="text-xs sm:text-sm text-[#CBD5E1] mt-1">Submitted</div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-blue-600">{stats.processed}</div>
-              <div className="text-sm text-gray-600">Processed</div>
+            <div className="bg-[#0B0F14] border border-[#1F2933] p-4 sm:p-6 rounded-lg">
+              <div className="text-xl sm:text-2xl font-bold text-blue-500">{stats.processed}</div>
+              <div className="text-xs sm:text-sm text-[#CBD5E1] mt-1">Processed</div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-2xl font-bold text-orange-600">{stats.pending}</div>
-              <div className="text-sm text-gray-600">Pending</div>
+            <div className="bg-[#0B0F14] border border-[#1F2933] p-4 sm:p-6 rounded-lg">
+              <div className="text-xl sm:text-2xl font-bold text-orange-500">{stats.pending}</div>
+              <div className="text-xs sm:text-sm text-[#CBD5E1] mt-1">Pending</div>
             </div>
           </div>
         )}
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
             <div className="flex items-center">
               <div className="text-red-500 mr-3">⚠️</div>
               <div>
-                <h3 className="text-red-900 font-medium">Error Loading Data</h3>
-                <p className="text-red-700 text-sm mt-1">{error}</p>
+                <h3 className="text-red-400 font-medium">Error Loading Data</h3>
+                <p className="text-red-300 text-sm mt-1">{error}</p>
               </div>
             </div>
           </div>
         )}
 
         {/* Submissions Table */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Submissions</h3>
+        <div className="bg-[#0B0F14] border border-[#1F2933] rounded-lg overflow-hidden">
+          <div className="px-4 sm:px-6 py-4 border-b border-[#1F2933]">
+            <h3 className="text-base sm:text-lg font-semibold text-[#F9FAFB]">Recent Submissions</h3>
           </div>
           
           {submissions.length === 0 ? (
             <div className="p-6 text-center">
-              <div className="text-gray-400 text-4xl mb-4">📝</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Submissions Yet</h3>
-              <p className="text-gray-500">Form submissions will appear here once users start submitting data.</p>
+              <div className="text-[#CBD5E1] text-4xl mb-4">📝</div>
+              <h3 className="text-base sm:text-lg font-medium text-[#F9FAFB] mb-2">No Submissions Yet</h3>
+              <p className="text-[#CBD5E1] text-sm">Form submissions will appear here once users start submitting data.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="w-full divide-y divide-[#1F2933]">
+                <thead className="bg-[#0B0F14]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Submission ID
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-[#CBD5E1] uppercase tracking-wider">
+                      ID
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-[#CBD5E1] uppercase tracking-wider">
                       Business Info
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-[#CBD5E1] uppercase tracking-wider">
                       Language
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-[#CBD5E1] uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-[#CBD5E1] uppercase tracking-wider">
                       Submitted
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-[#CBD5E1] uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[#0B0F14] divide-y divide-[#1F2933]">
                   {submissions.map((submission) => (
-                    <tr key={submission.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-mono text-gray-900">
+                    <tr key={submission.id} className="hover:bg-[#1F2933]/20">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm font-mono text-[#F9FAFB]">
                           {submission.id.substring(0, 8)}...
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">
+                      <td className="px-3 sm:px-6 py-4">
+                        <div className="text-xs sm:text-sm text-[#F9FAFB]">
                           {submission.form_data.business_profile?.business_name || 
                            submission.form_data.business_profile?.business_type || 
                            'Unknown Business'}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-[10px] sm:text-xs text-[#CBD5E1] mt-1 hidden sm:block">
                           {submission.form_data.business_profile?.location || 'Location not specified'}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">
+                      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-[#F9FAFB]">
                           {submission.form_data.form_language === 'si' ? 'Sinhala' : 
                            submission.form_data.form_language === 'en' ? 'English' : 'Mixed'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          submission.status === 'submitted' ? 'bg-green-100 text-green-800' :
-                          submission.status === 'processed' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          submission.status === 'submitted' ? 'bg-[#22C55E]/20 text-[#22C55E]' :
+                          submission.status === 'processed' ? 'bg-blue-500/20 text-blue-400' :
+                          'bg-[#CBD5E1]/20 text-[#CBD5E1]'
                         }`}>
                           {submission.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-[#F9FAFB]">
                         {formatDate(submission.created_at)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                         <button
                           onClick={() => handleViewSubmission(submission.id)}
-                          className="text-blue-600 hover:text-blue-900 mr-4"
+                          className="text-[#22C55E] hover:text-[#16A34A]"
                         >
                           View
                         </button>
@@ -219,23 +219,23 @@ export default function AdminPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  Showing page {currentPage} of {totalPages} ({totalSubmissions} total submissions)
+            <div className="px-4 sm:px-6 py-4 border-t border-[#1F2933]">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+                <div className="text-xs sm:text-sm text-[#CBD5E1]">
+                  Page {currentPage} of {totalPages} ({totalSubmissions} total)
                 </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 text-sm bg-[#1F2933] border border-[#1F2933] text-[#F9FAFB] rounded-md hover:bg-[#1F2933]/80 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 text-sm bg-[#1F2933] border border-[#1F2933] text-[#F9FAFB] rounded-md hover:bg-[#1F2933]/80 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>

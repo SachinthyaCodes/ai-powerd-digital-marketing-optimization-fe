@@ -140,30 +140,30 @@ export function ReviewStep({ data, onSubmit, isSubmitting, processingStatus, pro
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-[#0B0F14] border border-[#1F2933] rounded-lg p-4">
-        <h3 className="text-lg font-medium text-[#F9FAFB] mb-2">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-[#0B0F14] border border-[#1F2933] rounded-lg p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-medium text-[#F9FAFB] mb-2">
           Review Your Information
         </h3>
-        <p className="text-[#CBD5E1]">
+        <p className="text-[#CBD5E1] text-sm sm:text-base">
           Please review all sections below. You can go back to edit any section if needed.
         </p>
       </div>
 
-      <div className="bg-[#0B0F14] border border-[#1F2933] rounded-lg p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="font-medium text-[#F9FAFB]">Completion Status</h4>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+      <div className="bg-[#0B0F14] border border-[#1F2933] rounded-lg p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+          <h4 className="font-medium text-[#F9FAFB] text-base sm:text-lg">Completion Status</h4>
+          <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
             isComplete ? 'bg-[#22C55E]/20 text-[#22C55E]' : 'bg-yellow-500/20 text-yellow-500'
           }`}>
             {completed}/{total} sections complete
           </span>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {sections.map((section, index) => (
             <div key={index} className="flex items-center justify-between p-3 bg-[#1F2933] rounded-lg">
-              <span className="font-medium text-[#CBD5E1]">{section.name}</span>
+              <span className="font-medium text-[#CBD5E1] text-sm">{section.name}</span>
               {renderSectionSummary(section.name, section.data)}
             </div>
           ))}
@@ -171,11 +171,11 @@ export function ReviewStep({ data, onSubmit, isSubmitting, processingStatus, pro
       </div>
 
       {/* Section Details */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {sections.map((section, index) => (
           section.data && Object.keys(section.data).length > 0 && (
-            <div key={index} className="bg-[#0B0F14] border border-[#1F2933] rounded-lg p-4">
-              <h4 className="font-medium text-[#F9FAFB] mb-3">{section.name}</h4>
+            <div key={index} className="bg-[#0B0F14] border border-[#1F2933] rounded-lg p-4 sm:p-5">
+              <h4 className="font-medium text-[#F9FAFB] mb-3 text-sm sm:text-base">{section.name}</h4>
               {section.name === 'Business Profile' && formatBusinessProfile(section.data)}
               {section.name === 'Budget & Resources' && formatBudgetResources(section.data)}
               {section.name === 'Business Goals' && formatBusinessGoals(section.data)}
@@ -195,9 +195,9 @@ export function ReviewStep({ data, onSubmit, isSubmitting, processingStatus, pro
         <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
           <div className="flex items-center">
             <AlertCircle className="w-5 h-5 text-yellow-500 mr-2" />
-            <span className="font-medium text-yellow-500">Incomplete Sections</span>
+            <span className="font-medium text-yellow-500 text-sm sm:text-base">Incomplete Sections</span>
           </div>
-          <p className="text-[#CBD5E1] mt-2">
+          <p className="text-[#CBD5E1] mt-2 text-sm">
             Please complete all sections to get the most accurate marketing strategy recommendations.
           </p>
         </div>
@@ -206,17 +206,17 @@ export function ReviewStep({ data, onSubmit, isSubmitting, processingStatus, pro
       {/* Processing Status */}
       {(isSubmitting || processingStatus) && (
         <div className="bg-[#22C55E]/10 border border-[#22C55E]/30 rounded-lg p-4">
-          <h4 className="font-medium text-[#F9FAFB] mb-2">Processing Your Data</h4>
+          <h4 className="font-medium text-[#F9FAFB] mb-2 text-sm sm:text-base">Processing Your Data</h4>
           <div className="space-y-2">
             {isSubmitting && (
               <div className="flex items-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#22C55E] mr-2"></div>
-                <span className="text-sm text-[#CBD5E1]">{processingStatus || 'Processing...'}</span>
+                <span className="text-xs sm:text-sm text-[#CBD5E1]">{processingStatus || 'Processing...'}</span>
               </div>
             )}
             
             {processingResult && (
-              <div className="text-sm text-[#CBD5E1] space-y-1">
+              <div className="text-xs sm:text-sm text-[#CBD5E1] space-y-1">
                 <p>✅ Language Detection: {processingResult.processingMetadata?.detectedLanguage}</p>
                 {processingResult.processingMetadata?.translationApplied && (
                   <p>🌐 Translated {processingResult.processingMetadata.translatedFieldsCount} fields</p>
@@ -233,16 +233,16 @@ export function ReviewStep({ data, onSubmit, isSubmitting, processingStatus, pro
         <button
           onClick={onSubmit}
           disabled={!isComplete || isSubmitting}
-          className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
         >
           {isSubmitting ? 'Generating Strategy...' : 'Get My Marketing Strategy Recommendations'}
         </button>
         
         {isComplete && !isSubmitting && (
-          <p className="text-sm text-[#CBD5E1] mt-3 text-center">
+          <p className="text-xs sm:text-sm text-[#CBD5E1] mt-3 text-center">
             Your personalized marketing strategy will be generated based on the information you've provided.
             <br />
-            <span className="text-xs">Supports Sinhala and English text with automatic translation.</span>
+            <span className="text-[10px] sm:text-xs">Supports Sinhala and English text with automatic translation.</span>
           </p>
         )}
       </div>
