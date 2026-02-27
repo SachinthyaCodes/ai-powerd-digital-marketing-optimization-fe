@@ -27,10 +27,20 @@ export interface ExplainabilityTip {
   hashtags: string[];
 }
 
+export interface GroqInsights {
+  hashtags: string[];
+  peak_times: string[];
+  best_dates: string[];
+  likes_explanation: string;
+  comments_explanation: string;
+  shares_explanation: string;
+}
+
 export interface PredictionResponse {
   id: string | null;
   predictions: PredictionResult;
   explainability: ExplainabilityTip[];
+  groq_insights?: GroqInsights;
 }
 
 export interface OCRResponse {

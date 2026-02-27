@@ -163,6 +163,11 @@
   padding: 28px;
 }
 
+/* ─── Groq Insights Row ──────────────────────────────────────────────────── */
+.insightsRow {
+  width: 100%;
+}
+
 @media (max-width: 900px) {
   .resultsGrid {
     grid-template-columns: 1fr;

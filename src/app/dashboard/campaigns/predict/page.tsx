@@ -4,6 +4,7 @@ import { useState } from 'react';
 import PredictionForm from '@/components/campaigns/PredictionForm';
 import PredictionResults from '@/components/campaigns/PredictionResults';
 import ExplainabilityPanel from '@/components/campaigns/ExplainabilityPanel';
+import GroqInsightsPanel from '@/components/campaigns/GroqInsightsPanel';
 import { predictCampaign, PredictionRequest, PredictionResponse } from '@/services/campaignApiService';
 import styles from './page.module.css';
 
@@ -87,6 +88,13 @@ export default function PredictPage() {
                   <ExplainabilityPanel tips={response.explainability} />
                 </div>
               </div>
+
+              {/* Groq Deep Insights */}
+              {response.groq_insights && (
+                <div className={styles.insightsRow}>
+                  <GroqInsightsPanel insights={response.groq_insights} />
+                </div>
+              )}
             </div>
           )
         )}
