@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Configure for FastAPI backend
+  // Proxy internal /api/* calls to the Node.js Express backend
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
+        destination: 'http://localhost:5000/api/:path*',
       },
     ]
   },
