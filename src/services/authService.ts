@@ -146,7 +146,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to update user');
+      throw new Error(error.message || 'Failed to update user');
     }
 
     return response.json();
