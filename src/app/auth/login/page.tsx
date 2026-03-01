@@ -1,30 +1,23 @@
 'use client';
 
-/**
- * Login Page
- */
-
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       await login({ email, password });
-      // Router redirect is handled in AuthContext after successful login
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
@@ -33,28 +26,35 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 px-4">
-      <div className="max-w-md w-full">
-        {/* Logo/Title */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Serendib AI</h1>
-          <p className="text-purple-200">Marketing Optimization Platform</p>
+    <div className="min-h-screen flex items-center justify-center bg-[#0B0F14] px-4">
+      {/* Subtle background glow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#22C55E]/5 rounded-full blur-3xl" />
+      </div>
+
+      <div className="relative w-full max-w-md">
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-10">
+          <img src="/Logo.png" alt="Serendib AI" className="h-12 w-auto mb-4" />
+          <p className="text-[#CBD5E1] text-sm">Smart Assistant Platform</p>
         </div>
 
-        {/* Login Card */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
-          <h2 className="text-2xl font-semibold text-white mb-6">Sign In</h2>
+        {/* Card */}
+        <div className="bg-[#1F2933] rounded-2xl border border-[#CBD5E1]/10 shadow-2xl p-8">
+          <h2 className="text-xl font-semibold text-[#F9FAFB] mb-1">Welcome back</h2>
+          <p className="text-[#CBD5E1] text-sm mb-7">Sign in to your account to continue</p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
-              {error}
+            <div className="mb-5 flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <span className="text-red-400 mt-0.5">&#9888;</span>
+              <p className="text-red-300 text-sm">{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-purple-200 mb-2">
-                Email Address
+              <label htmlFor="email" className="block text-sm font-medium text-[#CBD5E1] mb-2">
+                Email address
               </label>
               <input
                 id="email"
@@ -62,60 +62,72 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                placeholder="you@example.com"
+                autoComplete="email"
+                className="w-full px-4 py-3 bg-[#0B0F14] border border-[#CBD5E1]/20 rounded-lg text-[#F9FAFB] placeholder-[#CBD5E1]/30 focus:outline-none focus:ring-2 focus:ring-[#22C55E]/60 focus:border-[#22C55E] transition text-sm"
+                placeholder="you@company.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-purple-200 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-[#CBD5E1] mb-2">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  className="w-full px-4 py-3 pr-12 bg-[#0B0F14] border border-[#CBD5E1]/20 rounded-lg text-[#F9FAFB] placeholder-[#CBD5E1]/30 focus:outline-none focus:ring-2 focus:ring-[#22C55E]/60 focus:border-[#22C55E] transition text-sm"
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#CBD5E1]/50 hover:text-[#CBD5E1] transition text-xs"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              className="w-full py-3 px-4 bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F14] font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm shadow-lg shadow-[#22C55E]/20"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : 'Sign in'}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-purple-200 text-sm">
-              Don't have an account?{' '}
-              <Link 
-                href="/auth/register" 
-                className="text-purple-300 hover:text-white font-semibold transition"
+          <div className="mt-6 pt-6 border-t border-[#CBD5E1]/10 text-center">
+            <p className="text-[#CBD5E1] text-sm">
+              Don&apos;t have an account?{' '}
+              <Link
+                href="/auth/register"
+                className="text-[#22C55E] hover:text-[#16A34A] font-medium transition"
               >
-                Sign Up
+                Sign up
               </Link>
-            </p>
-          </div>
-
-          {/* Demo credentials hint */}
-          <div className="mt-6 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-            <p className="text-blue-200 text-xs text-center">
-              <strong>Tip:</strong> Contact admin for credentials
             </p>
           </div>
         </div>
 
-        {/* Back to marketing tool */}
-        <div className="mt-4 text-center">
-          <Link 
-            href="/" 
-            className="text-purple-300 hover:text-white text-sm transition"
+        {/* Back link */}
+        <div className="mt-6 text-center">
+          <Link
+            href="/"
+            className="text-[#CBD5E1]/50 hover:text-[#CBD5E1] text-xs transition"
           >
             ← Back to Marketing Tool
           </Link>

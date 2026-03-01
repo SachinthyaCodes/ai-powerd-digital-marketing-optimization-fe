@@ -1,12 +1,9 @@
-'use client';
-
-/**
- * User Dashboard - For regular users
- */
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/auth';
@@ -16,7 +13,6 @@ function UserDashboardContent() {
   const { user, logout, token } = useAuth();
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -31,25 +27,35 @@ function UserDashboardContent() {
         }
       }
     };
-
     loadDashboard();
   }, [token]);
 
+  const initials = (user?.full_name || user?.username || 'U')
+    .split(' ')
+    .map((w: string) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+    <div className="min-h-screen bg-[#0B0F14] text-[#F9FAFB]">
       {/* Header */}
-      <header className="bg-white/10 backdrop-blur-lg border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-white">User Dashboard</h1>
-              <p className="text-purple-200 text-sm mt-1">
-                Welcome, {user?.full_name || user?.username}!
-              </p>
-            </div>
+      <header className="sticky top-0 z-30 bg-[#0B0F14]/95 border-b border-[#CBD5E1]/10 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Image src="/Logo.png" alt="Logo" width={32} height={32} className="rounded" />
+            <span className="font-semibold text-[#F9FAFB]">
+              User Dashboard
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[#CBD5E1] text-sm hidden sm:block">{user?.full_name || user?.username}</span>
+            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30 uppercase">
+              User
+            </span>
             <button
               onClick={logout}
-              className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-lg transition border border-red-500/30"
+              className="ml-2 px-3 py-1.5 rounded text-sm bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition"
             >
               Logout
             </button>
@@ -57,111 +63,103 @@ function UserDashboardContent() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* User Info Card */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Your Profile</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-purple-300 text-sm">Email</p>
-              <p className="text-white font-medium">{user?.email}</p>
-            </div>
-            <div>
-              <p className="text-purple-300 text-sm">Username</p>
-              <p className="text-white font-medium">{user?.username}</p>
-            </div>
-            <div>
-              <p className="text-purple-300 text-sm">Role</p>
-              <p className="text-white font-medium capitalize">{user?.role}</p>
-            </div>
-            <div>
-              <p className="text-purple-300 text-sm">Status</p>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm ${
-                user?.is_active 
-                  ? 'bg-green-500/20 text-green-200 border border-green-500/30' 
-                  : 'bg-red-500/20 text-red-200 border border-red-500/30'
-              }`}>
-                {user?.is_active ? 'Active' : 'Inactive'}
-              </span>
-            </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Welcome Banner */}
+        <div className="bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-xl px-6 py-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-[#22C55E]/20 border border-[#22C55E]/30 flex items-center justify-center text-[#22C55E] font-bold text-lg flex-shrink-0">
+            {initials}
+          </div>
+          <div>
+            <p className="font-semibold text-[#F9FAFB]">Welcome back, {user?.full_name || user?.username}!</p>
+            <p className="text-[#CBD5E1] text-sm">{user?.email}</p>
+          </div>
+          <span className={`ml-auto flex items-center gap-1.5 text-sm ${user?.is_active ? 'text-[#22C55E]' : 'text-red-400'}`}>
+            <span className={`w-2 h-2 rounded-full ${user?.is_active ? 'bg-[#22C55E]' : 'bg-red-400'}`} />
+            {user?.is_active ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+
+        {/* Profile Card */}
+        <div className="bg-[#1F2933] rounded-xl border border-[#CBD5E1]/10 p-6">
+          <h2 className="font-semibold text-[#F9FAFB] mb-4">Your Profile</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { label: 'Email', value: user?.email },
+              { label: 'Username', value: user?.username },
+              { label: 'Full Name', value: user?.full_name || '—' },
+              { label: 'Role', value: user?.role && user.role.charAt(0).toUpperCase() + user.role.slice(1) },
+            ].map(({ label, value }) => (
+              <div key={label}>
+                <p className="text-[#CBD5E1] text-xs mb-1">{label}</p>
+                <p className="text-[#F9FAFB] text-sm font-medium">{value}</p>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Link 
-            href="/"
-            className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 hover:border-purple-400 transition group"
-          >
-            <div className="text-purple-300 mb-2">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h3 className="text-white font-semibold mb-2 group-hover:text-purple-300 transition">
-              Marketing Strategy
-            </h3>
-            <p className="text-purple-200 text-sm">
-              Generate AI-powered marketing recommendations
-            </p>
-          </Link>
+        <div>
+          <h2 className="font-semibold text-[#F9FAFB] mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Link href="/" className="group bg-[#1F2933] hover:bg-[#1F2933]/80 border border-[#CBD5E1]/10 hover:border-[#22C55E]/40 rounded-xl p-5 transition">
+              <div className="w-10 h-10 rounded-lg bg-[#22C55E]/10 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-[#22C55E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-[#F9FAFB] font-semibold text-sm mb-1 group-hover:text-[#22C55E] transition">Marketing Strategy</h3>
+              <p className="text-[#CBD5E1] text-xs">Generate AI-powered marketing recommendations</p>
+            </Link>
 
-          <Link 
-            href="/dashboard/campaigns"
-            className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30 hover:border-blue-400 transition group"
-          >
-            <div className="text-blue-300 mb-2">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h3 className="text-white font-semibold mb-2 group-hover:text-blue-300 transition">
-              Campaigns
-            </h3>
-            <p className="text-blue-200 text-sm">
-              Manage your marketing campaigns
-            </p>
-          </Link>
+            <Link href="/dashboard/campaigns" className="group bg-[#1F2933] hover:bg-[#1F2933]/80 border border-[#CBD5E1]/10 hover:border-[#22C55E]/40 rounded-xl p-5 transition">
+              <div className="w-10 h-10 rounded-lg bg-[#22C55E]/10 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-[#22C55E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 className="text-[#F9FAFB] font-semibold text-sm mb-1 group-hover:text-[#22C55E] transition">Campaigns</h3>
+              <p className="text-[#CBD5E1] text-xs">Manage your marketing campaigns</p>
+            </Link>
 
-          <Link 
-            href="/dashboard/chat"
-            className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-lg rounded-2xl p-6 border border-green-500/30 hover:border-green-400 transition group"
-          >
-            <div className="text-green-300 mb-2">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-            </div>
-            <h3 className="text-white font-semibold mb-2 group-hover:text-green-300 transition">
-              AI Chat
-            </h3>
-            <p className="text-green-200 text-sm">
-              Chat with AI marketing assistant
-            </p>
-          </Link>
+            <Link href="/dashboard/chat" className="group bg-[#1F2933] hover:bg-[#1F2933]/80 border border-[#CBD5E1]/10 hover:border-[#22C55E]/40 rounded-xl p-5 transition">
+              <div className="w-10 h-10 rounded-lg bg-[#22C55E]/10 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-[#22C55E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              </div>
+              <h3 className="text-[#F9FAFB] font-semibold text-sm mb-1 group-hover:text-[#22C55E] transition">AI Chat</h3>
+              <p className="text-[#CBD5E1] text-xs">Chat with AI marketing assistant</p>
+            </Link>
+          </div>
         </div>
 
-        {/* Dashboard Message */}
+        {/* Dashboard message */}
         {loading ? (
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <p className="text-white text-center">Loading dashboard...</p>
+          <div className="bg-[#1F2933] border border-[#CBD5E1]/10 rounded-xl p-6 text-center text-[#CBD5E1] text-sm">
+            Loading dashboard data...
           </div>
-        ) : dashboardData ? (
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <p className="text-white text-lg">{dashboardData.message}</p>
+        ) : dashboardData?.message ? (
+          <div className="bg-[#1F2933] border border-[#CBD5E1]/10 rounded-xl p-6 text-[#F9FAFB] text-sm">
+            {dashboardData.message}
           </div>
         ) : null}
 
-        {/* Info Section */}
-        <div className="mt-6 bg-blue-500/10 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30">
-          <h3 className="text-white font-semibold mb-2">ℹ️ User Features</h3>
-          <ul className="text-blue-200 text-sm space-y-2">
-            <li>• Access to marketing strategy generation tools</li>
-            <li>• Create and manage campaigns</li>
-            <li>• AI-powered content suggestions</li>
-            <li>• Chat with AI marketing assistant</li>
-            <li>• View your profile and settings</li>
+        {/* Capabilities */}
+        <div className="bg-[#1F2933] border border-[#CBD5E1]/10 rounded-xl p-6">
+          <h3 className="font-semibold text-[#F9FAFB] text-sm mb-3">Your Capabilities</h3>
+          <ul className="space-y-2 text-[#CBD5E1] text-sm">
+            {[
+              'Access to marketing strategy generation tools',
+              'Create and manage campaigns',
+              'AI-powered content suggestions',
+              'Chat with AI marketing assistant',
+              'View your profile and settings',
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] flex-shrink-0" />
+                {item}
+              </li>
+            ))}
           </ul>
         </div>
       </main>

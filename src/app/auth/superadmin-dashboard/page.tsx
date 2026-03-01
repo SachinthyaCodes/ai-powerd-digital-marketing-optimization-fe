@@ -1,11 +1,6 @@
-'use client';
-
-/**
- * Superadmin Dashboard - For superadmin users with full system control
- */
+﻿'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,306 +20,289 @@ function SuperadminDashboardContent() {
   const { user, logout, token } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<SystemStats | null>(null);
-  const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'all' | 'admins' | 'superadmins'>('all');
 
-  useEffect(() => {
-    loadDashboard();
-  }, [token]);
+  useEffect(() => { loadDashboard(); }, [token]);
 
   const loadDashboard = async () => {
-    if (token) {
-      try {
-        const [dashboard, systemStats, usersList] = await Promise.all([
-          authService.getSuperadminDashboard(token),
-          authService.getSystemStats(token),
-          authService.getAllUsersAdmin(token, 0, 50)
-        ]);
-        setDashboardData(dashboard);
-        setStats(systemStats);
-        setUsers(usersList);
-      } catch (error: any) {
-        console.error('Failed to load dashboard:', error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
+    if (!token) return;
+    try {
+      const [systemStats, usersList] = await Promise.all([
+        authService.getSystemStats(token),
+        authService.getAllUsersAdmin(token, 0, 100),
+      ]);
+      setStats(systemStats);
+      setUsers(usersList);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handlePromoteToAdmin = async (userId: string) => {
-    if (!token) return;
-    if (!confirm('Promote this user to Admin?')) return;
-
+    if (!token || !confirm('Demote / set this user to Admin?')) return;
     try {
-      const updatedUser = await authService.promoteToAdmin(token, userId);
-      setUsers(users.map(u => u.id === userId ? updatedUser : u));
-      loadDashboard(); // Refresh stats
-    } catch (error: any) {
-      alert(`Failed to promote user: ${error.message}`);
-    }
+      const updated = await authService.promoteToAdmin(token, userId);
+      setUsers(users.map((u) => (u.id === userId ? updated : u)));
+      loadDashboard();
+    } catch (err: any) { alert(err.message); }
   };
 
   const handlePromoteToSuperadmin = async (userId: string) => {
-    if (!token) return;
-    if (!confirm('⚠️ WARNING: Promote this user to Superadmin? This grants full system access!')) return;
-
+    if (!token || !confirm('Promote to Superadmin? This grants full platform access.')) return;
     try {
-      const updatedUser = await authService.promoteToSuperadmin(token, userId);
-      setUsers(users.map(u => u.id === userId ? updatedUser : u));
-      loadDashboard(); // Refresh stats
-    } catch (error: any) {
-      alert(`Failed to promote user: ${error.message}`);
-    }
+      const updated = await authService.promoteToSuperadmin(token, userId);
+      setUsers(users.map((u) => (u.id === userId ? updated : u)));
+      loadDashboard();
+    } catch (err: any) { alert(err.message); }
   };
 
   const handleDemoteToUser = async (userId: string) => {
-    if (!token) return;
-    if (!confirm('Demote this user to regular User role?')) return;
-
+    if (!token || !confirm('Demote this account to regular User?')) return;
     try {
-      const updatedUser = await authService.demoteToUser(token, userId);
-      setUsers(users.map(u => u.id === userId ? updatedUser : u));
-      loadDashboard(); // Refresh stats
-    } catch (error: any) {
-      alert(`Failed to demote user: ${error.message}`);
-    }
+      const updated = await authService.demoteToUser(token, userId);
+      setUsers(users.map((u) => (u.id === userId ? updated : u)));
+      loadDashboard();
+    } catch (err: any) { alert(err.message); }
   };
 
   const handleToggleActive = async (userId: string) => {
     if (!token) return;
-
     try {
-      const updatedUser = await authService.toggleUserActive(token, userId);
-      setUsers(users.map(u => u.id === userId ? updatedUser : u));
-      loadDashboard(); // Refresh stats
-    } catch (error: any) {
-      alert(`Failed to update user: ${error.message}`);
-    }
+      const updated = await authService.toggleUserActive(token, userId);
+      setUsers(users.map((u) => (u.id === userId ? updated : u)));
+      loadDashboard();
+    } catch (err: any) { alert(err.message); }
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!token) return;
-    if (!confirm('⚠️ Are you sure you want to DELETE this user permanently?')) return;
-
+    if (!token || !confirm('⚠️ Delete this user permanently? This cannot be undone.')) return;
     try {
       await authService.deleteUserAdmin(token, userId);
-      setUsers(users.filter(u => u.id !== userId));
-      loadDashboard(); // Refresh stats
-    } catch (error: any) {
-      alert(`Failed to delete user: ${error.message}`);
-    }
+      setUsers(users.filter((u) => u.id !== userId));
+      loadDashboard();
+    } catch (err: any) { alert(err.message); }
+  };
+
+  const filteredUsers = users.filter((u) => {
+    if (activeTab === 'admins') return u.role === UserRole.ADMIN;
+    if (activeTab === 'superadmins') return u.role === UserRole.SUPERADMIN;
+    return true;
+  });
+
+  const roleBadge = (role: string) => {
+    const map: Record<string, string> = {
+      superadmin: 'bg-red-500/10 text-red-400 border-red-500/20',
+      admin: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+      user: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    };
+    return map[role] ?? 'bg-[#CBD5E1]/10 text-[#CBD5E1]';
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-red-900 to-purple-900">
-      {/* Header */}
-      <header className="bg-white/10 backdrop-blur-lg border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                <span className="text-red-400">👑</span>
-                Superadmin Dashboard
-              </h1>
-              <p className="text-red-200 text-sm mt-1">
-                Full System Control - {user?.full_name || user?.username}
-              </p>
+    <div className="min-h-screen bg-[#0B0F14] font-sans">
+      {/* Top nav */}
+      <header className="bg-[#1F2933] border-b border-[#CBD5E1]/10 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <img src="/Logo.png" alt="Serendib AI" className="h-8 w-auto" />
+            <div className="h-5 w-px bg-[#CBD5E1]/20" />
+            <span className="text-[#CBD5E1] text-sm font-medium">Superadmin Panel</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex flex-col items-end">
+              <span className="text-[#F9FAFB] text-sm font-medium leading-none">
+                {user?.full_name || user?.username}
+              </span>
+              <span className="text-red-400 text-xs mt-0.5">Superadmin</span>
             </div>
-            <div className="flex gap-3">
-              <Link
-                href="/"
-                className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 rounded-lg transition border border-purple-500/30"
-              >
-                Marketing Tool
-              </Link>
-              <button
-                onClick={logout}
-                className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-lg transition border border-red-500/30"
-              >
-                Logout
-              </button>
-            </div>
+            <Link
+              href="/"
+              className="px-3 py-1.5 bg-[#0B0F14] border border-[#CBD5E1]/20 text-[#CBD5E1] hover:text-[#F9FAFB] rounded-lg text-xs transition"
+            >
+              Marketing Tool
+            </Link>
+            <button
+              onClick={logout}
+              className="px-3 py-1.5 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 rounded-lg text-xs transition"
+            >
+              Sign out
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* System Stats */}
+        {/* Heading */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-[#F9FAFB]">Platform Overview</h1>
+          <p className="text-[#CBD5E1] text-sm mt-1">Full control over all accounts, roles, and services</p>
+        </div>
+
+        {/* Stats grid */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-lg rounded-xl p-4 border border-blue-500/30">
-              <div className="text-blue-300 text-xs mb-1">Total Users</div>
-              <div className="text-white text-2xl font-bold">{stats.total_users}</div>
-            </div>
-            <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-lg rounded-xl p-4 border border-green-500/30">
-              <div className="text-green-300 text-xs mb-1">Active</div>
-              <div className="text-white text-2xl font-bold">{stats.active_users}</div>
-            </div>
-            <div className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-lg rounded-xl p-4 border border-red-500/30">
-              <div className="text-red-300 text-xs mb-1">Superadmins</div>
-              <div className="text-white text-2xl font-bold">{stats.superadmins}</div>
-            </div>
-            <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-lg rounded-xl p-4 border border-yellow-500/30">
-              <div className="text-yellow-300 text-xs mb-1">Admins</div>
-              <div className="text-white text-2xl font-bold">{stats.admins}</div>
-            </div>
-            <div className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-lg rounded-xl p-4 border border-purple-500/30">
-              <div className="text-purple-300 text-xs mb-1">Users</div>
-              <div className="text-white text-2xl font-bold">{stats.regular_users}</div>
-            </div>
-            <div className="bg-gradient-to-br from-gray-500/20 to-slate-500/20 backdrop-blur-lg rounded-xl p-4 border border-gray-500/30">
-              <div className="text-gray-300 text-xs mb-1">Inactive</div>
-              <div className="text-white text-2xl font-bold">{stats.inactive_users}</div>
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+            {[
+              { label: 'Total', value: stats.total_users, accent: 'text-[#F9FAFB]' },
+              { label: 'Active', value: stats.active_users, accent: 'text-[#22C55E]' },
+              { label: 'Inactive', value: stats.inactive_users, accent: 'text-red-400' },
+              { label: 'Superadmins', value: stats.superadmins, accent: 'text-red-400' },
+              { label: 'Admins', value: stats.admins, accent: 'text-yellow-400' },
+              { label: 'Users', value: stats.regular_users, accent: 'text-blue-400' },
+            ].map((s) => (
+              <div key={s.label} className="bg-[#1F2933] rounded-xl border border-[#CBD5E1]/10 p-4">
+                <p className="text-[#CBD5E1] text-xs mb-1.5">{s.label}</p>
+                <p className={`text-2xl font-bold ${s.accent}`}>{s.value}</p>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* Dashboard Message */}
-        {dashboardData && (
-          <div className="bg-red-500/10 backdrop-blur-lg rounded-2xl p-6 border border-red-500/30 mb-8">
-            <p className="text-white text-lg">{dashboardData.message}</p>
-          </div>
-        )}
-
-        {/* Users Management */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden">
-          <div className="p-6 border-b border-white/20">
-            <h2 className="text-xl font-semibold text-white">Complete User Management</h2>
-            <p className="text-red-200 text-sm mt-1">Full control over all user accounts and roles</p>
+        {/* User management table */}
+        <div className="bg-[#1F2933] rounded-2xl border border-[#CBD5E1]/10 overflow-hidden">
+          {/* Table header + tabs */}
+          <div className="px-6 py-5 border-b border-[#CBD5E1]/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-semibold text-[#F9FAFB]">User Management</h2>
+                <p className="text-[#CBD5E1] text-xs mt-0.5">Promote, demote, activate, or delete any account</p>
+              </div>
+              <div className="flex items-center gap-1 bg-[#0B0F14] rounded-lg p-1 border border-[#CBD5E1]/10">
+                {(['all', 'admins', 'superadmins'] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setActiveTab(t)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition capitalize ${
+                      activeTab === t
+                        ? 'bg-[#1F2933] text-[#F9FAFB] shadow'
+                        : 'text-[#CBD5E1] hover:text-[#F9FAFB]'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {loading ? (
-            <div className="p-8 text-center text-white">Loading users...</div>
+            <div className="flex items-center justify-center py-16 gap-3">
+              <svg className="animate-spin h-5 w-5 text-[#22C55E]" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              <span className="text-[#CBD5E1] text-sm">Loading...</span>
+            </div>
           ) : error ? (
-            <div className="p-8 text-center text-red-300">{error}</div>
+            <div className="p-8 text-center text-red-400 text-sm">{error}</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-white/5">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-red-300 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-red-300 uppercase tracking-wider">
-                      User
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-red-300 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-red-300 uppercase tracking-wider">
-                      Role
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-red-300 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-red-300 uppercase tracking-wider">
-                      Actions
-                    </th>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#CBD5E1]/5">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#CBD5E1]/60 uppercase tracking-wider">Account</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#CBD5E1]/60 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#CBD5E1]/60 uppercase tracking-wider">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#CBD5E1]/60 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[#CBD5E1]/60 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10">
-                  {users.map((u) => (
-                    <tr key={u.id} className="hover:bg-white/5 transition">
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-300">
-                        #{u.id}
+                <tbody className="divide-y divide-[#CBD5E1]/5">
+                  {filteredUsers.map((u) => (
+                    <tr key={u.id} className="hover:bg-[#CBD5E1]/5 transition">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold uppercase border ${
+                            u.role === UserRole.SUPERADMIN
+                              ? 'bg-red-500/10 border-red-500/20 text-red-400'
+                              : u.role === UserRole.ADMIN
+                              ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+                              : 'bg-[#22C55E]/10 border-[#22C55E]/20 text-[#22C55E]'
+                          }`}>
+                            {(u.username || u.email)[0]}
+                          </div>
+                          <div>
+                            <p className="text-[#F9FAFB] font-medium">
+                              {u.username}
+                              {u.id === user?.id && (
+                                <span className="ml-2 text-[#CBD5E1]/40 text-xs">(you)</span>
+                              )}
+                            </p>
+                            {u.full_name && <p className="text-[#CBD5E1] text-xs">{u.full_name}</p>}
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-white font-medium">{u.username}</div>
-                        <div className="text-purple-300 text-sm">{u.full_name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-purple-200">
-                        {u.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          u.role === UserRole.SUPERADMIN
-                            ? 'bg-red-500/20 text-red-300 border border-red-500/30'
-                            : u.role === UserRole.ADMIN
-                            ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
-                            : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                        }`}>
+                      <td className="px-6 py-4 text-[#CBD5E1]">{u.email}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium border capitalize ${roleBadge(u.role)}`}>
                           {u.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
                           u.is_active
-                            ? 'bg-green-500/20 text-green-300'
-                            : 'bg-red-500/20 text-red-300'
+                            ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20'
+                            : 'bg-red-500/10 text-red-400 border-red-500/20'
                         }`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${u.is_active ? 'bg-[#22C55E]' : 'bg-red-400'}`} />
                           {u.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-xs">
+                      <td className="px-6 py-4">
                         {u.id !== user?.id ? (
-                          <div className="flex flex-col gap-1">
+                          <div className="flex flex-wrap justify-end gap-1.5">
+                            {/* Role actions */}
                             {u.role === UserRole.USER && (
                               <>
-                                <button
-                                  onClick={() => handlePromoteToAdmin(u.id)}
-                                  className="text-yellow-300 hover:text-yellow-200 transition text-left"
-                                >
-                                  → Promote to Admin
+                                <button onClick={() => handlePromoteToAdmin(u.id)}
+                                  className="px-2.5 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 hover:bg-yellow-500/20 rounded text-xs transition">
+                                  → Admin
                                 </button>
-                                <button
-                                  onClick={() => handlePromoteToSuperadmin(u.id)}
-                                  className="text-red-300 hover:text-red-200 transition text-left"
-                                >
-                                  → Promote to Superadmin
+                                <button onClick={() => handlePromoteToSuperadmin(u.id)}
+                                  className="px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded text-xs transition">
+                                  → Superadmin
                                 </button>
                               </>
                             )}
                             {u.role === UserRole.ADMIN && (
                               <>
-                                <button
-                                  onClick={() => handlePromoteToSuperadmin(u.id)}
-                                  className="text-red-300 hover:text-red-200 transition text-left"
-                                >
-                                  → Promote to Superadmin
+                                <button onClick={() => handlePromoteToSuperadmin(u.id)}
+                                  className="px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded text-xs transition">
+                                  → Superadmin
                                 </button>
-                                <button
-                                  onClick={() => handleDemoteToUser(u.id)}
-                                  className="text-blue-300 hover:text-blue-200 transition text-left"
-                                >
-                                  ↓ Demote to User
+                                <button onClick={() => handleDemoteToUser(u.id)}
+                                  className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 rounded text-xs transition">
+                                  ↓ User
                                 </button>
                               </>
                             )}
                             {u.role === UserRole.SUPERADMIN && (
                               <>
-                                <button
-                                  onClick={() => handlePromoteToAdmin(u.id)}
-                                  className="text-yellow-300 hover:text-yellow-200 transition text-left"
-                                >
-                                  ↓ Demote to Admin
+                                <button onClick={() => handlePromoteToAdmin(u.id)}
+                                  className="px-2.5 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 hover:bg-yellow-500/20 rounded text-xs transition">
+                                  ↓ Admin
                                 </button>
-                                <button
-                                  onClick={() => handleDemoteToUser(u.id)}
-                                  className="text-blue-300 hover:text-blue-200 transition text-left"
-                                >
-                                  ↓ Demote to User
+                                <button onClick={() => handleDemoteToUser(u.id)}
+                                  className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 rounded text-xs transition">
+                                  ↓ User
                                 </button>
                               </>
                             )}
-                            <button
-                              onClick={() => handleToggleActive(u.id)}
-                              className="text-purple-300 hover:text-purple-200 transition text-left"
-                            >
-                              {u.is_active ? '⊗ Deactivate' : '✓ Activate'}
+                            {/* Toggle + delete */}
+                            <button onClick={() => handleToggleActive(u.id)}
+                              className="px-2.5 py-1 bg-[#0B0F14] border border-[#CBD5E1]/20 text-[#CBD5E1] hover:text-[#F9FAFB] rounded text-xs transition">
+                              {u.is_active ? 'Deactivate' : 'Activate'}
                             </button>
-                            <button
-                              onClick={() => handleDeleteUser(u.id)}
-                              className="text-red-400 hover:text-red-300 transition text-left font-semibold"
-                            >
-                              ✕ Delete
+                            <button onClick={() => handleDeleteUser(u.id)}
+                              className="px-2.5 py-1 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 rounded text-xs transition font-medium">
+                              Delete
                             </button>
                           </div>
                         ) : (
-                          <span className="text-gray-400">You</span>
+                          <span className="text-[#CBD5E1]/30 text-xs text-right block">—</span>
                         )}
                       </td>
                     </tr>
@@ -335,25 +313,11 @@ function SuperadminDashboardContent() {
           )}
         </div>
 
-        {/* Superadmin Powers Info */}
-        <div className="mt-6 bg-red-500/10 backdrop-blur-lg rounded-2xl p-6 border border-red-500/30">
-          <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-            <span>⚡</span> Superadmin Capabilities
-          </h3>
-          <ul className="text-red-200 text-sm space-y-2">
-            <li>• <strong>Full system control</strong> - Complete access to all features</li>
-            <li>• <strong>Role management</strong> - Promote/demote users to any role</li>
-            <li>• <strong>User management</strong> - Create, update, delete any user</li>
-            <li>• <strong>System monitoring</strong> - View comprehensive system statistics</li>
-            <li>• <strong>Account control</strong> - Activate/deactivate any account</li>
-            <li>• <strong>Data access</strong> - Access to all user data and campaigns</li>
-          </ul>
-        </div>
-
         {/* Warning */}
-        <div className="mt-4 bg-yellow-500/10 backdrop-blur-lg rounded-2xl p-4 border border-yellow-500/30">
-          <p className="text-yellow-200 text-sm">
-            ⚠️ <strong>Warning:</strong> Superadmin actions cannot be undone. Use with caution.
+        <div className="mt-4 flex items-center gap-3 bg-yellow-500/5 border border-yellow-500/20 rounded-xl px-4 py-3">
+          <span className="text-yellow-400 text-sm">⚠</span>
+          <p className="text-yellow-400 text-xs">
+            Superadmin actions are irreversible. Deleting or demoting accounts takes effect immediately.
           </p>
         </div>
       </main>

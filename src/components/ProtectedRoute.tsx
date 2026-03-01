@@ -38,10 +38,10 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+      <div className="min-h-screen flex items-center justify-center bg-[#0B0F14]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-white text-lg">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#22C55E] mx-auto mb-4"></div>
+          <p className="text-[#CBD5E1] text-sm">Loading...</p>
         </div>
       </div>
     );
