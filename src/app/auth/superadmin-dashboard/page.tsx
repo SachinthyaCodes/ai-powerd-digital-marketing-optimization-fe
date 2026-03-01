@@ -20,21 +20,28 @@ function SuperadminDashboardContent() {
   const { user, logout, token } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<SystemStats | null>(null);
+  const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'admins' | 'superadmins'>('all');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showProvision, setShowProvision] = useState(false);
+  const [provisionLoading, setProvisionLoading] = useState(false);
+  const [form, setForm] = useState({ name: '', assignedEmail: '', storeName: '', storeCategory: '' });
 
   useEffect(() => { loadDashboard(); }, [token]);
 
   const loadDashboard = async () => {
     if (!token) return;
     try {
-      const [systemStats, usersList] = await Promise.all([
+      const [systemStats, usersList, servicesList] = await Promise.all([
         authService.getSystemStats(token),
         authService.getAllUsersAdmin(token, 0, 100),
+        authService.getServices(token),
       ]);
       setStats(systemStats);
       setUsers(usersList);
+      setServices(servicesList);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -83,6 +90,36 @@ function SuperadminDashboardContent() {
     try {
       await authService.deleteUserAdmin(token, userId);
       setUsers(users.filter((u) => u.id !== userId));
+      loadDashboard();
+    } catch (err: any) { alert(err.message); }
+  };
+
+  const handleCopyToken = (tenantId: string) => {
+    navigator.clipboard.writeText(tenantId);
+    setCopiedId(tenantId);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleProvision = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    setProvisionLoading(true);
+    try {
+      await authService.provisionService(token, form);
+      setForm({ name: '', assignedEmail: '', storeName: '', storeCategory: '' });
+      setShowProvision(false);
+      loadDashboard();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setProvisionLoading(false);
+    }
+  };
+
+  const handleDeleteService = async (serviceId: string) => {
+    if (!token || !confirm('Delete this service? The linked admin will lose their AI service token.')) return;
+    try {
+      await authService.deleteService(token, serviceId);
       loadDashboard();
     } catch (err: any) { alert(err.message); }
   };
@@ -319,6 +356,130 @@ function SuperadminDashboardContent() {
           <p className="text-yellow-400 text-xs">
             Superadmin actions are irreversible. Deleting or demoting accounts takes effect immediately.
           </p>
+        </div>
+
+        {/* ──────────────────── SERVICE PROVISIONING ──────────────────── */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-base font-semibold text-[#F9FAFB]">AI Service Provisioning</h2>
+              <p className="text-[#CBD5E1] text-xs mt-0.5">Each service generates a unique tenant token used as the RAG namespace</p>
+            </div>
+            <button
+              onClick={() => setShowProvision(!showProvision)}
+              className="px-4 py-2 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] hover:bg-[#22C55E]/20 rounded-lg text-xs font-medium transition"
+            >
+              {showProvision ? 'Cancel' : '+ New Service'}
+            </button>
+          </div>
+
+          {/* Provision form */}
+          {showProvision && (
+            <form onSubmit={handleProvision} className="bg-[#1F2933] rounded-2xl border border-[#22C55E]/20 p-6 mb-6">
+              <h3 className="text-[#F9FAFB] font-medium text-sm mb-4">Provision New Service</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-[#CBD5E1] text-xs mb-1.5">Service Name <span className="text-red-400">*</span></label>
+                  <input
+                    required
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="e.g. FreshMart AI Assistant"
+                    className="w-full bg-[#0B0F14] border border-[#CBD5E1]/10 rounded-lg px-4 py-2.5 text-[#F9FAFB] text-sm placeholder-[#CBD5E1]/30 focus:outline-none focus:border-[#22C55E]/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#CBD5E1] text-xs mb-1.5">Admin Email <span className="text-red-400">*</span></label>
+                  <input
+                    required
+                    type="email"
+                    value={form.assignedEmail}
+                    onChange={(e) => setForm({ ...form, assignedEmail: e.target.value })}
+                    placeholder="admin@store.com"
+                    className="w-full bg-[#0B0F14] border border-[#CBD5E1]/10 rounded-lg px-4 py-2.5 text-[#F9FAFB] text-sm placeholder-[#CBD5E1]/30 focus:outline-none focus:border-[#22C55E]/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#CBD5E1] text-xs mb-1.5">Store Name</label>
+                  <input
+                    value={form.storeName}
+                    onChange={(e) => setForm({ ...form, storeName: e.target.value })}
+                    placeholder="e.g. FreshMart Colombo"
+                    className="w-full bg-[#0B0F14] border border-[#CBD5E1]/10 rounded-lg px-4 py-2.5 text-[#F9FAFB] text-sm placeholder-[#CBD5E1]/30 focus:outline-none focus:border-[#22C55E]/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#CBD5E1] text-xs mb-1.5">Store Category</label>
+                  <input
+                    value={form.storeCategory}
+                    onChange={(e) => setForm({ ...form, storeCategory: e.target.value })}
+                    placeholder="e.g. Grocery, Pharmacy, Electronics"
+                    className="w-full bg-[#0B0F14] border border-[#CBD5E1]/10 rounded-lg px-4 py-2.5 text-[#F9FAFB] text-sm placeholder-[#CBD5E1]/30 focus:outline-none focus:border-[#22C55E]/50"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={provisionLoading}
+                  className="px-5 py-2.5 bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F14] font-semibold rounded-lg text-sm transition disabled:opacity-50"
+                >
+                  {provisionLoading ? 'Provisioning...' : 'Provision Service'}
+                </button>
+                <p className="text-[#CBD5E1]/50 text-xs">A unique tenant token is auto-generated on creation</p>
+              </div>
+            </form>
+          )}
+
+          {/* Services list */}
+          {services.length === 0 ? (
+            <div className="bg-[#1F2933] rounded-2xl border border-[#CBD5E1]/10 p-10 text-center">
+              <p className="text-[#CBD5E1] text-sm">No services provisioned yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {services.map((svc) => (
+                <div key={svc._id} className="bg-[#1F2933] rounded-2xl border border-[#CBD5E1]/10 p-5">
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <p className="text-[#F9FAFB] font-semibold text-sm">{svc.name}</p>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${
+                          svc.status === 'active'
+                            ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20'
+                            : svc.status === 'suspended'
+                            ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                            : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                        }`}>{svc.status}</span>
+                      </div>
+                      <p className="text-[#CBD5E1] text-xs mb-2">
+                        {svc.assignedEmail}
+                        {svc.storeName ? ` • ${svc.storeName}` : ''}
+                        {svc.storeCategory ? ` • ${svc.storeCategory}` : ''}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-[#0B0F14] border border-[#CBD5E1]/10 rounded-lg px-3 py-1.5 text-[#22C55E] text-xs font-mono tracking-wide flex-1 truncate">
+                          {svc.tenantId}
+                        </code>
+                        <button
+                          onClick={() => handleCopyToken(svc.tenantId)}
+                          className="flex-shrink-0 px-3 py-1.5 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] hover:bg-[#22C55E]/20 rounded-lg text-xs transition"
+                        >
+                          {copiedId === svc.tenantId ? 'Copied!' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteService(svc._id)}
+                      className="flex-shrink-0 px-3 py-1.5 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 rounded-lg text-xs transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>

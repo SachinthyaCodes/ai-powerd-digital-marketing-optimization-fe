@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole, User } from '@/types/auth';
+import { UserRole, User, ServiceInfo } from '@/types/auth';
 import { authService } from '@/services/authService';
 
 function AdminDashboardContent() {
   const { user, logout, token } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const [serviceInfo, setServiceInfo] = useState<ServiceInfo | null>(null);
+  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -24,6 +26,13 @@ function AdminDashboardContent() {
         ]);
         setDashboardData(dashboard);
         setUsers(usersList);
+        // Auto-fetch service token (independent – don’t block if not provisioned)
+        try {
+          const svc = await authService.getAdminService(token);
+          setServiceInfo(svc);
+        } catch {
+          // Not provisioned yet – silently skip
+        }
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -32,6 +41,13 @@ function AdminDashboardContent() {
     };
     loadDashboard();
   }, [token]);
+
+  const handleCopyToken = () => {
+    if (!serviceInfo?.tenantId) return;
+    navigator.clipboard.writeText(serviceInfo.tenantId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleDeleteUser = async (userId: string) => {
     if (!token) return;
@@ -105,6 +121,49 @@ function AdminDashboardContent() {
             )}
           </p>
         </div>
+
+        {/* Service token card */}
+        {serviceInfo ? (
+          <div className="bg-[#1F2933] rounded-2xl border border-[#22C55E]/20 p-6 mb-8">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[#22C55E] text-xs font-semibold uppercase tracking-widest">AI Service</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${
+                    serviceInfo.status === 'active'
+                      ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20'
+                      : serviceInfo.status === 'suspended'
+                      ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                      : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                  }`}>{serviceInfo.status}</span>
+                </div>
+                <p className="text-[#F9FAFB] font-semibold text-lg truncate">{serviceInfo.name}</p>
+                {serviceInfo.storeName && (
+                  <p className="text-[#CBD5E1] text-xs mt-0.5">{serviceInfo.storeName}{serviceInfo.storeCategory ? ` • ${serviceInfo.storeCategory}` : ''}</p>
+                )}
+                <div className="mt-3">
+                  <p className="text-[#CBD5E1] text-xs mb-1.5">Service Token <span className="text-[#CBD5E1]/50">(RAG namespace • unique per store)</span></p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 bg-[#0B0F14] border border-[#CBD5E1]/10 rounded-lg px-4 py-2.5 text-[#22C55E] text-sm font-mono tracking-wide truncate">
+                      {serviceInfo.tenantId}
+                    </code>
+                    <button
+                      onClick={handleCopyToken}
+                      className="flex-shrink-0 px-4 py-2.5 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] hover:bg-[#22C55E]/20 rounded-lg text-xs font-medium transition"
+                    >
+                      {copied ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : !loading ? (
+          <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-2xl p-4 mb-8 flex items-center gap-3">
+            <span className="text-yellow-400 text-lg">⚠</span>
+            <p className="text-yellow-300 text-sm">No AI service provisioned yet. Ask the Superadmin to create a service for your email.</p>
+          </div>
+        ) : null}
 
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

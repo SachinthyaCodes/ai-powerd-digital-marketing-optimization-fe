@@ -2,7 +2,7 @@
  * Authentication API service
  */
 
-import { AuthResponse, LoginCredentials, RegisterData, User } from '@/types/auth';
+import { AuthResponse, LoginCredentials, RegisterData, User, ServiceInfo } from '@/types/auth';
 import { API_BASE_URL, buildHeaders } from '@/config/api';
 
 class AuthService {
@@ -69,6 +69,21 @@ class AuthService {
 
     if (!response.ok) {
       throw new Error('Failed to get user dashboard');
+    }
+
+    return response.json();
+  }
+
+  // Admin – fetch own provisioned service (includes tenantId / RAG namespace)
+  async getAdminService(token: string): Promise<ServiceInfo> {
+    const response = await fetch(`${API_BASE_URL}/api/admin/service`, {
+      method: 'GET',
+      headers: this.getHeaders(token),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'No service provisioned');
     }
 
     return response.json();
@@ -159,6 +174,47 @@ class AuthService {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to delete user');
+    }
+  }
+
+  // Superadmin – provision a new service for an admin email
+  async provisionService(token: string, data: {
+    name: string;
+    assignedEmail: string;
+    storeName?: string;
+    storeCategory?: string;
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/api/superadmin/services`, {
+      method: 'POST',
+      headers: this.getHeaders(token),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to provision service');
+    }
+    return response.json();
+  }
+
+  // Superadmin – list all services
+  async getServices(token: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/api/superadmin/services`, {
+      method: 'GET',
+      headers: this.getHeaders(token),
+    });
+    if (!response.ok) throw new Error('Failed to get services');
+    return response.json();
+  }
+
+  // Superadmin – delete a service
+  async deleteService(token: string, serviceId: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/superadmin/services/${serviceId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(token),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete service');
     }
   }
 

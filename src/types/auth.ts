@@ -47,3 +47,17 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   hasRole: (role: UserRole) => boolean;
 }
+
+export interface ServiceInfo {
+  _id: string;
+  name: string;
+  assignedEmail: string;
+  adminId: string | null;
+  status: 'pending' | 'active' | 'suspended';
+  storeName: string;
+  storeCategory: string;
+  /** Unique RAG namespace – this is the admin’s service token */
+  tenantId: string;
+  createdAt: string;
+  updatedAt: string;
+}
