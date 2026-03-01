@@ -40,7 +40,7 @@ function SuperadminDashboardContent() {
         const [dashboard, systemStats, usersList] = await Promise.all([
           authService.getSuperadminDashboard(token),
           authService.getSystemStats(token),
-          authService.getAllUsers(token, 0, 50)
+          authService.getAllUsersAdmin(token, 0, 50)
         ]);
         setDashboardData(dashboard);
         setStats(systemStats);
@@ -54,7 +54,7 @@ function SuperadminDashboardContent() {
     }
   };
 
-  const handlePromoteToAdmin = async (userId: number) => {
+  const handlePromoteToAdmin = async (userId: string) => {
     if (!token) return;
     if (!confirm('Promote this user to Admin?')) return;
 
@@ -67,7 +67,7 @@ function SuperadminDashboardContent() {
     }
   };
 
-  const handlePromoteToSuperadmin = async (userId: number) => {
+  const handlePromoteToSuperadmin = async (userId: string) => {
     if (!token) return;
     if (!confirm('⚠️ WARNING: Promote this user to Superadmin? This grants full system access!')) return;
 
@@ -80,7 +80,7 @@ function SuperadminDashboardContent() {
     }
   };
 
-  const handleDemoteToUser = async (userId: number) => {
+  const handleDemoteToUser = async (userId: string) => {
     if (!token) return;
     if (!confirm('Demote this user to regular User role?')) return;
 
@@ -93,7 +93,7 @@ function SuperadminDashboardContent() {
     }
   };
 
-  const handleToggleActive = async (userId: number) => {
+  const handleToggleActive = async (userId: string) => {
     if (!token) return;
 
     try {
@@ -105,12 +105,12 @@ function SuperadminDashboardContent() {
     }
   };
 
-  const handleDeleteUser = async (userId: number) => {
+  const handleDeleteUser = async (userId: string) => {
     if (!token) return;
     if (!confirm('⚠️ Are you sure you want to DELETE this user permanently?')) return;
 
     try {
-      await authService.deleteUser(token, userId);
+      await authService.deleteUserAdmin(token, userId);
       setUsers(users.filter(u => u.id !== userId));
       loadDashboard(); // Refresh stats
     } catch (error: any) {
@@ -295,12 +295,20 @@ function SuperadminDashboardContent() {
                               </>
                             )}
                             {u.role === UserRole.SUPERADMIN && (
-                              <button
-                                onClick={() => handleDemoteToUser(u.id)}
-                                className="text-blue-300 hover:text-blue-200 transition text-left"
-                              >
-                                ↓ Demote to User
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => handlePromoteToAdmin(u.id)}
+                                  className="text-yellow-300 hover:text-yellow-200 transition text-left"
+                                >
+                                  ↓ Demote to Admin
+                                </button>
+                                <button
+                                  onClick={() => handleDemoteToUser(u.id)}
+                                  className="text-blue-300 hover:text-blue-200 transition text-left"
+                                >
+                                  ↓ Demote to User
+                                </button>
+                              </>
                             )}
                             <button
                               onClick={() => handleToggleActive(u.id)}

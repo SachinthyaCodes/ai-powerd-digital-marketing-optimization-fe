@@ -42,7 +42,7 @@ function AdminDashboardContent() {
     loadDashboard();
   }, [token]);
 
-  const handleDeleteUser = async (userId: number) => {
+  const handleDeleteUser = async (userId: string) => {
     if (!token) return;
     
     if (!confirm('Are you sure you want to delete this user?')) return;
@@ -55,7 +55,7 @@ function AdminDashboardContent() {
     }
   };
 
-  const handleToggleActive = async (userId: number) => {
+  const handleToggleActive = async (userId: string) => {
     if (!token) return;
 
     try {

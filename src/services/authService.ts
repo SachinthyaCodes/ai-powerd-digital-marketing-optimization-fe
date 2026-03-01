@@ -97,6 +97,7 @@ class AuthService {
     return response.json();
   }
 
+  // Admin – fetch role='user' accounts only
   async getAllUsers(token: string, skip = 0, limit = 100): Promise<User[]> {
     const response = await fetch(
       `${API_BASE_URL}/api/admin/users?skip=${skip}&limit=${limit}`,
@@ -113,7 +114,24 @@ class AuthService {
     return response.json();
   }
 
-  async updateUser(token: string, userId: number, data: Partial<User>): Promise<User> {
+  // Superadmin – fetch ALL accounts across all roles
+  async getAllUsersAdmin(token: string, skip = 0, limit = 100): Promise<User[]> {
+    const response = await fetch(
+      `${API_BASE_URL}/api/superadmin/users?skip=${skip}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers: this.getHeaders(token),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to get all users');
+    }
+
+    return response.json();
+  }
+
+  async updateUser(token: string, userId: string, data: Partial<User>): Promise<User> {
     const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
       method: 'PUT',
       headers: this.getHeaders(token),
@@ -128,8 +146,21 @@ class AuthService {
     return response.json();
   }
 
-  async deleteUser(token: string, userId: number): Promise<void> {
+  async deleteUser(token: string, userId: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(token),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete user');
+    }
+  }
+
+  // Superadmin-level delete – can delete any account including admins/superadmins
+  async deleteUserAdmin(token: string, userId: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/superadmin/users/${userId}`, {
       method: 'DELETE',
       headers: this.getHeaders(token),
     });
@@ -167,7 +198,7 @@ class AuthService {
     return response.json();
   }
 
-  async promoteToAdmin(token: string, userId: number): Promise<User> {
+  async promoteToAdmin(token: string, userId: string): Promise<User> {
     const response = await fetch(
       `${API_BASE_URL}/api/superadmin/users/${userId}/promote-to-admin`,
       {
@@ -184,7 +215,7 @@ class AuthService {
     return response.json();
   }
 
-  async promoteToSuperadmin(token: string, userId: number): Promise<User> {
+  async promoteToSuperadmin(token: string, userId: string): Promise<User> {
     const response = await fetch(
       `${API_BASE_URL}/api/superadmin/users/${userId}/promote-to-superadmin`,
       {
@@ -201,7 +232,7 @@ class AuthService {
     return response.json();
   }
 
-  async demoteToUser(token: string, userId: number): Promise<User> {
+  async demoteToUser(token: string, userId: string): Promise<User> {
     const response = await fetch(
       `${API_BASE_URL}/api/superadmin/users/${userId}/demote-to-user`,
       {
@@ -218,7 +249,7 @@ class AuthService {
     return response.json();
   }
 
-  async toggleUserActive(token: string, userId: number): Promise<User> {
+  async toggleUserActive(token: string, userId: string): Promise<User> {
     const response = await fetch(
       `${API_BASE_URL}/api/superadmin/users/${userId}/toggle-active`,
       {
