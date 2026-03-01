@@ -82,10 +82,6 @@ export default function ImageUpload({ onExtracted }: ImageUploadProps) {
 
   return (
     <div className={styles.uploadWrapper}>
-      <span className={styles.uploadLabel}>
-        Upload Image <span style={{ color: '#4b5563', textTransform: 'none', fontWeight: 400 }}>(extract content text)</span>
-      </span>
-
       {!file ? (
         <div
           className={`${styles.dropZone} ${isDragging ? styles.dropZoneActive : ''}`}
@@ -94,14 +90,17 @@ export default function ImageUpload({ onExtracted }: ImageUploadProps) {
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
         >
-          <svg className={styles.dropIcon} width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          {/* Image / landscape icon */}
+          <svg className={styles.dropIcon} width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={1.5} />
+            <circle cx="8.5" cy="8.5" r="1.5" strokeWidth={1.5} />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-              d="M3 16.5V19a1 1 0 001 1h16a1 1 0 001-1v-2.5M12 3v13m-4-4l4-4 4 4" />
+              d="M21 15l-5-5L5 21" />
           </svg>
-          <p className={styles.dropTitle}>
-            Drag & drop or <span className={styles.browseLink}>browse</span>
-          </p>
-          <p className={styles.dropSubtitle}>JPEG, PNG, WEBP — max 10 MB</p>
+          <p className={styles.dropTitle}>Upload Content Image</p>
+          <p className={styles.dropSubtitle}>Drag &amp; drop or click to browse</p>
+          <p className={styles.dropSubtitle}>Supports JPEG, PNG, WEBP · Max 10 MB</p>
+          <p className={styles.dropHint}>Text in Sinhala or English will be extracted automatically</p>
         </div>
       ) : (
         <div className={styles.previewRow}>

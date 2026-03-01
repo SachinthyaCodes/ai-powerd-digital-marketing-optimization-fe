@@ -93,58 +93,42 @@ export default function CampaignsPage() {
   // ─── Predictor View ────────────────────────────────────────────────
   return (
     <div className={styles.predictorPage}>
-      <div className={styles.predictorContainer}>
+      <div className={styles.predictorCenter}>
 
-        {/* Header */}
-        <div className={styles.pageHeader}>
-          <button
-            className={styles.backBtn}
-            onClick={() => { setShowPredictor(false); handleReset(); }}
-            aria-label="Back"
-          >
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <div className={styles.headerText}>
-            <h1 className={styles.pageTitle}>Campaign Performance Predictor</h1>
-            <p className={styles.pageSubtitle}>
-              Fill in your post details to get Transformer model predictions and AI insights.
-            </p>
-          </div>
+        {/* Page heading */}
+        <div className={styles.centeredHeader}>
+          <h1 className={styles.centeredTitle}>Campaign Performance Predictor</h1>
+          <p className={styles.centeredSubtitle}>
+            Enter your post details to predict engagement and get AI-powered recommendations.
+          </p>
         </div>
 
-        {/* Main 2-column grid */}
-        <div className={styles.mainGrid}>
-          {/* Left – PredictionForm */}
-          <div className={styles.leftColumn}>
-            <PredictionForm
-              onResult={handleResult}
-              onLoading={setLoading}
-              loading={loading}
-            />
-          </div>
+        {/* Form card */}
+        <PredictionForm
+          onResult={handleResult}
+          onLoading={setLoading}
+          loading={loading}
+        />
 
-          {/* Right – Results + Explainability tabs */}
-          <div className={styles.rightColumn}>
-            {result && (
-              <div className={styles.tabsRow}>
-                <button
-                  className={`${styles.tab} ${activeTab === 'results' ? styles.tabActive : ''}`}
-                  onClick={() => setActiveTab('results')}
-                >
-                  Predictions
-                </button>
-                <button
-                  className={`${styles.tab} ${activeTab === 'explain' ? styles.tabActive : ''}`}
-                  onClick={() => setActiveTab('explain')}
-                >
-                  Explainability
-                </button>
-              </div>
-            )}
+        {/* Results + Explainability – appear below the form once ready */}
+        {result && (
+          <div className={styles.resultsSection}>
+            <div className={styles.tabsRow}>
+              <button
+                className={`${styles.tab} ${activeTab === 'results' ? styles.tabActive : ''}`}
+                onClick={() => setActiveTab('results')}
+              >
+                Predictions
+              </button>
+              <button
+                className={`${styles.tab} ${activeTab === 'explain' ? styles.tabActive : ''}`}
+                onClick={() => setActiveTab('explain')}
+              >
+                Explainability
+              </button>
+            </div>
 
-            {(activeTab === 'results' || !result) && (
+            {activeTab === 'results' && (
               <PredictionResults
                 result={result}
                 platform={savedForm?.platform || ''}
@@ -153,14 +137,26 @@ export default function CampaignsPage() {
               />
             )}
 
-            {activeTab === 'explain' && result && savedForm && (
+            {activeTab === 'explain' && savedForm && (
               <ExplainabilityPanel
                 prediction={result}
                 formValues={savedForm}
               />
             )}
           </div>
-        </div>
+        )}
+
+        {/* Back to landing */}
+        <button
+          className={styles.backLinkBtn}
+          onClick={() => { setShowPredictor(false); handleReset(); }}
+        >
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to overview
+        </button>
+
       </div>
     </div>
   );
