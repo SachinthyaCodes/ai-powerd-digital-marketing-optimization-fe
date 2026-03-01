@@ -3,20 +3,11 @@
  */
 
 import { AuthResponse, LoginCredentials, RegisterData, User } from '@/types/auth';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { API_BASE_URL, buildHeaders } from '@/config/api';
 
 class AuthService {
   private getHeaders(token?: string): HeadersInit {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    return headers;
+    return buildHeaders(token);
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -28,7 +19,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Login failed');
+      throw new Error(error.message || 'Login failed');
     }
 
     return response.json();
@@ -43,7 +34,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Registration failed');
+      throw new Error(error.message || 'Registration failed');
     }
 
     return response.json();
@@ -154,7 +145,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to delete user');
+      throw new Error(error.message || 'Failed to delete user');
     }
   }
 
@@ -167,7 +158,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to delete user');
+      throw new Error(error.message || 'Failed to delete user');
     }
   }
 
@@ -209,7 +200,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to promote user');
+      throw new Error(error.message || 'Failed to promote user');
     }
 
     return response.json();
@@ -226,7 +217,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to promote user');
+      throw new Error(error.message || 'Failed to promote user');
     }
 
     return response.json();
@@ -243,7 +234,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to demote user');
+      throw new Error(error.message || 'Failed to demote user');
     }
 
     return response.json();
@@ -260,7 +251,7 @@ class AuthService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to toggle user status');
+      throw new Error(error.message || 'Failed to toggle user status');
     }
 
     return response.json();

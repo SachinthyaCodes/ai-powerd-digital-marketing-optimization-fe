@@ -2,6 +2,9 @@ import '../styles/globals.css'
 import type { Metadata } from 'next'
 import { Montserrat, Poppins } from 'next/font/google'
 import { AuthProvider } from '@/contexts/AuthContext'
+// ─── Add new provider imports directly below this line ────────────────────────
+// e.g.  import { ThemeProvider } from '@/contexts/ThemeContext'
+// ──────────────────────────────────────────────────────────────────────────────
 
 const montserrat = Montserrat({ 
   subsets: ['latin'],
@@ -29,7 +32,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${montserrat.variable} ${poppins.variable} font-sans`}>
+        {/* ── AuthProvider (Smart-Assistant auth) ── owns: src/app/auth/, src/contexts/AuthContext.tsx ── */}
         <AuthProvider>
+          {/* ── Add other team providers as siblings or nested here ── */}
           {children}
         </AuthProvider>
       </body>
