@@ -43,7 +43,7 @@ export default function CampaignsPage() {
           <div className={styles.heroInner}>
             <div className={styles.heroBadge}>
               <span className={styles.heroBadgeDot} />
-              AI-Powered · Transformer Model
+             
             </div>
 
             <h1 className={styles.heroTitle}>
@@ -53,27 +53,27 @@ export default function CampaignsPage() {
             </h1>
 
             <p className={styles.heroDescription}>
-              Our deep learning Transformer model analyses your post details — caption,
-              content, platform, timing, followers and ad boost — to predict Likes,
-              Comments, Shares, Clicks and Timing Quality Score in real time.
+              Our AI-powered system helps Sri Lankan SMEs optimize social media campaigns by predicting engagement, analyzing content in Sinhala and English, and providing smart recommendations saving time, money, and effort.
             </p>
 
-            <div className={styles.statsRow}>
-              <div className={styles.statItem}>
-                <p className={styles.statValue}>5</p>
-                <p className={styles.statLabel}>Metrics Predicted</p>
-              </div>
-              <span className={styles.statDivider} />
-              <div className={styles.statItem}>
-                <p className={styles.statValue}>6</p>
-                <p className={styles.statLabel}>Platforms Supported</p>
-              </div>
-              <span className={styles.statDivider} />
-              <div className={styles.statItem}>
-                <p className={styles.statValue}>AI</p>
-                <p className={styles.statLabel}>Explainability</p>
-              </div>
-            </div>
+            {/* 
+<div className={styles.statsRow}>
+  <div className={styles.statItem}>
+    <p className={styles.statValue}>5</p>
+    <p className={styles.statLabel}>Metrics Predicted</p>
+  </div>
+  <span className={styles.statDivider} />
+  <div className={styles.statItem}>
+    <p className={styles.statValue}>6</p>
+    <p className={styles.statLabel}>Platforms Supported</p>
+  </div>
+  <span className={styles.statDivider} />
+  <div className={styles.statItem}>
+    <p className={styles.statValue}>AI</p>
+    <p className={styles.statLabel}>Explainability</p>
+  </div>
+</div>
+*/}
 
             <button
               className={styles.tryNowBtn}
