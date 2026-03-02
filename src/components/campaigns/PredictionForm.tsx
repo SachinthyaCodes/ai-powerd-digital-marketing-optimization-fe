@@ -91,7 +91,7 @@ export default function PredictionForm({ onResult, onLoading, loading }: Predict
       {/* Badge */}
       <div className={styles.modelBadge}>
         <span className={styles.modelBadgeDot} />
-        TRANSFORMER MODEL — ENGAGEMENT PREDICTION
+        ENGAGEMENT PREDICTION
       </div>
 
       {/* Caption */}
@@ -178,7 +178,9 @@ export default function PredictionForm({ onResult, onLoading, loading }: Predict
       {/* Followers & Ad Boost */}
       <div className={styles.fieldRow}>
         <div className={styles.fieldGroup}>
-          <label className={styles.label}>FOLLOWERS</label>
+          <label className={styles.label}>
+            FOLLOWERS <span className={styles.required}>*</span>
+          </label>
           <input
             type="number"
             className={styles.input}
@@ -189,7 +191,9 @@ export default function PredictionForm({ onResult, onLoading, loading }: Predict
           />
         </div>
         <div className={styles.fieldGroup}>
-          <label className={styles.label}>AD BOOST</label>
+          <label className={styles.label}>
+            AD BOOST <span className={styles.required}>*</span>
+          </label>
           <div className={styles.segmentedGroup}>
             <button
               type="button"
