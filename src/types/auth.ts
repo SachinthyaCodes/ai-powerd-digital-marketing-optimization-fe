@@ -16,6 +16,10 @@ export interface User {
   role: UserRole;
   is_active: boolean;
   is_verified: boolean;
+  serviceId?: string;
+  /** Unique RAG namespace for this admin's store (same as ServiceInfo.tenantId) */
+  tenantId?: string;
+  storeName?: string;
   created_at: string;
 }
 

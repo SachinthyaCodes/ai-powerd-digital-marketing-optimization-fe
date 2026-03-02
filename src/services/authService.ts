@@ -74,6 +74,44 @@ class AuthService {
     return response.json();
   }
 
+  // Admin – list all uploaded documents for this tenant
+  async getDocuments(token: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/api/admin/documents`, {
+      headers: this.getHeaders(token),
+    });
+    if (!response.ok) throw new Error('Failed to get documents');
+    return response.json();
+  }
+
+  // Admin – upload a new knowledge base file
+  async uploadDocument(token: string, file: File): Promise<any> {
+    const form = new FormData();
+    form.append('file', file);
+    const response = await fetch(`${API_BASE_URL}/api/admin/documents/upload`, {
+      method: 'POST',
+      // No Content-Type header – browser sets multipart boundary automatically
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Upload failed');
+    }
+    return response.json();
+  }
+
+  // Admin – delete a document and its vectors
+  async deleteDocument(token: string, docId: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/admin/documents/${docId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(token),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Delete failed');
+    }
+  }
+
   // Admin – fetch own provisioned service (includes tenantId / RAG namespace)
   async getAdminService(token: string): Promise<ServiceInfo> {
     const response = await fetch(`${API_BASE_URL}/api/admin/service`, {

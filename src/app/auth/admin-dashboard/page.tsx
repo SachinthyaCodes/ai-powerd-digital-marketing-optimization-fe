@@ -12,6 +12,9 @@ function AdminDashboardContent() {
   const [users, setUsers] = useState<User[]>([]);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [serviceInfo, setServiceInfo] = useState<ServiceInfo | null>(null);
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState('');
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,6 +36,13 @@ function AdminDashboardContent() {
         } catch {
           // Not provisioned yet – silently skip
         }
+        // Fetch knowledge base documents
+        try {
+          const docs = await authService.getDocuments(token);
+          setDocuments(docs);
+        } catch {
+          // silently skip
+        }
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -47,6 +57,34 @@ function AdminDashboardContent() {
     navigator.clipboard.writeText(serviceInfo.tenantId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !token) return;
+    setUploading(true);
+    setUploadMsg('');
+    try {
+      const result = await authService.uploadDocument(token, file);
+      setUploadMsg(result.message);
+      const docs = await authService.getDocuments(token);
+      setDocuments(docs);
+    } catch (err: any) {
+      setUploadMsg(`Error: ${err.message}`);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteDocument = async (docId: string) => {
+    if (!token || !confirm('Delete this document and all its vectors from the knowledge base?')) return;
+    try {
+      await authService.deleteDocument(token, docId);
+      setDocuments(documents.filter((d) => d._id !== docId));
+    } catch (err: any) {
+      alert(err.message);
+    }
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -271,6 +309,80 @@ function AdminDashboardContent() {
             </div>
           )}
         </div>
+
+        {/* Knowledge Base */}
+        {serviceInfo && (
+          <div className="mt-6 bg-[#1F2933] rounded-2xl border border-[#CBD5E1]/10 overflow-hidden">
+            <div className="px-6 py-5 border-b border-[#CBD5E1]/10 flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-[#F9FAFB]">Knowledge Base</h2>
+                <p className="text-[#CBD5E1] text-xs mt-0.5">Upload store documents — they are embedded into your AI assistant</p>
+              </div>
+              <label className={`cursor-pointer px-4 py-2 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] hover:bg-[#22C55E]/20 rounded-lg text-xs font-medium transition ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                {uploading ? 'Uploading…' : '+ Upload File'}
+                <input
+                  type="file"
+                  accept=".pdf,.docx,.txt"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={handleUpload}
+                />
+              </label>
+            </div>
+
+            {uploadMsg && (
+              <div className={`mx-6 mt-4 px-4 py-2.5 rounded-lg text-xs ${
+                uploadMsg.startsWith('Error')
+                  ? 'bg-red-500/10 border border-red-500/20 text-red-400'
+                  : 'bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E]'
+              }`}>
+                {uploadMsg}
+              </div>
+            )}
+
+            {documents.length === 0 ? (
+              <div className="p-12 text-center">
+                <p className="text-[#CBD5E1] text-sm">No documents yet.</p>
+                <p className="text-[#CBD5E1]/50 text-xs mt-1">Upload a PDF, DOCX or TXT to build your store’s knowledge base.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#CBD5E1]/5">
+                {documents.map((doc) => (
+                  <div key={doc._id} className="px-6 py-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-8 w-8 rounded-lg bg-[#0B0F14] border border-[#CBD5E1]/10 flex items-center justify-center text-[#CBD5E1] text-xs font-bold uppercase flex-shrink-0">
+                        {doc.fileType}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[#F9FAFB] text-sm font-medium truncate">{doc.filename}</p>
+                        <p className="text-[#CBD5E1] text-xs">
+                          {doc.chunkCount} chunks • {(doc.size / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
+                        doc.status === 'ready'
+                          ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20'
+                          : doc.status === 'failed'
+                          ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                          : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                      }`}>
+                        {doc.status}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteDocument(doc._id)}
+                        className="px-3 py-1.5 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 rounded-lg text-xs transition"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Capabilities info */}
         <div className="mt-6 bg-[#1F2933] rounded-2xl border border-[#CBD5E1]/10 p-6">
