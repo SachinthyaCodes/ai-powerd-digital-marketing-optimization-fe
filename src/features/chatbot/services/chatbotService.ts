@@ -19,41 +19,49 @@ class ChatbotService {
 
   async sendMessage(message: string, conversationHistory: Message[]): Promise<ChatResponse> {
     try {
-      // Prepare the conversation context
-      const context = conversationHistory.map((msg) => ({
+      // Prepare conversation context (last 10 exchanges to stay within context window)
+      const context = conversationHistory.slice(-10).map((msg) => ({
         role: msg.role,
         content: msg.content,
       }));
 
+      // Read JWT from localStorage (set by AuthContext on login)
+      const token =
+        typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(this.apiEndpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message,
-          context,
-        }),
+        headers,
+        body: JSON.stringify({ message, context }),
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`);
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || err.message || `Request failed: ${response.statusText}`);
       }
 
       const data = await response.json();
 
       return {
-        content: data.response || data.content || data.message,
+        content: data.response || data.content || data.message || '',
         timestamp: new Date(),
       };
     } catch (error) {
       console.error('Chatbot service error:', error);
-      
-      // Fallback mock response for development
-      if (process.env.NODE_ENV === 'development') {
+
+      // Fallback mock response only in development when no backend is available
+      if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_ENABLE_MOCK === 'true') {
         return this.getMockResponse(message);
       }
-      
+
       throw error;
     }
   }
