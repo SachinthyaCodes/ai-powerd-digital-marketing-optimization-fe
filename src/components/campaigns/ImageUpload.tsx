@@ -54,18 +54,63 @@ export default function ImageUpload({ onExtracted }: ImageUploadProps) {
     setExtracting(true);
     setError(null);
 
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/extract`, {
-        method: 'POST',
-        body: formData,
+      // Read image as a data URL (base64) directly in the browser
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error('Failed to read image file'));
+        reader.readAsDataURL(file);
       });
-      const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || 'Extraction failed');
-      setExtracted(json.text);
-      onExtracted(json.text);
+
+      const apiKey = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+      if (!apiKey) throw new Error('Groq API key not set. Add NEXT_PUBLIC_GROQ_API_KEY to .env.local');
+
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text:
+                    'You are an expert OCR assistant. Extract ALL visible text from this image exactly as it appears. ' +
+                    'The text may be in Sinhala, English, or a mix of both. ' +
+                    'Return the extracted text as a single paragraph in reading order. ' +
+                    'Do NOT add any commentary, labels, or formatting — only the raw extracted text. ' +
+                    'If no text is visible in the image, return exactly: "No text detected."',
+                },
+                {
+                  type: 'image_url',
+                  image_url: { url: dataUrl },
+                },
+              ],
+            },
+          ],
+          temperature: 0,
+          max_tokens: 2048,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const msg = data?.error?.message || `Groq API error: ${res.status}`;
+        throw new Error(msg);
+      }
+
+      const rawText: string = data?.choices?.[0]?.message?.content ?? '';
+      const cleaned = rawText.replace(/\r?\n+/g, ' ').replace(/\s{2,}/g, ' ').trim() || 'No text detected.';
+
+      setExtracted(cleaned);
+      onExtracted(cleaned);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Extraction failed';
       setError(message);
