@@ -101,7 +101,7 @@ export default function PredictionResults({
             </div>
           </div>
           <span className={`${styles.timingScoreText} ${scoreClass(score)}`}>
-            {score.toFixed(2)}
+            {scorePercent}%
           </span>
         </div>
       </div>
