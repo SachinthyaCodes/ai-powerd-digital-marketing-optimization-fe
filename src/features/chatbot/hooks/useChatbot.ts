@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { chatbotService } from '../services/chatbotService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface Message {
   id: string;
@@ -14,6 +15,7 @@ export function useChatbot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { token } = useAuth();
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim()) return;
@@ -30,7 +32,8 @@ export function useChatbot() {
     setError(null);
 
     try {
-      const response = await chatbotService.sendMessage(content, messages);
+      // Pass the token from auth context directly — avoids localStorage timing issues
+      const response = await chatbotService.sendMessage(content, messages, token ?? undefined);
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -43,7 +46,6 @@ export function useChatbot() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       
-      // Add error message to chat
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: 'Sorry, I encountered an error. Please try again.',
@@ -54,7 +56,7 @@ export function useChatbot() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages]);
+  }, [messages, token]);
 
   const clearHistory = useCallback(() => {
     setMessages([]);

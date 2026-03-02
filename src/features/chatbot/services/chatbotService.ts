@@ -17,7 +17,7 @@ class ChatbotService {
     this.apiEndpoint = process.env.NEXT_PUBLIC_CHATBOT_API_URL || '/api/chatbot';
   }
 
-  async sendMessage(message: string, conversationHistory: Message[]): Promise<ChatResponse> {
+  async sendMessage(message: string, conversationHistory: Message[], token?: string): Promise<ChatResponse> {
     try {
       // Prepare conversation context (last 10 exchanges to stay within context window)
       const context = conversationHistory.slice(-10).map((msg) => ({
@@ -25,14 +25,11 @@ class ChatbotService {
         content: msg.content,
       }));
 
-      // Read JWT from localStorage (set by AuthContext on login)
-      const token =
-        typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
 
+      // Token is passed from the auth context via useChatbot hook
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -56,12 +53,6 @@ class ChatbotService {
       };
     } catch (error) {
       console.error('Chatbot service error:', error);
-
-      // Fallback mock response only in development when no backend is available
-      if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_ENABLE_MOCK === 'true') {
-        return this.getMockResponse(message);
-      }
-
       throw error;
     }
   }
