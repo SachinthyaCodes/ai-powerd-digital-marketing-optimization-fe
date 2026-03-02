@@ -195,6 +195,36 @@
   line-height: 1.6;
 }
 
+/* ─── Wide container (form + results side-by-side) ──────────── */
+
+.predictorWide {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ─── Side-by-side layout ────────────────────────────────────── */
+
+.sideLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.sideLeft {
+  position: sticky;
+  top: 24px;
+}
+
+.sideRight {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 /* ─── Results section (below form) ──────────────────────────── */
 
 .resultsSection {
@@ -334,6 +364,12 @@
 @media (max-width: 900px) {
   .mainGrid {
     grid-template-columns: 1fr;
+  }
+  .sideLayout {
+    grid-template-columns: 1fr;
+  }
+  .sideLeft {
+    position: static;
   }
 }
 

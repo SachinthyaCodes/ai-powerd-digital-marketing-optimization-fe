@@ -98,7 +98,7 @@ export default function CampaignsPage() {
   // ─── Predictor View ────────────────────────────────────────────────
   return (
     <div className={styles.predictorPage}>
-      <div className={styles.predictorCenter}>
+      <div className={result ? styles.predictorWide : styles.predictorCenter}>
 
         {/* Page heading */}
         <div className={styles.centeredHeader}>
@@ -108,48 +108,55 @@ export default function CampaignsPage() {
           </p>
         </div>
 
-        {/* Form card */}
-        <PredictionForm
-          onResult={handleResult}
-          onLoading={setLoading}
-          loading={loading}
-        />
+        {/* Side-by-side layout: form left, results right */}
+        <div className={result ? styles.sideLayout : ''}>
 
-        {/* Results + Explainability – appear below the form once ready */}
-        {result && (
-          <div className={styles.resultsSection} ref={resultsSectionRef}>
-            <div className={styles.tabsRow}>
-              <button
-                className={`${styles.tab} ${activeTab === 'results' ? styles.tabActive : ''}`}
-                onClick={() => setActiveTab('results')}
-              >
-                Predictions
-              </button>
-              <button
-                className={`${styles.tab} ${activeTab === 'explain' ? styles.tabActive : ''}`}
-                onClick={() => setActiveTab('explain')}
-              >
-                Explainability
-              </button>
-            </div>
-
-            {activeTab === 'results' && (
-              <PredictionResults
-                result={result}
-                platform={savedForm?.platform || ''}
-                loading={loading}
-                onReset={handleReset}
-              />
-            )}
-
-            {activeTab === 'explain' && savedForm && (
-              <ExplainabilityPanel
-                prediction={result}
-                formValues={savedForm}
-              />
-            )}
+          {/* Form card */}
+          <div className={result ? styles.sideLeft : ''}>
+            <PredictionForm
+              onResult={handleResult}
+              onLoading={setLoading}
+              loading={loading}
+            />
           </div>
-        )}
+
+          {/* Results + Explainability – appear to the right of the form once ready */}
+          {result && (
+            <div className={styles.sideRight} ref={resultsSectionRef}>
+              <div className={styles.tabsRow}>
+                <button
+                  className={`${styles.tab} ${activeTab === 'results' ? styles.tabActive : ''}`}
+                  onClick={() => setActiveTab('results')}
+                >
+                  Predictions
+                </button>
+                <button
+                  className={`${styles.tab} ${activeTab === 'explain' ? styles.tabActive : ''}`}
+                  onClick={() => setActiveTab('explain')}
+                >
+                  Explainability
+                </button>
+              </div>
+
+              {activeTab === 'results' && (
+                <PredictionResults
+                  result={result}
+                  platform={savedForm?.platform || ''}
+                  loading={loading}
+                  onReset={handleReset}
+                />
+              )}
+
+              {activeTab === 'explain' && savedForm && (
+                <ExplainabilityPanel
+                  prediction={result}
+                  formValues={savedForm}
+                />
+              )}
+            </div>
+          )}
+
+        </div>
 
         {/* Back to landing */}
         <button
