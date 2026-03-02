@@ -9,6 +9,8 @@ export interface Message {
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
+  /** Signals whether the reply came from store documents or general LLM knowledge */
+  knowledgeSource?: 'store' | 'general';
 }
 
 export function useChatbot() {
@@ -40,6 +42,7 @@ export function useChatbot() {
         content: response.content,
         role: 'assistant',
         timestamp: new Date(),
+        knowledgeSource: response.knowledgeSource,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);

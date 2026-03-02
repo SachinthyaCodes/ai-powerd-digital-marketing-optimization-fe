@@ -8,6 +8,8 @@ interface Message {
 interface ChatResponse {
   content: string;
   timestamp: Date;
+  /** 'store' = answer grounded in uploaded documents; 'general' = general LLM knowledge */
+  knowledgeSource?: 'store' | 'general';
 }
 
 class ChatbotService {
@@ -49,6 +51,7 @@ class ChatbotService {
 
       return {
         content: data.response || data.content || data.message || '',
+        knowledgeSource: data.knowledgeSource ?? 'general',
         timestamp: new Date(),
       };
     } catch (error) {

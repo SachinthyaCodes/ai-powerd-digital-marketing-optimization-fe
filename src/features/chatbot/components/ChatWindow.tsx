@@ -10,6 +10,7 @@ interface Message {
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
+  knowledgeSource?: 'store' | 'general';
 }
 
 interface ChatWindowProps {
