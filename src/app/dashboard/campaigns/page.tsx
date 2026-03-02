@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Aurora from '@/components/Aurora';
 import PredictionForm, { type PredictionOutput, type FormValues } from '@/components/campaigns/PredictionForm';
 import PredictionResults from '@/components/campaigns/PredictionResults';
@@ -13,11 +13,16 @@ export default function CampaignsPage() {
   const [result, setResult]               = useState<PredictionOutput | null>(null);
   const [savedForm, setSavedForm]         = useState<FormValues | null>(null);
   const [activeTab, setActiveTab]         = useState<'results' | 'explain'>('results');
+  const resultsSectionRef = useRef<HTMLDivElement>(null);
 
   const handleResult = (prediction: PredictionOutput, formValues: FormValues) => {
     setResult(prediction);
     setSavedForm(formValues);
     setActiveTab('results');
+    // Auto-scroll to Predictions after a short delay so the section has rendered
+    setTimeout(() => {
+      resultsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const handleReset = () => {
@@ -112,7 +117,7 @@ export default function CampaignsPage() {
 
         {/* Results + Explainability – appear below the form once ready */}
         {result && (
-          <div className={styles.resultsSection}>
+          <div className={styles.resultsSection} ref={resultsSectionRef}>
             <div className={styles.tabsRow}>
               <button
                 className={`${styles.tab} ${activeTab === 'results' ? styles.tabActive : ''}`}
