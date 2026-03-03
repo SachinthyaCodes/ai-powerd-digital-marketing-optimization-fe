@@ -5,6 +5,7 @@ import Aurora from '@/components/Aurora';
 import PredictionForm, { type PredictionOutput, type FormValues } from '@/components/campaigns/PredictionForm';
 import PredictionResults from '@/components/campaigns/PredictionResults';
 import ExplainabilityPanel from '@/components/campaigns/ExplainabilityPanel';
+import RecommendationsPanel from '@/components/campaigns/RecommendationsPanel';
 import styles from './styles/campaigns.module.css';
 
 export default function CampaignsPage() {
@@ -12,7 +13,7 @@ export default function CampaignsPage() {
   const [loading, setLoading]             = useState(false);
   const [result, setResult]               = useState<PredictionOutput | null>(null);
   const [savedForm, setSavedForm]         = useState<FormValues | null>(null);
-  const [activeTab, setActiveTab]         = useState<'results' | 'explain'>('results');
+  const [activeTab, setActiveTab]         = useState<'results' | 'explain' | 'recommend'>('results');
   const resultsSectionRef = useRef<HTMLDivElement>(null);
 
   const handleResult = (prediction: PredictionOutput, formValues: FormValues) => {
@@ -136,6 +137,12 @@ export default function CampaignsPage() {
                 >
                   Explainability
                 </button>
+                <button
+                  className={`${styles.tab} ${activeTab === 'recommend' ? styles.tabActive : ''}`}
+                  onClick={() => setActiveTab('recommend')}
+                >
+                  Recommendations
+                </button>
               </div>
 
               {activeTab === 'results' && (
@@ -149,6 +156,13 @@ export default function CampaignsPage() {
 
               {activeTab === 'explain' && savedForm && (
                 <ExplainabilityPanel
+                  prediction={result}
+                  formValues={savedForm}
+                />
+              )}
+
+              {activeTab === 'recommend' && savedForm && (
+                <RecommendationsPanel
                   prediction={result}
                   formValues={savedForm}
                 />
