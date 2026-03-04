@@ -1,81 +1,100 @@
 'use client';
 
-import { useState, KeyboardEvent } from 'react';
-import { PaperAirplaneIcon, PaperClipIcon } from '@heroicons/react/24/outline';
+import React, { useRef, useState } from 'react';
 
 interface ChatInputProps {
-  onSendMessage: (message: string) => void;
-  isLoading?: boolean;
+  onSend: (message: string) => void;
+  disabled?: boolean;
 }
 
-export default function ChatInput({ onSendMessage, isLoading = false }: ChatInputProps) {
-  const [message, setMessage] = useState('');
+export default function ChatInput({ onSend, disabled = false }: ChatInputProps) {
+  const [value, setValue] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSend = () => {
-    if (message.trim() && !isLoading) {
-      onSendMessage(message.trim());
-      setMessage('');
-    }
-  };
+  function autoResize() {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }
 
-  const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setValue(e.target.value);
+    autoResize();
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      submit();
     }
-  };
+  }
 
-  const hasText = message.trim().length > 0;
+  function submit() {
+    const trimmed = value.trim();
+    if (!trimmed || disabled) return;
+    onSend(trimmed);
+    setValue('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.focus();
+    }
+  }
+
+  const canSend = value.trim().length > 0 && !disabled;
 
   return (
-    <div className="flex-shrink-0 bg-[#070B12] px-4 pb-5 pt-2">
-      <div className="max-w-3xl mx-auto">
-        <div className={`flex items-end gap-2 px-4 py-3 rounded-2xl border transition-all duration-200 ${
-          hasText
-            ? 'bg-white/[0.05] border-[#22C55E]/35'
-            : 'bg-white/[0.03] border-white/[0.07] focus-within:border-white/[0.13] focus-within:bg-white/[0.04]'
-        }`}>
+    <div className="sa-root flex-shrink-0 w-full border-t border-[#1c2028] bg-[#0d0f12] px-4 md:px-6 py-4">
+      <div className="max-w-3xl mx-auto w-full">
+      {/* Input row — matches the textarea card from the screenshot */}
+      <div className="flex items-end gap-2 bg-[#13161c] border border-[#1c2028] rounded-xl px-3.5 py-2.5 focus-within:border-[#2a303c] transition-colors duration-150">
+        {/* Attachment icon */}
+        <button
+          type="button"
+          aria-label="Attach file"
+          className="flex-shrink-0 mb-0.5 text-[#4B5563] hover:text-[#9CA3AF] transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22C55E]/40 rounded"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+          </svg>
+        </button>
 
-          {/* Attach */}
-          <button
-            className="flex-shrink-0 mb-0.5 p-1.5 rounded-lg text-white/20 hover:text-white/55 hover:bg-white/[0.06] transition-all"
-            title="Attach file"
-          >
-            <PaperClipIcon className="w-4 h-4" />
-          </button>
+        {/* Textarea */}
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          disabled={disabled}
+          rows={1}
+          placeholder="Message Smart Assistant…"
+          aria-label="Message input"
+          className="sa-input sa-subtext sa-textarea-min-h flex-1 bg-transparent resize-none text-[13.5px] text-[#E5E7EB] placeholder-[#4B5563] leading-relaxed max-h-40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        />
 
-          {/* Textarea */}
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask your marketing assistant anything..."
-            disabled={isLoading}
-            rows={1}
-            className="chat-textarea flex-1 bg-transparent text-white/90 placeholder-white/20 focus:outline-none resize-none disabled:opacity-40 text-sm leading-relaxed py-0.5"
-          />
-
-          {/* Send */}
-          <button
-            onClick={handleSend}
-            disabled={!hasText || isLoading}
-            className={`flex-shrink-0 mb-0.5 w-8 h-8 flex items-center justify-center rounded-xl transition-all ${
-              hasText && !isLoading
-                ? 'bg-[#22C55E] text-[#070B12] hover:bg-[#16A34A] shadow-md shadow-[#22C55E]/30 active:scale-95'
-                : 'bg-white/[0.05] text-white/20 cursor-not-allowed'
+        {/* Send button — matches the green button from the screenshot */}
+        <button
+          type="button"
+          onClick={submit}
+          disabled={!canSend}
+          aria-label="Send message"
+          className={`sa-send-btn flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22C55E]/40
+            ${canSend
+              ? 'bg-[#22C55E] text-[#0d0f12] hover:bg-[#16a34a]'
+              : 'bg-[#1c2028] text-[#2a303c]'
             }`}
-          >
-            {isLoading ? (
-              <div className="w-3.5 h-3.5 border-[1.5px] border-white/20 border-t-white/70 rounded-full animate-spin" />
-            ) : (
-              <PaperAirplaneIcon className="w-3.5 h-3.5" />
-            )}
-          </button>
-        </div>
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
 
-        <p className="text-center text-white/10 text-[10px] mt-2 tracking-wide">
-          Enter to send &middot; Shift+Enter for new line
-        </p>
+      <p className="sa-subtext text-center text-[10.5px] text-[#4B5563] mt-2">
+        Press <kbd className="bg-[#1c2028] border border-[#2a303c] rounded px-1.5 py-0.5 text-[10px] text-[#6B7280]">Enter</kbd> to send ·{' '}
+        <kbd className="bg-[#1c2028] border border-[#2a303c] rounded px-1.5 py-0.5 text-[10px] text-[#6B7280]">Shift+Enter</kbd> for new line
+      </p>
       </div>
     </div>
   );

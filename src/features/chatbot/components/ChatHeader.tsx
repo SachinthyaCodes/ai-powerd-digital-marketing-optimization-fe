@@ -1,51 +1,53 @@
 'use client';
 
-import { PlusIcon } from '@heroicons/react/24/outline';
+import React from 'react';
 
 interface ChatHeaderProps {
-  onNewChat?: () => void;
-  onOpenPanel?: () => void;
+  onOpenRecent: () => void;
+  isTyping: boolean;
 }
 
-export default function ChatHeader({ onNewChat, onOpenPanel }: ChatHeaderProps) {
+export default function ChatHeader({ onOpenRecent, isTyping }: ChatHeaderProps) {
   return (
-    <div className="flex-shrink-0 h-[54px] bg-[#070B12] border-b border-white/[0.05] px-5 flex items-center justify-between">
-
-      {/* Brand */}
-      <div className="flex items-center gap-2.5">
+    <div className="sa-root w-full border-b border-[#1c2028] bg-[#0d0f12] flex-shrink-0">
+      <div className="max-w-3xl mx-auto w-full flex items-center justify-between px-4 md:px-6 py-4">
+      {/* Left: icon box + title */}
+      <div className="flex items-center gap-3">
+        {/* Icon box — matches screenshot icon squares */}
         <div className="relative flex-shrink-0">
-          <div className="w-8 h-8 rounded-xl bg-[#22C55E] flex items-center justify-center shadow-md shadow-[#22C55E]/25">
-            <svg className="w-4 h-4 text-[#070B12]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z" />
+          <div className="sa-icon-box sa-icon-box-green">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7H3a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
+              <path d="M5 14v2a7 7 0 0 0 14 0v-2"/>
             </svg>
           </div>
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#22C55E] rounded-full border-[2px] border-[#070B12] animate-pulse" />
+          <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#22C55E] border-[1.5px] border-[#0d0f12] sa-online-dot" />
         </div>
+
+        {/* Title */}
         <div>
-          <h1 className="text-[13px] font-semibold text-white leading-none tracking-[-0.01em]">Smart Assistant</h1>
-          <p className="text-[10px] text-[#22C55E]/80 font-medium mt-[3px]">● Online</p>
+          <h1 className="sa-heading text-white text-[15px] leading-tight">
+            Smart Assistant
+          </h1>
+          <p className="sa-subtext text-[11px] text-[#22C55E] flex items-center gap-1 mt-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] inline-block" />
+            {isTyping ? 'Thinking…' : 'Online'}
+          </p>
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1">
-        <button
-          onClick={onNewChat}
-          className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-[11px] font-medium text-white/45 hover:text-white hover:bg-white/[0.06] border border-transparent hover:border-white/[0.08] transition-all"
-        >
-          <PlusIcon className="w-3 h-3" />
-          New Chat
-        </button>
-
-        <button
-          onClick={onOpenPanel}
-          aria-label="Assistant menu"
-          className="h-8 w-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] border border-transparent hover:border-white/[0.08] transition-all"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
-          </svg>
-        </button>
+      {/* Right: Recent Chats button */}
+      <button
+        onClick={onOpenRecent}
+        title="Recent chats"
+        aria-label="Open recent chats"
+        className="sa-subtext flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#13161c] hover:bg-[#1a1d24] border border-[#1c2028] hover:border-[#2a303c] text-[#9CA3AF] hover:text-white text-[12px] font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22C55E]/40"
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span className="hidden sm:inline">Recent Chats</span>
+      </button>
       </div>
     </div>
   );

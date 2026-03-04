@@ -1,0 +1,235 @@
+/* ─── Smart Assistant – Design System ────────────────────────────────────────
+   Matches the Marketing Strategy Generator aesthetic:
+   near-black bg, clean card borders, Montserrat headings, green accent.
+   All selectors prefixed .sa- to avoid conflicts.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Font assignment + base colors ── */
+.sa-root {
+  font-family: var(--font-montserrat), var(--font-poppins), 'Inter', system-ui, sans-serif;
+  color: #E5E7EB;          /* override global body text-gray-900 */
+}
+.sa-heading {
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+.sa-subtext {
+  font-family: var(--font-poppins), 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  /* No color here — let .sa-root baseline + Tailwind utilities control per-element color */
+}
+
+/* ── Scrollbar ── */
+.sa-chat-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+.sa-chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sa-chat-scroll::-webkit-scrollbar-thumb {
+  background: #1c2028;
+  border-radius: 9999px;
+}
+.sa-chat-scroll::-webkit-scrollbar-thumb:hover {
+  background: #2a303c;
+}
+
+/* ── Typing dots ── */
+.sa-typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: sa-bounce 1.2s infinite ease-in-out;
+}
+.sa-typing-dot:nth-child(1) { animation-delay: 0s; }
+.sa-typing-dot:nth-child(2) { animation-delay: 0.18s; }
+.sa-typing-dot:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes sa-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30%           { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ── Message fade-in ── */
+@keyframes sa-fadein {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.sa-message-enter {
+  animation: sa-fadein 0.2s ease-out forwards;
+}
+
+/* ── Send button ── */
+.sa-send-btn:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+}
+.sa-send-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Suggestion card ── */
+.sa-suggestion-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.sa-suggestion-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border-color: #2a303c;
+}
+
+/* ── Slide-in panel ── */
+@keyframes sa-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.sa-panel-enter { animation: sa-slide-in 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* ── Message content base color ── */
+.sa-msg-content {
+  color: #E5E7EB;
+}
+
+/* ── Code blocks inside messages ── */
+.sa-msg-content pre {
+  background: #0a0c0f;
+  border: 1px solid #1c2028;
+  border-radius: 10px;
+  padding: 13px 15px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.7;
+  margin-top: 10px;
+  color: #86efac;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+.sa-msg-content code {
+  background: #0a0c0f;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  color: #4ade80;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+.sa-msg-content strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+.sa-msg-content p + p { margin-top: 8px; }
+.sa-msg-content ul, .sa-msg-content ol {
+  padding-left: 18px;
+  margin-top: 6px;
+}
+.sa-msg-content li { margin-top: 4px; }
+
+/* ── Online dot pulse ── */
+@keyframes sa-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.55); }
+  50%       { box-shadow: 0 0 0 4px rgba(34,197,94,0); }
+}
+.sa-online-dot {
+  animation: sa-pulse 2.2s infinite;
+}
+
+/* ── Input focus ring + explicit color (beats body text-gray-900) ── */
+.sa-input {
+  color: #E5E7EB !important;
+  caret-color: #22C55E;
+}
+.sa-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+}
+.sa-input::placeholder {
+  color: #4B5563;
+  opacity: 1;
+}
+
+/* ── Textarea base height ── */
+.sa-textarea-min-h {
+  min-height: 22px;
+}
+
+/* ── Divider line ── */
+.sa-divider {
+  height: 1px;
+  background: #1c2028;
+}
+
+/* ── Icon box (matches the screenshot icon squares) ── */
+.sa-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sa-icon-box-default { background: #1a1d24; }
+.sa-icon-box-green   { background: rgba(34,197,94,0.12); }
+
+/* ── Chat avatars ── */
+.sa-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* AI avatar — green ring glow */
+.sa-avatar-ai {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1.5px solid rgba(34, 197, 94, 0.3);
+}
+.sa-avatar-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(34, 197, 94, 0.25);
+  animation: sa-avatar-glow 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes sa-avatar-glow {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%       { opacity: 1;    transform: scale(1.08); box-shadow: 0 0 8px rgba(34,197,94,0.45); }
+}
+
+/* User avatar — neutral */
+.sa-avatar-user {
+  background: #1a1d24;
+  border: 1.5px solid #252a35;
+}
+
+/* ── Message sender labels ── */
+.sa-label-ai   { color: #22C55E; }
+.sa-label-user { color: #6B7280; }
+
+/* ── Message bubbles ── */
+.sa-bubble {
+  position: relative;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+/* AI bubble — left side, dark neutral */
+.sa-bubble-ai {
+  background: #13161c;
+  border: 1px solid #1c2028;
+  color: #E5E7EB;
+}
+
+/* User bubble — right side, subtle green tint */
+.sa-bubble-user {
+  background: #111c14;
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  color: #d1fae5;
+}
+
