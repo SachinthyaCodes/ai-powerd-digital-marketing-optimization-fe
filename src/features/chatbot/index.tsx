@@ -12,7 +12,7 @@ export default function Chatbot() {
   } = useChatbot();
 
   return (
-    <div className="h-full flex flex-col bg-[#0B0F14] overflow-hidden">
+    <div className="relative h-full flex flex-col bg-[#0B0F14] overflow-hidden">
       <ChatHeader
         onNewChat={newChat}
         onClearHistory={clearHistory}
