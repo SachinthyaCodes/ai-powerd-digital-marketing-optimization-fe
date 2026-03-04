@@ -3,7 +3,6 @@
 import ChatHeader from './components/ChatHeader';
 import ChatWindow from './components/ChatWindow';
 import ChatInput from './components/ChatInput';
-import SessionsTopBar from './components/SessionsTopBar';
 import { useChatbot } from './hooks/useChatbot';
 
 export default function Chatbot() {
@@ -14,27 +13,20 @@ export default function Chatbot() {
 
   return (
     <div className="h-full flex flex-col bg-[#0B0F14] overflow-hidden">
-      {/* Sessions history strip (top) */}
-      <SessionsTopBar
-        sessions={sessionList}
-        activeSessionId={activeSessionId}
-        isLoading={sessionsLoading}
+      <ChatHeader
         onNewChat={newChat}
+        onClearHistory={clearHistory}
+        sessions={sessionList}
+        sessionsLoading={sessionsLoading}
+        activeSessionId={activeSessionId}
         onSelectSession={loadSession}
         onDeleteSession={deleteSession}
       />
-
-      {/* Chat header */}
-      <ChatHeader onNewChat={newChat} onClearHistory={clearHistory} />
-
-      {/* Messages area */}
       <ChatWindow
         messages={messages}
         isLoading={isLoading}
         onPromptSelect={sendMessage}
       />
-
-      {/* Input */}
       <ChatInput onSendMessage={sendMessage} isLoading={isLoading} />
     </div>
   );
