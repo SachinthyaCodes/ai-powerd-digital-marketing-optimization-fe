@@ -64,7 +64,7 @@ export default function Chatbot() {
   const groups = groupByDate(sessionList);
 
   return (
-    <div className="h-full flex bg-[#0D1117]">
+    <div className="h-full flex bg-[#070B12]">
 
       {/* ── Left: Chat ── */}
       <div className="relative flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -93,7 +93,7 @@ export default function Chatbot() {
       </div>
 
       {/* ── Right: Sessions sidebar (desktop only) ── */}
-      <div className="hidden lg:flex w-64 xl:w-72 flex-shrink-0 flex-col border-l border-white/[0.06] bg-[#0D1117]">
+      <div className="hidden lg:flex w-64 xl:w-72 flex-shrink-0 flex-col border-l border-white/[0.05] bg-[#070B12]">
 
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.06]">
