@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import ChatHeader from './components/ChatHeader';
 import ChatWindow from './components/ChatWindow';
 import ChatInput from './components/ChatInput';
+import ChatMenuPanel from './components/ChatMenuPanel';
 import { useChatbot } from './hooks/useChatbot';
 
 export default function Chatbot() {
@@ -11,16 +13,14 @@ export default function Chatbot() {
     sessionList, sessionsLoading, activeSessionId, loadSession, deleteSession,
   } = useChatbot();
 
+  const [panelOpen, setPanelOpen] = useState(false);
+
   return (
-    <div className="relative h-full flex flex-col bg-[#0B0F14] overflow-hidden">
+    <div className="relative h-full flex flex-col bg-[#0B0F14]">
       <ChatHeader
         onNewChat={newChat}
         onClearHistory={clearHistory}
-        sessions={sessionList}
-        sessionsLoading={sessionsLoading}
-        activeSessionId={activeSessionId}
-        onSelectSession={loadSession}
-        onDeleteSession={deleteSession}
+        onOpenPanel={() => setPanelOpen(true)}
       />
       <ChatWindow
         messages={messages}
@@ -28,6 +28,18 @@ export default function Chatbot() {
         onPromptSelect={sendMessage}
       />
       <ChatInput onSendMessage={sendMessage} isLoading={isLoading} />
+
+      {/* Drawer — rendered last so it layers on top of everything */}
+      <ChatMenuPanel
+        isOpen={panelOpen}
+        onClose={() => setPanelOpen(false)}
+        sessions={sessionList}
+        sessionsLoading={sessionsLoading}
+        activeSessionId={activeSessionId}
+        onNewChat={newChat}
+        onSelectSession={loadSession}
+        onDeleteSession={deleteSession}
+      />
     </div>
   );
 }
