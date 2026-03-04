@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import SuggestedPrompts from './SuggestedPrompts';
-import { SparklesIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftRightIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 interface Message {
   id: string;
@@ -41,24 +41,21 @@ export default function ChatWindow({ messages, isLoading = false, onPromptSelect
       <div className="max-w-4xl mx-auto">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full min-h-[300px] sm:min-h-[450px] text-center px-4">
-            {/* Icon + glow */}
-            <div className="relative mb-5 sm:mb-7">
-              <div className="absolute inset-0 rounded-full bg-[#22C55E]/20 blur-2xl scale-150" />
-              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#22C55E]/20 to-[#16A34A]/10 border border-[#22C55E]/30 flex items-center justify-center shadow-lg shadow-[#22C55E]/10">
-                <SparklesIcon className="w-8 h-8 sm:w-10 sm:h-10 text-[#22C55E]" />
-              </div>
+            {/* Bot avatar icon */}
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#1F2933] border border-[#2D3748] flex items-center justify-center mb-4 sm:mb-5">
+              <ChatBubbleLeftRightIcon className="w-7 h-7 sm:w-8 sm:h-8 text-[#22C55E]" />
             </div>
 
             {/* Status badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#22C55E]/10 border border-[#22C55E]/20 mb-4">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#22C55E]/10 border border-[#22C55E]/20 mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
               <span className="text-[11px] text-[#22C55E] font-medium">AI Ready</span>
             </div>
 
-            <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-2">
               AI Marketing Assistant
             </h3>
-            <p className="text-white/60 text-xs sm:text-sm mb-8 sm:mb-10 max-w-sm leading-relaxed">
+            <p className="text-white/50 text-xs sm:text-sm mb-7 sm:mb-9 max-w-sm leading-relaxed">
               Ask me anything about marketing strategies, campaigns, content creation, or get personalized recommendations.
             </p>
             

@@ -344,8 +344,7 @@ export default function ChatMenuPanel({
 
         {/* Footer hint */}
         <div className="px-4 py-2.5 border-t border-[#1F2933]">
-          <p className="text-[10px] text-gray-500 flex items-center gap-1.5">
-            <SparklesIcon className="w-3 h-3 text-[#22C55E]/70 flex-shrink-0" />
+          <p className="text-[10px] text-gray-500 leading-relaxed">
             AI auto-generates titles, tags &amp; learns your business from every chat
           </p>
         </div>
