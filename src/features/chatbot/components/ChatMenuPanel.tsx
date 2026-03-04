@@ -121,22 +121,15 @@ export default function ChatMenuPanel({
     setGaps((prev) => prev.filter((g) => g._id !== gapId));
   };
 
+  if (!isOpen) return null;
+
   return (
     <>
-      {/* Backdrop — only covers the chat container */}
-      <div
-        className={`absolute inset-0 z-30 bg-black/50 transition-opacity duration-300 ${
-          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={onClose}
-      />
+      {/* Backdrop */}
+      <div className="fixed inset-0 z-30 bg-black/40" onClick={onClose} />
 
-      {/* Drawer — slides in from the right within the chat container */}
-      <div
-        className={`absolute top-0 right-0 h-full w-72 z-40 bg-[#0D1318] border-l border-[#1F2933] flex flex-col shadow-2xl transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
+      {/* Drawer */}
+      <div className="fixed top-0 right-0 h-full w-80 z-40 bg-[#0D1318] border-l border-[#1F2933] flex flex-col shadow-2xl">
 
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[#1F2933]">
