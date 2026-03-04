@@ -6,7 +6,6 @@ import {
   ChatBubbleLeftRightIcon,
   ExclamationTriangleIcon,
   TrashIcon,
-  ClockIcon,
   SparklesIcon,
   CheckIcon,
   PlusIcon,
@@ -73,6 +72,26 @@ const CATEGORY_COLORS: Record<string, string> = {
   other:              'bg-gray-500/20 text-gray-400',
 };
 
+// ─── date grouping helper ──────────────────────────────────────────────────
+function groupByDate(sessions: ChatSessionSummary[]): { label: string; items: ChatSessionSummary[] }[] {
+  const now = Date.now();
+  const DAY = 86400000;
+  const groups: Record<string, ChatSessionSummary[]> = {};
+
+  sessions.forEach((s) => {
+    const diff = now - new Date(s.updatedAt).getTime();
+    let label: string;
+    if (diff < DAY)              label = 'Today';
+    else if (diff < 2 * DAY)     label = 'Yesterday';
+    else if (diff < 7 * DAY)     label = 'This Week';
+    else                         label = 'Earlier';
+    (groups[label] = groups[label] || []).push(s);
+  });
+
+  const ORDER = ['Today', 'Yesterday', 'This Week', 'Earlier'];
+  return ORDER.filter((l) => groups[l]).map((label) => ({ label, items: groups[label] }));
+}
+
 // ─── main panel ──────────────────────────────────────────────────────────────
 export default function ChatMenuPanel({
   isOpen,
@@ -87,15 +106,11 @@ export default function ChatMenuPanel({
   const { token } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('history');
 
-  // Memory state
-  const [memory, setMemory]           = useState<MemoryFact[]>([]);
-  const [memoryLoading, setMemLoad]   = useState(false);
+  const [memory, setMemory]         = useState<MemoryFact[]>([]);
+  const [memoryLoading, setMemLoad] = useState(false);
+  const [gaps, setGaps]             = useState<KnowledgeGap[]>([]);
+  const [gapsLoading, setGapsLoad]  = useState(false);
 
-  // Gaps state
-  const [gaps, setGaps]               = useState<KnowledgeGap[]>([]);
-  const [gapsLoading, setGapsLoad]    = useState(false);
-
-  // Load memory + gaps when panel opens
   useEffect(() => {
     if (!isOpen || !token) return;
     if (activeTab === 'memory' && memory.length === 0) {
@@ -111,8 +126,7 @@ export default function ChatMenuPanel({
 
   const handleDeleteFact = async (factId: string) => {
     if (!token) return;
-    const updated = await sessionService.deleteMemoryFact(token, factId);
-    setMemory(updated);
+    setMemory(await sessionService.deleteMemoryFact(token, factId));
   };
 
   const handleResolveGap = async (gapId: string) => {
@@ -121,143 +135,152 @@ export default function ChatMenuPanel({
     setGaps((prev) => prev.filter((g) => g._id !== gapId));
   };
 
-  if (!isOpen) return null;
+  const grouped = groupByDate(sessions);
 
   return (
-    <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-30 bg-black/40" onClick={onClose} />
+    <div
+      className={`flex-shrink-0 flex flex-col bg-[#0D1318] border-l border-[#1F2933] overflow-hidden transition-all duration-300 ease-in-out ${
+        isOpen ? 'w-72' : 'w-0'
+      }`}
+    >
+      {/* prevent content flash during close animation */}
+      <div className="w-72 flex flex-col h-full">
 
-      {/* Drawer */}
-      <div className="fixed top-0 right-0 h-full w-80 z-40 bg-[#0D1318] border-l border-[#1F2933] flex flex-col shadow-2xl">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#1F2933]">
-          <span className="text-sm font-semibold text-white">Assistant Menu</span>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#1F2933] text-gray-400 hover:text-white transition-colors">
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#1F2933] flex-shrink-0">
+          <div>
+            <p className="text-sm font-semibold text-white">Chat History</p>
+            <p className="text-[10px] text-gray-500 mt-0.5">{sessions.length} conversation{sessions.length !== 1 ? 's' : ''}</p>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close panel"
+            className="p-1.5 rounded-lg hover:bg-[#1F2933] text-gray-500 hover:text-white transition-colors"
+          >
             <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
 
-        {/* New Chat */}
-        <div className="px-4 py-3 border-b border-[#1F2933]">
+        {/* ── New Chat ── */}
+        <div className="px-3 py-3 border-b border-[#1F2933] flex-shrink-0">
           <button
             onClick={() => { onNewChat(); onClose(); }}
-            className="w-full flex items-center justify-center gap-2 py-2 bg-[#22C55E] hover:bg-[#16A34A] text-black text-sm font-semibold rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-2 bg-[#22C55E] hover:bg-[#16A34A] text-[#0B0F14] text-xs font-bold rounded-lg transition-colors"
           >
-            <PlusIcon className="w-4 h-4" />
-            New Chat
+            <PlusIcon className="w-3.5 h-3.5" />
+            New Conversation
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-[#1F2933]">
+        {/* ── Tabs ── */}
+        <div className="flex border-b border-[#1F2933] flex-shrink-0">
           {([
-            { id: 'history', label: 'History',  icon: ChatBubbleLeftRightIcon, count: sessions.length },
-            { id: 'memory',  label: 'Memory',   icon: SparklesIcon,            count: memory.length },
-            { id: 'gaps',    label: 'Gaps',      icon: ExclamationTriangleIcon, count: gaps.length },
-          ] as const).map(({ id, label, icon: Icon, count }) => (
+            { id: 'history', label: 'History', icon: ChatBubbleLeftRightIcon },
+            { id: 'memory',  label: 'Memory',  icon: SparklesIcon },
+            { id: 'gaps',    label: 'Gaps',    icon: ExclamationTriangleIcon },
+          ] as const).map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-xs font-medium transition-colors border-b-2 ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium transition-colors border-b-2 ${
                 activeTab === id
                   ? 'border-[#22C55E] text-[#22C55E]'
-                  : 'border-transparent text-gray-500 hover:text-gray-300'
+                  : 'border-transparent text-gray-600 hover:text-gray-300'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              <span>{label}</span>
-              {count > 0 && (
-                <span className={`text-[9px] px-1.5 rounded-full font-bold ${
-                  activeTab === id ? 'bg-[#22C55E]/20 text-[#22C55E]' : 'bg-[#1F2933] text-gray-500'
-                }`}>
-                  {count}
-                </span>
-              )}
+              <Icon className="w-3.5 h-3.5" />
+              {label}
             </button>
           ))}
         </div>
 
-        {/* Tab content */}
+        {/* ── Content ── */}
         <div className="flex-1 overflow-y-auto">
 
-          {/* ── HISTORY ── */}
+          {/* HISTORY */}
           {activeTab === 'history' && (
-            <div className="p-3 space-y-2">
+            <div className="py-2">
               {sessionsLoading && (
-                <div className="flex justify-center py-8">
+                <div className="flex justify-center py-10">
                   <div className="w-5 h-5 border-2 border-[#22C55E] border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
+
               {!sessionsLoading && sessions.length === 0 && (
-                <div className="text-center py-10">
-                  <div className="w-14 h-14 rounded-2xl bg-[#22C55E]/10 border border-[#22C55E]/20 flex items-center justify-center mx-auto mb-3">
-                    <ChatBubbleLeftRightIcon className="w-7 h-7 text-[#22C55E]/70" />
+                <div className="flex flex-col items-center text-center px-6 py-12">
+                  <div className="w-12 h-12 rounded-xl bg-[#1F2933] flex items-center justify-center mb-3">
+                    <ChatBubbleLeftRightIcon className="w-6 h-6 text-gray-600" />
                   </div>
-                  <p className="text-xs font-medium text-gray-300">No conversations yet</p>
-                  <p className="text-[10px] text-gray-600 mt-1">Start a new chat to get going</p>
+                  <p className="text-xs font-medium text-gray-400">No conversations yet</p>
+                  <p className="text-[10px] text-gray-600 mt-1">Start chatting to see history here</p>
                 </div>
               )}
-              {sessions.map((s) => {
-                const isActive = s._id === activeSessionId;
-                return (
-                  <div
-                    key={s._id}
-                    onClick={() => { onSelectSession(s._id); onClose(); }}
-                    className={`group relative rounded-lg p-3 cursor-pointer transition-all border ${
-                      isActive
-                        ? 'bg-[#1F2933] border-[#22C55E]/40'
-                        : 'bg-[#0B0F14] border-[#1F2933] hover:border-[#2D3748] hover:bg-[#131920]'
-                    }`}
-                  >
-                    {/* Active indicator */}
-                    {isActive && (
-                      <span className="absolute top-2 left-2 w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
-                    )}
 
-                    <p className={`text-xs font-medium leading-tight line-clamp-2 pr-6 ${isActive ? 'pl-3' : ''}`}>
-                      {s.title || 'New conversation'}
-                    </p>
-
-                    {s.summary && (
-                      <p className="text-[10px] text-gray-500 mt-1 line-clamp-2 leading-tight">
-                        {s.summary}
-                      </p>
-                    )}
-
-                    <div className="mt-1.5 flex items-center gap-1.5">
-                      {s.topicTag && (
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded border ${tagColor(s.topicTag)}`}>
-                          {s.topicTag}
-                        </span>
-                      )}
-                      <div className="flex items-center gap-0.5 ml-auto">
-                        <ClockIcon className="w-2.5 h-2.5 text-gray-600" />
-                        <span className="text-[9px] text-gray-600">{timeAgo(s.updatedAt)}</span>
-                      </div>
-                      {s.insightsGenerated && (
-                        <SparklesIcon className="w-2.5 h-2.5 text-[#22C55E]/50" title="AI insights ready" />
-                      )}
-                    </div>
-
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onDeleteSession(s._id); }}
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-500/20 text-gray-500 hover:text-red-400"
-                    >
-                      <TrashIcon className="w-3 h-3" />
-                    </button>
+              {grouped.map(({ label, items }) => (
+                <div key={label}>
+                  {/* Date group label */}
+                  <div className="flex items-center gap-2 px-4 py-2">
+                    <span className="text-[10px] font-semibold text-gray-600 uppercase tracking-wider">{label}</span>
+                    <div className="flex-1 h-px bg-[#1F2933]" />
                   </div>
-                );
-              })}
+
+                  {/* Session rows */}
+                  {items.map((s) => {
+                    const isActive = s._id === activeSessionId;
+                    return (
+                      <div
+                        key={s._id}
+                        onClick={() => onSelectSession(s._id)}
+                        className={`group relative flex items-start gap-3 mx-2 mb-1 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${
+                          isActive
+                            ? 'bg-[#22C55E]/10 border border-[#22C55E]/25'
+                            : 'hover:bg-[#1A1F2E] border border-transparent'
+                        }`}
+                      >
+                        {/* Active dot */}
+                        <div className={`mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? 'bg-[#22C55E]' : 'bg-[#2D3748]'}`} />
+
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs font-medium leading-snug truncate ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                            {s.title || 'New conversation'}
+                          </p>
+                          {s.summary && (
+                            <p className="text-[10px] text-gray-600 mt-0.5 line-clamp-1 leading-relaxed">
+                              {s.summary}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-1.5 mt-1">
+                            {s.topicTag && (
+                              <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-medium ${tagColor(s.topicTag)}`}>
+                                {s.topicTag}
+                              </span>
+                            )}
+                            <span className="text-[9px] text-gray-700 ml-auto">
+                              {new Date(s.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onDeleteSession(s._id); }}
+                          aria-label="Delete conversation"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-500/20 text-gray-600 hover:text-red-400 flex-shrink-0 mt-0.5"
+                        >
+                          <TrashIcon className="w-3 h-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           )}
 
-          {/* ── MEMORY ── */}
+          {/* MEMORY */}
           {activeTab === 'memory' && (
             <div className="p-3 space-y-2">
-              <p className="text-[10px] text-gray-600 mb-3 leading-relaxed">
-                Facts the AI learned about your business from past conversations. These are automatically injected into every new chat.
+              <p className="text-[10px] text-gray-600 leading-relaxed pt-1 pb-2">
+                Facts learned about your business, injected into every chat automatically.
               </p>
               {memoryLoading && (
                 <div className="flex justify-center py-8">
@@ -265,12 +288,12 @@ export default function ChatMenuPanel({
                 </div>
               )}
               {!memoryLoading && memory.length === 0 && (
-                <div className="text-center py-10">
-                  <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-3">
-                    <SparklesIcon className="w-7 h-7 text-purple-400/80" />
+                <div className="flex flex-col items-center text-center px-4 py-10">
+                  <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-3">
+                    <SparklesIcon className="w-6 h-6 text-purple-400/70" />
                   </div>
-                  <p className="text-xs font-medium text-gray-300">No memory yet</p>
-                  <p className="text-[10px] text-gray-500 mt-1">Chat more so the AI can learn your business</p>
+                  <p className="text-xs font-medium text-gray-400">No memory yet</p>
+                  <p className="text-[10px] text-gray-600 mt-1">Chat more so the assistant learns your business</p>
                 </div>
               )}
               {memory.map((fact) => (
@@ -281,13 +304,12 @@ export default function ChatMenuPanel({
                       <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${CATEGORY_COLORS[fact.category] || 'bg-gray-500/20 text-gray-400'}`}>
                         {CATEGORY_LABELS[fact.category] || fact.category}
                       </span>
-                      <span className="text-[9px] text-gray-600">
-                        {Math.round(fact.confidence * 100)}% confidence
-                      </span>
+                      <span className="text-[9px] text-gray-600">{Math.round(fact.confidence * 100)}%</span>
                     </div>
                   </div>
                   <button
                     onClick={() => handleDeleteFact(fact._id)}
+                    aria-label="Delete memory"
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-500/20 text-gray-600 hover:text-red-400 flex-shrink-0"
                   >
                     <TrashIcon className="w-3 h-3" />
@@ -297,11 +319,11 @@ export default function ChatMenuPanel({
             </div>
           )}
 
-          {/* ── KNOWLEDGE GAPS ── */}
+          {/* GAPS */}
           {activeTab === 'gaps' && (
             <div className="p-3 space-y-2">
-              <p className="text-[10px] text-gray-600 mb-3 leading-relaxed">
-                Questions your customers asked that your knowledge base couldn't answer. Upload documents to fill these gaps.
+              <p className="text-[10px] text-gray-600 leading-relaxed pt-1 pb-2">
+                Questions your knowledge base couldn't answer. Upload docs to fill these gaps.
               </p>
               {gapsLoading && (
                 <div className="flex justify-center py-8">
@@ -309,12 +331,12 @@ export default function ChatMenuPanel({
                 </div>
               )}
               {!gapsLoading && gaps.length === 0 && (
-                <div className="text-center py-10">
-                  <div className="w-14 h-14 rounded-2xl bg-[#22C55E]/10 border border-[#22C55E]/20 flex items-center justify-center mx-auto mb-3">
-                    <CheckIcon className="w-7 h-7 text-[#22C55E]/80" />
+                <div className="flex flex-col items-center text-center px-4 py-10">
+                  <div className="w-12 h-12 rounded-xl bg-[#22C55E]/10 flex items-center justify-center mb-3">
+                    <CheckIcon className="w-6 h-6 text-[#22C55E]/70" />
                   </div>
-                  <p className="text-xs font-medium text-gray-300">No knowledge gaps</p>
-                  <p className="text-[10px] text-gray-500 mt-1">Your knowledge base is covering all questions</p>
+                  <p className="text-xs font-medium text-gray-400">No knowledge gaps</p>
+                  <p className="text-[10px] text-gray-600 mt-1">All questions are being answered</p>
                 </div>
               )}
               {gaps.map((gap) => (
@@ -323,15 +345,13 @@ export default function ChatMenuPanel({
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-gray-300 leading-relaxed">"{gap.question}"</p>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[9px] text-gray-600">
-                        Asked {gap.frequency}× · {timeAgo(gap.lastAsked)}
-                      </span>
+                      <span className="text-[9px] text-gray-600">Asked {gap.frequency}×</span>
                       <button
                         onClick={() => handleResolveGap(gap._id)}
                         className="ml-auto text-[9px] flex items-center gap-0.5 px-2 py-0.5 rounded bg-[#22C55E]/10 text-[#22C55E] hover:bg-[#22C55E]/20 transition-colors font-medium"
                       >
                         <CheckIcon className="w-2.5 h-2.5" />
-                        Mark resolved
+                        Resolve
                       </button>
                     </div>
                   </div>
@@ -341,14 +361,7 @@ export default function ChatMenuPanel({
           )}
 
         </div>
-
-        {/* Footer hint */}
-        <div className="px-4 py-2.5 border-t border-[#1F2933]">
-          <p className="text-[10px] text-gray-500 leading-relaxed">
-            AI auto-generates titles, tags &amp; learns your business from every chat
-          </p>
-        </div>
       </div>
-    </>
+    </div>
   );
 }
