@@ -7,11 +7,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
-async function proxyRequest(req: NextRequest, path: string) {
+async function proxyRequest(req: NextRequest, pathSegments: string[]) {
   const auth = req.headers.get('Authorization');
   if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-  const url = `${BACKEND_URL}/api/admin/${path}`;
+  const path = pathSegments.join('/');
+  const url  = `${BACKEND_URL}/api/admin/${path}`;
 
   const body = req.method !== 'GET' && req.method !== 'DELETE'
     ? await req.text()
@@ -33,22 +34,24 @@ async function proxyRequest(req: NextRequest, path: string) {
   });
 }
 
-export async function GET(req: NextRequest, { params }: { params: { path: string[] } }) {
-  const path = params.path.join('/');
+type Params = Promise<{ path: string[] }>;
+
+export async function GET(req: NextRequest, { params }: { params: Params }) {
+  const { path } = await params;
   return proxyRequest(req, path);
 }
 
-export async function POST(req: NextRequest, { params }: { params: { path: string[] } }) {
-  const path = params.path.join('/');
+export async function POST(req: NextRequest, { params }: { params: Params }) {
+  const { path } = await params;
   return proxyRequest(req, path);
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { path: string[] } }) {
-  const path = params.path.join('/');
+export async function DELETE(req: NextRequest, { params }: { params: Params }) {
+  const { path } = await params;
   return proxyRequest(req, path);
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { path: string[] } }) {
-  const path = params.path.join('/');
+export async function PATCH(req: NextRequest, { params }: { params: Params }) {
+  const { path } = await params;
   return proxyRequest(req, path);
 }

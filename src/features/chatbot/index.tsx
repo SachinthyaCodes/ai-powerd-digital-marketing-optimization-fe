@@ -3,7 +3,7 @@
 import ChatHeader from './components/ChatHeader';
 import ChatWindow from './components/ChatWindow';
 import ChatInput from './components/ChatInput';
-import SessionsSidebar from './components/SessionsSidebar';
+import SessionsTopBar from './components/SessionsTopBar';
 import { useChatbot } from './hooks/useChatbot';
 
 export default function Chatbot() {
@@ -13,9 +13,9 @@ export default function Chatbot() {
   } = useChatbot();
 
   return (
-    <div className="h-screen flex bg-[#0B0F14] overflow-hidden">
-      {/* Sessions sidebar */}
-      <SessionsSidebar
+    <div className="h-full flex flex-col bg-[#0B0F14] overflow-hidden">
+      {/* Sessions history strip (top) */}
+      <SessionsTopBar
         sessions={sessionList}
         activeSessionId={activeSessionId}
         isLoading={sessionsLoading}
@@ -24,16 +24,18 @@ export default function Chatbot() {
         onDeleteSession={deleteSession}
       />
 
-      {/* Main chat panel */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <ChatHeader onNewChat={newChat} onClearHistory={clearHistory} />
-        <ChatWindow
-          messages={messages}
-          isLoading={isLoading}
-          onPromptSelect={sendMessage}
-        />
-        <ChatInput onSendMessage={sendMessage} isLoading={isLoading} />
-      </div>
+      {/* Chat header */}
+      <ChatHeader onNewChat={newChat} onClearHistory={clearHistory} />
+
+      {/* Messages area */}
+      <ChatWindow
+        messages={messages}
+        isLoading={isLoading}
+        onPromptSelect={sendMessage}
+      />
+
+      {/* Input */}
+      <ChatInput onSendMessage={sendMessage} isLoading={isLoading} />
     </div>
   );
 }
