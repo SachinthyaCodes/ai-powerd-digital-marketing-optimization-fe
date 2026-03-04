@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -24,7 +24,7 @@ interface ChatMenuPanelProps {
   onDeleteSession: (id: string) => void;
 }
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function timeAgo(dateStr: string) {
   const diff  = Date.now() - new Date(dateStr).getTime();
   const mins  = Math.floor(diff / 60000);
@@ -70,7 +70,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   other:              'bg-gray-500/20 text-gray-400',
 };
 
-// ─── main panel ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ main panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function ChatMenuPanel({
   isOpen,
   onClose,
@@ -122,43 +122,46 @@ export default function ChatMenuPanel({
 
   return (
     <>
-      {/* Backdrop — covers only the left chat pane (absolute, not fixed) */}
+      {/* Backdrop â€” covers only the left chat pane (absolute, not fixed) */}
       <div className="absolute inset-0 z-30 bg-black/50" onClick={onClose} />
 
-      {/* Drawer — slides in from right within the chat pane */}
-      <div className="absolute top-0 right-0 h-full w-full sm:w-80 z-40 bg-[#0C1220] border-l border-[#1A2535] flex flex-col shadow-2xl">
+      {/* Drawer â€” slides in from right within the chat pane */}
+      <div className="absolute top-0 right-0 h-full w-full sm:w-80 z-40 bg-[#0D1117]/95 backdrop-blur-xl border-l border-white/[0.06] flex flex-col shadow-2xl">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#1A2535]">
-          <span className="text-sm font-semibold text-slate-200">Memory &amp; Gaps</span>
-          <button title="Close" onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#1F2933] text-gray-400 hover:text-white transition-colors">
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.06]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#22C55E]/10 flex items-center justify-center">
+              <SparklesIcon className="w-3.5 h-3.5 text-[#22C55E]" />
+            </div>
+            <span className="text-sm font-semibold text-white">Intelligence</span>
+          </div>
+          <button title="Close" onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/[0.07] text-white/40 hover:text-white transition-all">
             <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-[#1F2933]">
-          {([
-            { id: 'memory',  label: 'Memory',   icon: SparklesIcon,            count: memory.length },
-            { id: 'gaps',    label: 'Gaps',      icon: ExclamationTriangleIcon, count: gaps.length },
+        <div className="flex gap-1.5 px-3 pt-3 pb-2">
+          {([  
+            { id: 'memory', label: 'Memory',   icon: SparklesIcon,            count: memory.length },
+            { id: 'gaps',   label: 'Gaps',      icon: ExclamationTriangleIcon, count: gaps.length },
           ] as const).map(({ id, label, icon: Icon, count }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-xs font-medium transition-colors border-b-2 ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
                 activeTab === id
-                  ? 'border-[#22C55E] text-[#22C55E]'
-                  : 'border-transparent text-gray-500 hover:text-gray-300'
+                  ? 'bg-white/[0.08] text-white border border-white/[0.1]'
+                  : 'text-white/35 hover:text-white/60 hover:bg-white/[0.04]'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              <span>{label}</span>
+              <Icon className="w-3.5 h-3.5" />
+              {label}
               {count > 0 && (
-                <span className={`text-[9px] px-1.5 rounded-full font-bold ${
-                  activeTab === id ? 'bg-[#22C55E]/20 text-[#22C55E]' : 'bg-[#1F2933] text-gray-500'
-                }`}>
-                  {count}
-                </span>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                  activeTab === id ? 'bg-[#22C55E]/20 text-[#22C55E]' : 'bg-white/[0.06] text-white/30'
+                }`}>{count}</span>
               )}
             </button>
           ))}
@@ -167,43 +170,41 @@ export default function ChatMenuPanel({
         {/* Tab content */}
         <div className="flex-1 overflow-y-auto">
 
-          {/* ── MEMORY ── */}
+          {/* â”€â”€ MEMORY â”€â”€ */}
           {activeTab === 'memory' && (
             <div className="p-3 space-y-2">
-              <p className="text-[11px] text-gray-400 mb-3 leading-relaxed">
-                Facts the AI learned about your business from past conversations. These are automatically injected into every new chat.
+              <p className="text-[11px] text-white/35 mb-3 leading-relaxed">
+                Facts the AI learned about your business from past conversations.
               </p>
               {memoryLoading && (
                 <div className="flex justify-center py-8">
-                  <div className="w-5 h-5 border-2 border-[#22C55E] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-[#22C55E]/50 border-t-[#22C55E] rounded-full animate-spin" />
                 </div>
               )}
               {!memoryLoading && memory.length === 0 && (
                 <div className="text-center py-10">
-                  <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-3">
-                    <SparklesIcon className="w-7 h-7 text-purple-400/80" />
+                  <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center mx-auto mb-3">
+                    <SparklesIcon className="w-6 h-6 text-white/20" />
                   </div>
-                  <p className="text-xs font-medium text-gray-300">No memory yet</p>
-                  <p className="text-[11px] text-gray-500 mt-1">Chat more so the AI can learn your business.</p>
+                  <p className="text-xs font-medium text-white/50">No memory yet</p>
+                  <p className="text-[11px] text-white/25 mt-1">Chat more so the AI can learn your business.</p>
                 </div>
               )}
               {memory.map((fact) => (
-                <div key={fact._id} className="group flex items-start gap-2 p-2.5 bg-[#0B0F14] border border-[#1F2933] rounded-lg hover:border-[#2D3748] transition-colors">
+                <div key={fact._id} className="group flex items-start gap-2 p-2.5 bg-white/[0.02] border border-white/[0.05] rounded-xl hover:border-white/[0.09] transition-all">
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-200 leading-relaxed">{fact.fact}</p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${CATEGORY_COLORS[fact.category] || 'bg-gray-500/20 text-gray-400'}`}>
+                    <p className="text-xs text-white/75 leading-relaxed">{fact.fact}</p>
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-semibold ${CATEGORY_COLORS[fact.category] || 'bg-white/[0.06] text-white/40'}`}>
                         {CATEGORY_LABELS[fact.category] || fact.category}
                       </span>
-                      <span className="text-[9px] text-gray-400">
-                        {Math.round(fact.confidence * 100)}% confidence
-                      </span>
+                      <span className="text-[9px] text-white/25">{Math.round(fact.confidence * 100)}% confidence</span>
                     </div>
                   </div>
                   <button
                     title="Delete fact"
                     onClick={() => handleDeleteFact(fact._id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-500/20 text-gray-600 hover:text-red-400 flex-shrink-0"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-red-500/15 text-white/20 hover:text-red-400 flex-shrink-0"
                   >
                     <TrashIcon className="w-3 h-3" />
                   </button>
@@ -212,41 +213,39 @@ export default function ChatMenuPanel({
             </div>
           )}
 
-          {/* ── KNOWLEDGE GAPS ── */}
+          {/* â”€â”€ KNOWLEDGE GAPS â”€â”€ */}
           {activeTab === 'gaps' && (
             <div className="p-3 space-y-2">
-              <p className="text-[11px] text-gray-400 mb-3 leading-relaxed">
-                Questions your customers asked that your knowledge base couldn't answer. Upload documents to fill these gaps.
+              <p className="text-[11px] text-white/35 mb-3 leading-relaxed">
+                Questions your customers asked that your knowledge base couldn't answer.
               </p>
               {gapsLoading && (
                 <div className="flex justify-center py-8">
-                  <div className="w-5 h-5 border-2 border-[#22C55E] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-[#22C55E]/50 border-t-[#22C55E] rounded-full animate-spin" />
                 </div>
               )}
               {!gapsLoading && gaps.length === 0 && (
                 <div className="text-center py-10">
-                  <div className="w-14 h-14 rounded-2xl bg-[#22C55E]/10 border border-[#22C55E]/20 flex items-center justify-center mx-auto mb-3">
-                    <CheckIcon className="w-7 h-7 text-[#22C55E]/80" />
+                  <div className="w-12 h-12 rounded-2xl bg-[#22C55E]/[0.07] border border-[#22C55E]/20 flex items-center justify-center mx-auto mb-3">
+                    <CheckIcon className="w-6 h-6 text-[#22C55E]/60" />
                   </div>
-                  <p className="text-xs font-medium text-gray-300">No knowledge gaps</p>
-                  <p className="text-[10px] text-gray-500 mt-1">Your knowledge base is covering all questions</p>
+                  <p className="text-xs font-medium text-white/50">No knowledge gaps</p>
+                  <p className="text-[10px] text-white/25 mt-1">Your knowledge base covers all questions</p>
                 </div>
               )}
               {gaps.map((gap) => (
-                <div key={gap._id} className="flex items-start gap-2 p-2.5 bg-[#0B0F14] border border-yellow-500/20 rounded-lg">
-                  <ExclamationTriangleIcon className="w-3.5 h-3.5 text-yellow-500/60 flex-shrink-0 mt-0.5" />
+                <div key={gap._id} className="flex items-start gap-2.5 p-2.5 bg-amber-500/[0.04] border border-amber-500/15 rounded-xl">
+                  <ExclamationTriangleIcon className="w-3.5 h-3.5 text-amber-400/50 flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-300 leading-relaxed">"{gap.question}"</p>
+                    <p className="text-xs text-white/70 leading-relaxed">&ldquo;{gap.question}&rdquo;</p>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[9px] text-gray-400">
-                        Asked {gap.frequency}× · {timeAgo(gap.lastAsked)}
-                      </span>
+                      <span className="text-[9px] text-white/25">Asked {gap.frequency}Ã— Â· {timeAgo(gap.lastAsked)}</span>
                       <button
                         onClick={() => handleResolveGap(gap._id)}
-                        className="ml-auto text-[9px] flex items-center gap-0.5 px-2 py-0.5 rounded bg-[#22C55E]/10 text-[#22C55E] hover:bg-[#22C55E]/20 transition-colors font-medium"
+                        className="ml-auto text-[9px] flex items-center gap-0.5 px-2 py-0.5 rounded-lg bg-[#22C55E]/10 text-[#22C55E] hover:bg-[#22C55E]/20 transition-colors font-semibold"
                       >
                         <CheckIcon className="w-2.5 h-2.5" />
-                        Mark resolved
+                        Resolve
                       </button>
                     </div>
                   </div>
@@ -254,13 +253,12 @@ export default function ChatMenuPanel({
               ))}
             </div>
           )}
-
         </div>
 
-        {/* Footer hint */}
-        <div className="px-4 py-2.5 border-t border-[#1F2933]">
-          <p className="text-[10px] text-gray-500 leading-relaxed">
-            AI auto-generates titles, tags &amp; learns your business from every chat
+        {/* Footer */}
+        <div className="px-4 py-3 border-t border-white/[0.06]">
+          <p className="text-[10px] text-white/20 leading-relaxed">
+            Auto-learns from every conversation
           </p>
         </div>
       </div>

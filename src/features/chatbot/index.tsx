@@ -64,7 +64,7 @@ export default function Chatbot() {
   const groups = groupByDate(sessionList);
 
   return (
-    <div className="h-full flex bg-[#0B0F14]">
+    <div className="h-full flex bg-[#0D1117]">
 
       {/* ── Left: Chat ── */}
       <div className="relative flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -92,16 +92,19 @@ export default function Chatbot() {
         />
       </div>
 
-      {/* ── Right: Sessions sidebar ── */}
-      <div className="hidden lg:flex w-64 xl:w-72 flex-shrink-0 flex-col border-l border-white/[0.04] bg-[#0B0F14]/50">
+      {/* ── Right: Sessions sidebar (desktop only) ── */}
+      <div className="hidden lg:flex w-64 xl:w-72 flex-shrink-0 flex-col border-l border-white/[0.06] bg-[#0D1117]">
 
-        {/* History header */}
-        <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.04]">
-          <span className="text-[13px] font-semibold text-white/70">History</span>
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.06]">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+            <span className="text-sm font-semibold text-white">Conversations</span>
+          </div>
           <button
             title="New chat"
             onClick={newChat}
-            className="flex items-center gap-1 text-[11px] text-[#22C55E]/70 hover:text-[#22C55E] font-medium transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.07] text-white text-[11px] font-medium transition-all"
           >
             <PlusIcon className="w-3 h-3" />
             New
@@ -109,29 +112,29 @@ export default function Chatbot() {
         </div>
 
         {/* Session list */}
-        <div className="flex-1 overflow-y-auto py-1">
+        <div className="flex-1 overflow-y-auto py-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           {sessionsLoading && (
             <div className="flex justify-center py-10">
-              <div className="w-4 h-4 border-2 border-[#22C55E]/50 border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-[#22C55E]/60 border-t-[#22C55E] rounded-full animate-spin" />
             </div>
           )}
 
           {!sessionsLoading && sessionList.length === 0 && (
-            <div className="text-center py-14 px-4">
-              <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.04] flex items-center justify-center mx-auto mb-3">
-                <svg viewBox="0 0 24 24" className="w-4 h-4 text-white/15" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+            <div className="flex flex-col items-center text-center py-14 px-5">
+              <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z" />
                 </svg>
               </div>
-              <p className="text-[11px] text-white/30">No conversations yet</p>
-              <p className="text-[10px] text-white/15 mt-0.5">Start chatting to see history here</p>
+              <p className="text-xs font-medium text-white/40">No conversations yet</p>
+              <p className="text-[11px] text-white/20 mt-1">Start chatting to see history</p>
             </div>
           )}
 
           {!sessionsLoading && groups.map((group) => (
-            <div key={group.label}>
-              <div className="px-4 pt-4 pb-1">
-                <span className="text-[9px] font-semibold text-white/20 uppercase tracking-widest">
+            <div key={group.label} className="mb-2">
+              <div className="px-4 pt-3 pb-1.5">
+                <span className="text-[10px] font-semibold text-white/25 uppercase tracking-widest">
                   {group.label}
                 </span>
               </div>
@@ -142,22 +145,31 @@ export default function Chatbot() {
                   <div
                     key={session._id}
                     onClick={() => loadSession(session._id)}
-                    className={`group relative mx-2 rounded-lg px-3 py-2.5 cursor-pointer transition-all mb-0.5 ${
+                    className={`group relative mx-2 mb-0.5 rounded-xl px-3 py-2.5 cursor-pointer transition-all border ${
                       isActive
-                        ? 'bg-white/[0.05] border-l-2 border-[#22C55E]'
-                        : 'border-l-2 border-transparent hover:bg-white/[0.02]'
+                        ? 'bg-[#22C55E]/[0.08] border-[#22C55E]/25 shadow-sm'
+                        : 'border-transparent hover:bg-white/[0.04] hover:border-white/[0.06]'
                     }`}
                   >
-                    <p className={`text-[12px] font-medium leading-snug line-clamp-1 pr-6 transition-colors ${
-                      isActive ? 'text-white/80' : 'text-white/40 group-hover:text-white/60'
+                    {/* Active indicator */}
+                    {isActive && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#22C55E] rounded-r-full" />
+                    )}
+
+                    <p className={`text-xs font-medium leading-snug line-clamp-1 pr-6 transition-colors ${
+                      isActive ? 'text-white' : 'text-white/55 group-hover:text-white/80'
                     }`}>
                       {session.title || 'New conversation'}
                     </p>
 
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className="text-[10px] text-white/15">{timeAgo(session.updatedAt)}</span>
+                    {session.summary && (
+                      <p className="text-[10px] text-white/25 mt-0.5 line-clamp-1">{session.summary}</p>
+                    )}
+
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-[10px] text-white/20">{timeAgo(session.updatedAt)}</span>
                       {session.topicTag && (
-                        <span className={`ml-auto text-[9px] px-1.5 py-0.5 rounded-md font-medium ${tagColor(session.topicTag)}`}>
+                        <span className={`ml-auto text-[9px] px-1.5 py-0.5 rounded-md font-semibold ${tagColor(session.topicTag)}`}>
                           {session.topicTag}
                         </span>
                       )}
@@ -166,7 +178,7 @@ export default function Chatbot() {
                     <button
                       title="Delete session"
                       onClick={(e) => { e.stopPropagation(); deleteSession(session._id); }}
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-red-500/10 text-white/15 hover:text-red-400"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-red-500/15 text-white/20 hover:text-red-400"
                     >
                       <TrashIcon className="w-3 h-3" />
                     </button>
