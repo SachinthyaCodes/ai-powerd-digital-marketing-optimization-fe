@@ -192,8 +192,11 @@ export default function ChatMenuPanel({
               )}
               {!sessionsLoading && sessions.length === 0 && (
                 <div className="text-center py-10">
-                  <ChatBubbleLeftRightIcon className="w-8 h-8 text-gray-700 mx-auto mb-2" />
-                  <p className="text-xs text-gray-600">No conversations yet</p>
+                  <div className="w-14 h-14 rounded-2xl bg-[#22C55E]/10 border border-[#22C55E]/20 flex items-center justify-center mx-auto mb-3">
+                    <ChatBubbleLeftRightIcon className="w-7 h-7 text-[#22C55E]/70" />
+                  </div>
+                  <p className="text-xs font-medium text-gray-300">No conversations yet</p>
+                  <p className="text-[10px] text-gray-600 mt-1">Start a new chat to get going</p>
                 </div>
               )}
               {sessions.map((s) => {
@@ -263,9 +266,11 @@ export default function ChatMenuPanel({
               )}
               {!memoryLoading && memory.length === 0 && (
                 <div className="text-center py-10">
-                  <SparklesIcon className="w-8 h-8 text-gray-700 mx-auto mb-2" />
-                  <p className="text-xs text-gray-600">No memory yet</p>
-                  <p className="text-[10px] text-gray-700 mt-1">Chat more so the AI can learn your business</p>
+                  <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-3">
+                    <SparklesIcon className="w-7 h-7 text-purple-400/80" />
+                  </div>
+                  <p className="text-xs font-medium text-gray-300">No memory yet</p>
+                  <p className="text-[10px] text-gray-500 mt-1">Chat more so the AI can learn your business</p>
                 </div>
               )}
               {memory.map((fact) => (
@@ -305,9 +310,11 @@ export default function ChatMenuPanel({
               )}
               {!gapsLoading && gaps.length === 0 && (
                 <div className="text-center py-10">
-                  <CheckIcon className="w-8 h-8 text-[#22C55E]/40 mx-auto mb-2" />
-                  <p className="text-xs text-gray-600">No knowledge gaps</p>
-                  <p className="text-[10px] text-gray-700 mt-1">Your knowledge base is covering all questions</p>
+                  <div className="w-14 h-14 rounded-2xl bg-[#22C55E]/10 border border-[#22C55E]/20 flex items-center justify-center mx-auto mb-3">
+                    <CheckIcon className="w-7 h-7 text-[#22C55E]/80" />
+                  </div>
+                  <p className="text-xs font-medium text-gray-300">No knowledge gaps</p>
+                  <p className="text-[10px] text-gray-500 mt-1">Your knowledge base is covering all questions</p>
                 </div>
               )}
               {gaps.map((gap) => (
@@ -337,8 +344,8 @@ export default function ChatMenuPanel({
 
         {/* Footer hint */}
         <div className="px-4 py-2.5 border-t border-[#1F2933]">
-          <p className="text-[10px] text-gray-700 flex items-center gap-1.5">
-            <SparklesIcon className="w-3 h-3 text-[#22C55E]/40 flex-shrink-0" />
+          <p className="text-[10px] text-gray-500 flex items-center gap-1.5">
+            <SparklesIcon className="w-3 h-3 text-[#22C55E]/70 flex-shrink-0" />
             AI auto-generates titles, tags &amp; learns your business from every chat
           </p>
         </div>
