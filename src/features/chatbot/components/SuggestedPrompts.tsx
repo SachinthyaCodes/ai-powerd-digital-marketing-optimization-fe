@@ -72,19 +72,19 @@ const prompts = [
 
 export default function SuggestedPrompts({ onSelectPrompt }: SuggestedPromptsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-3xl">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 w-full max-w-2xl">
       {prompts.map((prompt) => (
         <button
           key={prompt.id}
           onClick={() => onSelectPrompt(prompt.text)}
-          className="group flex items-center gap-3 px-4 py-3 bg-[#1A1F2E] text-white rounded-lg text-left hover:bg-[#252B3B] border border-[#2D3748] hover:border-[#22C55E]/40 transition-all duration-200"
+          className="group flex items-start gap-3 px-4 py-3 bg-white/[0.02] rounded-xl text-left hover:bg-white/[0.05] border border-white/[0.04] hover:border-white/[0.08] transition-all duration-200"
         >
-          <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${prompt.bgColor}`}>
+          <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5 transition-colors ${prompt.bgColor}`}>
             <prompt.icon className={`w-4 h-4 transition-colors ${prompt.iconColor}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm leading-snug text-white/90 group-hover:text-white transition-colors">{prompt.text}</p>
-            <span className={`text-xs mt-1 inline-block font-medium transition-colors opacity-80 group-hover:opacity-100 ${prompt.badgeColor}`}>
+            <p className="text-[13px] leading-snug text-white/60 group-hover:text-white/85 transition-colors">{prompt.text}</p>
+            <span className={`text-[11px] mt-1 inline-block font-semibold transition-colors ${prompt.badgeColor}`}>
               {prompt.category}
             </span>
           </div>

@@ -26,57 +26,44 @@ export default function ChatInput({ onSendMessage, isLoading = false }: ChatInpu
   };
 
   return (
-    <div className="border-t border-[#1F2933] bg-[#0B0F14] p-3 sm:p-5">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-2">
-          {/* Attachment Button - Hidden on mobile */}
+    <div className="p-3 sm:p-4 flex-shrink-0">
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-end gap-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl px-3 py-2 focus-within:border-[#22C55E]/30 focus-within:bg-white/[0.04] transition-all">
+          {/* Attachment */}
           <button
-            className="hidden sm:flex flex-shrink-0 w-10 h-10 items-center justify-center rounded-lg bg-[#1A1F2E] text-white hover:bg-[#252B3B] hover:text-white transition-all opacity-60 hover:opacity-100"
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-white/25 hover:text-white/50 hover:bg-white/[0.04] transition-all mb-0.5"
             title="Attach file"
           >
             <PaperClipIcon className="w-4 h-4" />
           </button>
 
-          {/* Input Field */}
-          <div className="flex-1 relative">
+          {/* Input */}
+          <div className="flex-1">
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about marketing strategies..."
+              placeholder="Ask anything..."
               disabled={isLoading}
               rows={1}
-              className="w-full px-4 py-2.5 bg-[#0B0F14] text-white placeholder-gray-400 rounded-lg border border-[#2D3748] focus:border-[#22C55E] focus:ring-1 focus:ring-[#22C55E]/30 focus:outline-none resize-none transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-              style={{
-                minHeight: '42px',
-                maxHeight: '120px',
-                color: '#ffffff !important',
-                backgroundColor: '#0B0F14 !important',
-              }}
+              className="chat-textarea w-full bg-transparent text-white/90 placeholder-white/25 focus:outline-none resize-none disabled:opacity-50 disabled:cursor-not-allowed text-sm py-1.5"
             />
           </div>
 
-          {/* Send Button */}
+          {/* Send */}
           <button
             onClick={handleSend}
             disabled={!message.trim() || isLoading}
-            className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-[#22C55E] text-white hover:bg-[#16A34A] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#22C55E]"
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-[#22C55E] text-[#0B0F14] hover:bg-[#16A34A] transition-all disabled:opacity-20 disabled:cursor-not-allowed mb-0.5"
           >
             {isLoading ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-3.5 h-3.5 border-2 border-[#0B0F14]/30 border-t-[#0B0F14] rounded-full animate-spin" />
             ) : (
               <PaperAirplaneIcon className="w-4 h-4" />
             )}
           </button>
         </div>
-
-        {/* Helper Text */}
-        <div className="hidden sm:flex items-center gap-2 mt-2.5 ml-12 text-xs text-white opacity-60">
-          <kbd className="px-1.5 py-0.5 bg-[#1A1F2E] rounded text-white font-mono text-xs border border-[#2D3748] opacity-80">Enter</kbd>
-          <span>to send</span>
-          <kbd className="px-1.5 py-0.5 bg-[#1A1F2E] rounded text-white font-mono text-xs border border-[#2D3748] opacity-80">Shift + Enter</kbd>
-          <span>for new line</span>
-        </div>
+        <p className="text-[10px] text-white/15 text-center mt-2">Press Enter to send · Shift+Enter for new line</p>
       </div>
     </div>
   );

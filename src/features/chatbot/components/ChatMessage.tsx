@@ -21,33 +21,40 @@ export default function ChatMessage({ message }: ChatMessageProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      className={`flex gap-3 mb-5 ${isAssistant ? '' : 'flex-row-reverse'}`}
+      transition={{ duration: 0.2 }}
+      className={`flex gap-3 mb-4 ${isAssistant ? '' : 'flex-row-reverse'}`}
     >
       {/* Avatar */}
       <div
-        className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center shadow-md ${
+        className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
           isAssistant
-            ? 'bg-gradient-to-br from-[#22C55E] to-[#16A34A]'
-            : 'bg-[#1F2933] border border-[#2D3748]'
+            ? 'bg-[#22C55E]/10'
+            : 'bg-white/[0.06]'
         }`}
       >
         {isAssistant ? (
-          <SparklesIcon className="w-4 h-4 text-white" />
+          <SparklesIcon className="w-4 h-4 text-[#22C55E]/70" />
         ) : (
-          <UserCircleIcon className="w-5 h-5 text-white" />
+          <UserCircleIcon className="w-4 h-4 text-white/40" />
         )}
       </div>
 
       {/* Bubble */}
-      <div className={`flex-1 max-w-[82%] ${isAssistant ? '' : 'flex flex-col items-end'}`}>
+      <div className={`flex-1 max-w-[80%] ${isAssistant ? '' : 'flex flex-col items-end'}`}>
+        {/* Role label */}
+        <span className={`text-[10px] font-medium mb-1 block ${
+          isAssistant ? 'text-[#22C55E]/60' : 'text-white/30 text-right'
+        }`}>
+          {isAssistant ? 'Assistant' : 'You'}
+        </span>
+
         <div
-          className={`rounded-2xl px-4 py-3 text-sm ${
+          className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
             isAssistant
-              ? 'bg-[#1A2230] text-white/90 border border-[#2D3748] shadow-sm'
-              : 'bg-gradient-to-br from-[#22C55E] to-[#16A34A] text-white shadow-md'
+              ? 'bg-white/[0.03] border border-white/[0.05] rounded-tl-md text-white/80'
+              : 'bg-[#22C55E]/10 border border-[#22C55E]/10 rounded-tr-md text-white/85'
           }`}
         >
           {isAssistant ? (
@@ -82,7 +89,9 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         )}
 
         {/* Timestamp */}
-        <span className={`text-[10px] mt-1 px-1 text-white/40 ${isAssistant ? '' : 'text-right'}`}>
+        <span className={`text-[10px] mt-1 px-1 text-white/20 block ${
+          isAssistant ? 'text-left' : 'text-right'
+        }`}>
           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>

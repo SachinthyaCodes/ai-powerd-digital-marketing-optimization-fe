@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import SuggestedPrompts from './SuggestedPrompts';
-import { ChatBubbleLeftRightIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon } from '@heroicons/react/24/outline';
 
 interface Message {
   id: string;
@@ -37,29 +37,20 @@ export default function ChatWindow({ messages, isLoading = false, onPromptSelect
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+      <div className="max-w-3xl mx-auto">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full min-h-[300px] sm:min-h-[450px] text-center px-4">
-            {/* Bot avatar icon */}
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#1F2933] border border-[#2D3748] flex items-center justify-center mb-4 sm:mb-5">
-              <ChatBubbleLeftRightIcon className="w-7 h-7 sm:w-8 sm:h-8 text-[#22C55E]" />
+          <div className="flex flex-col items-center justify-center h-full min-h-[420px] text-center px-4">
+            {/* Decorative icon */}
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#22C55E]/20 to-[#22C55E]/5 border border-[#22C55E]/10 flex items-center justify-center mb-6">
+              <SparklesIcon className="w-7 h-7 text-[#22C55E]/80" />
             </div>
-
-            {/* Status badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#22C55E]/10 border border-[#22C55E]/20 mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
-              <span className="text-[11px] text-[#22C55E] font-medium">Ready</span>
-            </div>
-
-            <h3 className="text-lg sm:text-xl font-bold text-white mb-2">
-              Marketing Assistant
-            </h3>
-            <p className="text-white/50 text-xs sm:text-sm mb-7 sm:mb-9 max-w-sm leading-relaxed">
-              Ask me anything about marketing strategies, campaigns, content creation, or get personalized recommendations.
+            <h2 className="text-xl sm:text-2xl font-bold text-white/90 mb-2">
+              How can I help you today?
+            </h2>
+            <p className="text-white/35 text-[13px] max-w-sm leading-relaxed mb-10">
+              Ask about marketing strategies, campaigns, content ideas, or get analytics insights.
             </p>
-            
-            {/* Suggested Prompts */}
             <SuggestedPrompts onSelectPrompt={handlePromptClick} />
           </div>
         ) : (
@@ -69,16 +60,16 @@ export default function ChatWindow({ messages, isLoading = false, onPromptSelect
             ))}
             
             {isLoading && (
-              <div className="flex gap-4 mb-6">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#22C55E] to-[#16A34A] flex items-center justify-center">
-                  <SparklesIcon className="w-5 h-5 text-white" />
+              <div className="flex gap-3 mb-5">
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#22C55E]/10 flex items-center justify-center">
+                  <SparklesIcon className="w-4 h-4 text-[#22C55E]/70" />
                 </div>
-                <div className="flex-1 max-w-[80%]">
-                  <div className="bg-[#1F2933] rounded-2xl px-5 py-3 border border-[#2D3748]">
-                    <div className="flex gap-2">
-                      <div className="w-2 h-2 bg-[#22C55E] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 bg-[#22C55E] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 bg-[#22C55E] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="flex-1 max-w-[75%]">
+                  <div className="bg-white/[0.03] rounded-2xl rounded-tl-md px-4 py-3 border border-white/[0.04]">
+                    <div className="flex gap-1.5">
+                      <div className="w-1.5 h-1.5 bg-[#22C55E]/60 rounded-full animate-bounce bounce-d0" />
+                      <div className="w-1.5 h-1.5 bg-[#22C55E]/60 rounded-full animate-bounce bounce-d150" />
+                      <div className="w-1.5 h-1.5 bg-[#22C55E]/60 rounded-full animate-bounce bounce-d300" />
                     </div>
                   </div>
                 </div>
