@@ -191,6 +191,8 @@ export default function SessionsTopBar({
 
                     {/* Delete */}
                     <button
+                      type="button"
+                      title="Delete session"
                       onClick={(e) => { e.stopPropagation(); onDeleteSession(session._id); }}
                       className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-500/20 text-gray-500 hover:text-red-400"
                     >

@@ -77,14 +77,14 @@ export default function SuggestedPrompts({ onSelectPrompt }: SuggestedPromptsPro
         <button
           key={prompt.id}
           onClick={() => onSelectPrompt(prompt.text)}
-          className="group flex items-start gap-3 px-4 py-3 bg-white/[0.02] rounded-xl text-left hover:bg-white/[0.05] border border-white/[0.04] hover:border-white/[0.08] transition-all duration-200"
+          className="group flex items-start gap-3 px-4 py-3.5 rounded-xl text-left bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
         >
-          <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5 transition-colors ${prompt.bgColor}`}>
+          <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${prompt.bgColor}`}>
             <prompt.icon className={`w-4 h-4 transition-colors ${prompt.iconColor}`} />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] leading-snug text-white/60 group-hover:text-white/85 transition-colors">{prompt.text}</p>
-            <span className={`text-[11px] mt-1 inline-block font-semibold transition-colors ${prompt.badgeColor}`}>
+          <div className="flex-1 min-w-0 pt-0.5">
+            <p className="text-sm leading-snug text-white/70 group-hover:text-white transition-colors">{prompt.text}</p>
+            <span className={`text-[11px] mt-1.5 inline-block font-semibold uppercase tracking-wide transition-colors ${prompt.badgeColor}`}>
               {prompt.category}
             </span>
           </div>

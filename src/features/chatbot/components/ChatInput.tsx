@@ -26,44 +26,42 @@ export default function ChatInput({ onSendMessage, isLoading = false }: ChatInpu
   };
 
   return (
-    <div className="p-3 sm:p-4 flex-shrink-0">
+    <div className="flex-shrink-0 bg-[#0D1117] border-t border-white/[0.06] px-4 py-4">
       <div className="max-w-3xl mx-auto">
-        <div className="flex items-end gap-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl px-3 py-2 focus-within:border-[#22C55E]/30 focus-within:bg-white/[0.04] transition-all">
-          {/* Attachment */}
+        <div className="relative flex items-end gap-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3 focus-within:border-[#22C55E]/40 focus-within:bg-white/[0.06] transition-all duration-200">
+          {/* Attachment Button */}
           <button
-            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-white/25 hover:text-white/50 hover:bg-white/[0.04] transition-all mb-0.5"
+            className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-all mb-0.5"
             title="Attach file"
           >
             <PaperClipIcon className="w-4 h-4" />
           </button>
 
           {/* Input */}
-          <div className="flex-1">
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask anything..."
-              disabled={isLoading}
-              rows={1}
-              className="chat-textarea w-full bg-transparent text-white/90 placeholder-white/25 focus:outline-none resize-none disabled:opacity-50 disabled:cursor-not-allowed text-sm py-1.5"
-            />
-          </div>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Message Smart Assistant..."
+            disabled={isLoading}
+            rows={1}
+            className="chat-textarea flex-1 bg-transparent text-white placeholder-white/25 focus:outline-none resize-none disabled:opacity-50 disabled:cursor-not-allowed text-sm py-0.5 leading-relaxed"
+          />
 
-          {/* Send */}
+          {/* Send Button */}
           <button
             onClick={handleSend}
             disabled={!message.trim() || isLoading}
-            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-[#22C55E] text-[#0B0F14] hover:bg-[#16A34A] transition-all disabled:opacity-20 disabled:cursor-not-allowed mb-0.5"
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-[#22C55E] text-white hover:bg-[#16A34A] active:scale-95 transition-all shadow-lg shadow-[#22C55E]/20 disabled:opacity-25 disabled:cursor-not-allowed disabled:shadow-none mb-0.5"
           >
             {isLoading ? (
-              <div className="w-3.5 h-3.5 border-2 border-[#0B0F14]/30 border-t-[#0B0F14] rounded-full animate-spin" />
+              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              <PaperAirplaneIcon className="w-4 h-4" />
+              <PaperAirplaneIcon className="w-3.5 h-3.5" />
             )}
           </button>
         </div>
-        <p className="text-[10px] text-white/15 text-center mt-2">Press Enter to send · Shift+Enter for new line</p>
+        <p className="text-center text-white/15 text-[10px] mt-2">Press Enter to send · Shift+Enter for new line</p>
       </div>
     </div>
   );
