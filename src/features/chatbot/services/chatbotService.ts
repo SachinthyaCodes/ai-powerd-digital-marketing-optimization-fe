@@ -19,7 +19,7 @@ class ChatbotService {
     this.apiEndpoint = process.env.NEXT_PUBLIC_CHATBOT_API_URL || '/api/chatbot';
   }
 
-  async sendMessage(message: string, conversationHistory: Message[], token?: string): Promise<ChatResponse> {
+  async sendMessage(message: string, conversationHistory: Message[], token?: string, sessionId?: string): Promise<ChatResponse> {
     try {
       // Prepare conversation context (last 10 exchanges to stay within context window)
       const context = conversationHistory.slice(-10).map((msg) => ({
@@ -39,7 +39,7 @@ class ChatbotService {
       const response = await fetch(this.apiEndpoint, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ message, context }),
+        body: JSON.stringify({ message, context, sessionId }),
       });
 
       if (!response.ok) {
