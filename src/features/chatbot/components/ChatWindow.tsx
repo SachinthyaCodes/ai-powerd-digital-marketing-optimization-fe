@@ -49,11 +49,11 @@ export default function ChatWindow({ messages, isLoading = false, onPromptSelect
             {/* Status badge */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#22C55E]/10 border border-[#22C55E]/20 mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
-              <span className="text-[11px] text-[#22C55E] font-medium">AI Ready</span>
+              <span className="text-[11px] text-[#22C55E] font-medium">Ready</span>
             </div>
 
             <h3 className="text-lg sm:text-xl font-bold text-white mb-2">
-              AI Marketing Assistant
+              Marketing Assistant
             </h3>
             <p className="text-white/50 text-xs sm:text-sm mb-7 sm:mb-9 max-w-sm leading-relaxed">
               Ask me anything about marketing strategies, campaigns, content creation, or get personalized recommendations.
