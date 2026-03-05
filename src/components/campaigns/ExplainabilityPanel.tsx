@@ -21,6 +21,73 @@ interface BestPostingTime {
   reasoning: string;
 }
 
+interface CaptionAnalysis {
+  score: string;
+  strengths: string[];
+  weaknesses: string[];
+  rewritten_caption: string;
+}
+
+interface ContentAnalysis {
+  score: string;
+  current_length_verdict: string;
+  improvement_tips: string[];
+}
+
+interface WorkingElement {
+  element: string;
+  why_it_works: string;
+  impact?: string;
+}
+
+interface MissingElement {
+  missing_element: string;
+  why_add_it: string;
+  example: string;
+  expected_uplift: string;
+}
+
+interface ImprovedCaptionVersion {
+  version_label: string;
+  caption?: string;
+  content?: string;
+  changes_made: string[];
+}
+
+interface CaptionWordAnalysis {
+  original: string;
+  what_is_working: WorkingElement[];
+  what_is_missing: MissingElement[];
+  improved_versions: ImprovedCaptionVersion[];
+}
+
+interface ContentWordAnalysis {
+  original: string;
+  what_is_working: WorkingElement[];
+  what_is_missing: MissingElement[];
+  improved_versions: ImprovedCaptionVersion[];
+}
+
+interface PriorityAction {
+  rank: number;
+  action: string;
+  why: string;
+  expected_impact: string;
+}
+
+interface CombinedScore {
+  score: string;
+  summary: string;
+  alignment_issue: string;
+  top_3_priority_actions: PriorityAction[];
+}
+
+interface CaptionContentExplainability {
+  caption_word_analysis: CaptionWordAnalysis;
+  content_word_analysis: ContentWordAnalysis;
+  combined_caption_content_score: CombinedScore;
+}
+
 interface Explanation {
   overall_assessment: string;
   performance_level: string;
@@ -32,6 +99,9 @@ interface Explanation {
   platform_specific_tips: string[];
   ad_boost_advice: string;
   novelty_insight: string;
+  caption_analysis?: CaptionAnalysis;
+  content_analysis?: ContentAnalysis;
+  caption_content_explainability?: CaptionContentExplainability;
 }
 
 const badgeClass: Record<string, string> = {
@@ -155,6 +225,268 @@ export default function ExplainabilityPanel({ prediction, formValues }: Explaina
           <p className={styles.adviceText}>{explanation.caption_advice}</p>
         </div>
       )}
+
+      {/* ── Caption & Content Explainability ───────────────────────────── */}
+
+      {/* Caption Analysis */}
+      {explanation.caption_analysis && (
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>
+            Caption Analysis
+            <span className={styles.scoreTag}>{explanation.caption_analysis.score}</span>
+          </h3>
+
+          {/* Strengths */}
+          {explanation.caption_analysis.strengths?.length > 0 && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>✓ What's Working</p>
+              <ul className={styles.tipList}>
+                {explanation.caption_analysis.strengths.map((s, i) => (
+                  <li key={i} className={styles.tipItem}>
+                    <span className={`${styles.tipDot} ${styles.tipDotGreen}`} />
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Weaknesses */}
+          {explanation.caption_analysis.weaknesses?.length > 0 && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>✗ What's Missing</p>
+              <ul className={styles.tipList}>
+                {explanation.caption_analysis.weaknesses.map((w, i) => (
+                  <li key={i} className={styles.tipItem}>
+                    <span className={`${styles.tipDot} ${styles.tipDotOrange}`} />
+                    {w}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Rewritten caption */}
+          {explanation.caption_analysis.rewritten_caption && (
+            <div className={styles.rewrittenBox}>
+              <p className={styles.rewrittenLabel}>Improved Caption</p>
+              <p className={styles.rewrittenText}>&ldquo;{explanation.caption_analysis.rewritten_caption}&rdquo;</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Content Analysis */}
+      {explanation.content_analysis && (
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>
+            Content Analysis
+            <span className={styles.scoreTag}>{explanation.content_analysis.score}</span>
+          </h3>
+
+          {explanation.content_analysis.current_length_verdict && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>Length Verdict</p>
+              <p className={styles.subCardText}>{explanation.content_analysis.current_length_verdict}</p>
+            </div>
+          )}
+
+          {explanation.content_analysis.improvement_tips?.length > 0 && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>Improvement Tips</p>
+              <ul className={styles.tipList}>
+                {explanation.content_analysis.improvement_tips.map((tip, i) => (
+                  <li key={i} className={styles.tipItem}>
+                    <span className={styles.tipDot} />
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Caption Deep Dive */}
+      {explanation.caption_content_explainability?.caption_word_analysis && (
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Caption Deep Dive</h3>
+
+          {/* Original */}
+          <div className={styles.originalBox}>
+            <span className={styles.originalLabel}>Original Caption</span>
+            <span className={styles.originalText}>&ldquo;{explanation.caption_content_explainability.caption_word_analysis.original}&rdquo;</span>
+          </div>
+
+          {/* What's working */}
+          {explanation.caption_content_explainability.caption_word_analysis.what_is_working?.length > 0 && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>✓ Effective Elements</p>
+              {explanation.caption_content_explainability.caption_word_analysis.what_is_working.map((el, i) => (
+                <div key={i} className={styles.elementRow}>
+                  <p className={styles.elementPhrase}>&ldquo;{el.element}&rdquo;</p>
+                  <p className={styles.elementReason}>{el.why_it_works}</p>
+                  {el.impact && <span className={styles.impactTag}>{el.impact}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* What's missing */}
+          {explanation.caption_content_explainability.caption_word_analysis.what_is_missing?.length > 0 && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>✗ Missing Elements</p>
+              {explanation.caption_content_explainability.caption_word_analysis.what_is_missing.map((m, i) => (
+                <div key={i} className={styles.missingRow}>
+                  <div className={styles.missingHeader}>
+                    <span className={styles.missingTag}>{m.missing_element}</span>
+                    <span className={styles.upliftTag}>{m.expected_uplift}</span>
+                  </div>
+                  <p className={styles.missingReason}>{m.why_add_it}</p>
+                  {m.example && (
+                    <div className={styles.exampleBox}>
+                      <span className={styles.exampleLabel}>Example: </span>
+                      <span className={styles.exampleText}>{m.example}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Improved versions */}
+          {explanation.caption_content_explainability.caption_word_analysis.improved_versions?.length > 0 && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>Improved Versions</p>
+              {explanation.caption_content_explainability.caption_word_analysis.improved_versions.map((v, i) => (
+                <div key={i} className={styles.versionCard}>
+                  <p className={styles.versionLabel}>{v.version_label}</p>
+                  <p className={styles.versionCaption}>&ldquo;{v.caption || v.content}&rdquo;</p>
+                  {v.changes_made?.length > 0 && (
+                    <ul className={styles.changesList}>
+                      {v.changes_made.map((c, j) => (
+                        <li key={j} className={styles.changesItem}>{c}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Content Deep Dive */}
+      {explanation.caption_content_explainability?.content_word_analysis && (
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Content Deep Dive</h3>
+
+          {/* Original */}
+          <div className={styles.originalBox}>
+            <span className={styles.originalLabel}>Original Content</span>
+            <span className={styles.originalText}>&ldquo;{explanation.caption_content_explainability.content_word_analysis.original}&rdquo;</span>
+          </div>
+
+          {/* What's working */}
+          {explanation.caption_content_explainability.content_word_analysis.what_is_working?.length > 0 && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>✓ Effective Elements</p>
+              {explanation.caption_content_explainability.content_word_analysis.what_is_working.map((el, i) => (
+                <div key={i} className={styles.elementRow}>
+                  <p className={styles.elementPhrase}>&ldquo;{el.element}&rdquo;</p>
+                  <p className={styles.elementReason}>{el.why_it_works}</p>
+                  {el.impact && <span className={styles.impactTag}>{el.impact}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* What's missing */}
+          {explanation.caption_content_explainability.content_word_analysis.what_is_missing?.length > 0 && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>✗ Missing Elements</p>
+              {explanation.caption_content_explainability.content_word_analysis.what_is_missing.map((m, i) => (
+                <div key={i} className={styles.missingRow}>
+                  <div className={styles.missingHeader}>
+                    <span className={styles.missingTag}>{m.missing_element}</span>
+                    <span className={styles.upliftTag}>{m.expected_uplift}</span>
+                  </div>
+                  <p className={styles.missingReason}>{m.why_add_it}</p>
+                  {m.example && (
+                    <div className={styles.exampleBox}>
+                      <span className={styles.exampleLabel}>Example: </span>
+                      <span className={styles.exampleText}>{m.example}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Improved versions */}
+          {explanation.caption_content_explainability.content_word_analysis.improved_versions?.length > 0 && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>Improved Versions</p>
+              {explanation.caption_content_explainability.content_word_analysis.improved_versions.map((v, i) => (
+                <div key={i} className={styles.versionCard}>
+                  <p className={styles.versionLabel}>{v.version_label}</p>
+                  <p className={styles.versionCaption}>&ldquo;{v.caption || v.content}&rdquo;</p>
+                  {v.changes_made?.length > 0 && (
+                    <ul className={styles.changesList}>
+                      {v.changes_made.map((c, j) => (
+                        <li key={j} className={styles.changesItem}>{c}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Combined Caption + Content Score */}
+      {explanation.caption_content_explainability?.combined_caption_content_score && (() => {
+        const combined = explanation.caption_content_explainability!.combined_caption_content_score;
+        return (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>
+              Caption &amp; Content Combined Score
+              <span className={styles.scoreTag}>{combined.score}</span>
+            </h3>
+
+            {combined.summary && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Overall Verdict</p>
+                <p className={styles.subCardText}>{combined.summary}</p>
+              </div>
+            )}
+
+            {combined.alignment_issue && (
+              <div className={styles.alignmentBox}>
+                <p className={styles.alignmentLabel}>Alignment Check</p>
+                <p className={styles.alignmentText}>{combined.alignment_issue}</p>
+              </div>
+            )}
+
+            {combined.top_3_priority_actions?.length > 0 && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Top Priority Actions</p>
+                {combined.top_3_priority_actions.map((act, i) => (
+                  <div key={i} className={styles.priorityRow}>
+                    <span className={styles.priorityRank}>#{act.rank}</span>
+                    <div className={styles.priorityContent}>
+                      <p className={styles.priorityAction}>{act.action}</p>
+                      <p className={styles.priorityWhy}>{act.why}</p>
+                      <span className={styles.upliftTag}>{act.expected_impact}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Hashtag suggestions */}
       {explanation.hashtag_suggestions && explanation.hashtag_suggestions.length > 0 && (

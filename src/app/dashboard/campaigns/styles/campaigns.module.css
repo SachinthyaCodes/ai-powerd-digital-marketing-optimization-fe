@@ -220,9 +220,13 @@
 }
 
 .sideRight {
+  position: sticky;
+  top: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  max-height: calc(100vh - 100px);
+  overflow: hidden;
 }
 
 /* ─── Results section (below form) ──────────────────────────── */

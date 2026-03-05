@@ -11,7 +11,8 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-height: calc(100vh - 180px);
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -338,4 +339,339 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* ─── Caption / Content Explainability ────────────────────── */
+
+/* Score tag next to section title */
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scoreTag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 5px;
+  padding: 2px 8px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Sub-card (grouped subsection inside a section) */
+.subCard {
+  background: #0b0f14;
+  border: 1px solid #1f2933;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subCardLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.subCardText {
+  font-size: 13px;
+  color: #cbd5e1;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Tip dot colour variants */
+.tipDotGreen  { background: #22c55e; }
+.tipDotOrange { background: #fb923c; }
+
+/* Rewritten caption box */
+.rewrittenBox {
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.06), rgba(16, 185, 129, 0.04));
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rewrittenLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #22c55e;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.rewrittenText {
+  font-size: 13px;
+  color: #e2e8f0;
+  line-height: 1.65;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Original caption/content box */
+.originalBox {
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed #2d3748;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.originalLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.originalText {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* Effective element rows */
+.elementRow {
+  padding: 10px 12px;
+  background: rgba(34, 197, 94, 0.04);
+  border: 1px solid rgba(34, 197, 94, 0.1);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.elementPhrase {
+  font-size: 13px;
+  font-weight: 600;
+  color: #86efac;
+  margin: 0;
+}
+
+.elementReason {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.impactTag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.08);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  border-radius: 5px;
+  padding: 2px 8px;
+  align-self: flex-start;
+}
+
+/* Missing element rows */
+.missingRow {
+  padding: 10px 12px;
+  background: rgba(251, 146, 60, 0.04);
+  border: 1px solid rgba(251, 146, 60, 0.12);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.missingHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.missingTag {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fb923c;
+}
+
+.upliftTag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 5px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.missingReason {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.exampleBox {
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 2px solid #fb923c;
+  border-radius: 0 6px 6px 0;
+}
+
+.exampleLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fb923c;
+}
+
+.exampleText {
+  font-size: 12px;
+  color: #cbd5e1;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Improved versions */
+.versionCard {
+  padding: 12px 14px;
+  background: rgba(34, 197, 94, 0.03);
+  border: 1px solid rgba(34, 197, 94, 0.1);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.versionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #22c55e;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.versionCaption {
+  font-size: 13px;
+  color: #e2e8f0;
+  line-height: 1.6;
+  font-style: italic;
+  margin: 0;
+}
+
+.changesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 6px;
+}
+
+.changesItem {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.5;
+  padding-left: 12px;
+  position: relative;
+}
+
+.changesItem::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: #22c55e;
+  font-size: 10px;
+}
+
+/* Alignment check box */
+.alignmentBox {
+  padding: 12px 14px;
+  background: rgba(251, 191, 36, 0.05);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alignmentLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin: 0;
+}
+
+.alignmentText {
+  font-size: 13px;
+  color: #cbd5e1;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Priority action rows */
+.priorityRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #0d1117;
+  border: 1px solid #1f2933;
+  border-radius: 8px;
+}
+
+.priorityRank {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #22c55e;
+}
+
+.priorityContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.priorityAction {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f9fafb;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.priorityWhy {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
 }
