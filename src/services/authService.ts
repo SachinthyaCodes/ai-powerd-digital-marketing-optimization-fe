@@ -350,6 +350,26 @@ class AuthService {
 
     return response.json();
   }
+
+  // Admin – AI pipeline performance metrics (research evaluation)
+  async getAiMetrics(token: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/api/admin/ai-metrics`, {
+      method: 'GET',
+      headers: this.getHeaders(token),
+    });
+    if (!response.ok) throw new Error('Failed to get AI metrics');
+    return response.json();
+  }
+
+  // Admin – knowledge gap frequency analytics
+  async getGapsAnalytics(token: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/api/admin/gaps/analytics`, {
+      method: 'GET',
+      headers: this.getHeaders(token),
+    });
+    if (!response.ok) throw new Error('Failed to get gaps analytics');
+    return response.json();
+  }
 }
 
 export const authService = new AuthService();

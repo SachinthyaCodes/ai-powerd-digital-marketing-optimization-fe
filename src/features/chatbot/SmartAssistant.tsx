@@ -25,6 +25,14 @@ export default function SmartAssistant() {
   // Keep a ref to the current context for the RAG endpoint
   const contextRef = useRef<{ role: string; content: string }[]>([]);
 
+  // ── sessionId ref — always holds the current value, no stale-closure risk ──
+  // Every place that calls setSessionId must also update this ref.
+  const sessionIdRef = useRef<string | null>(null);
+  const updateSessionId = useCallback((id: string | null) => {
+    sessionIdRef.current = id;
+    setSessionId(id);
+  }, []);
+
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   /** Build context array from current message list (last 10 turns). */
@@ -51,21 +59,21 @@ export default function SmartAssistant() {
   /** Start a fresh chat (create a new backend session). */
   const startNewChat = useCallback(async () => {
     // End the current session if any
-    if (sessionId) {
-      api.endSession(sessionId).catch(() => {});
+    if (sessionIdRef.current) {
+      api.endSession(sessionIdRef.current).catch(() => {});
     }
     setMessages([]);
-    setSessionId(null);
+    updateSessionId(null);
     contextRef.current = [];
     setError(null);
 
     try {
       const newSession = await api.createSession();
-      setSessionId(newSession._id);
+      updateSessionId(newSession._id);
     } catch {
       // session creation is non-critical — chat works without a session id
     }
-  }, [sessionId]);
+  }, [updateSessionId]);
 
   /** Load an existing session by id. */
   const loadSession = useCallback(async (id: string) => {
@@ -76,13 +84,13 @@ export default function SmartAssistant() {
         timestamp: m.timestamp ?? session.createdAt,
       }));
       setMessages(msgs);
-      setSessionId(session._id);
+      updateSessionId(session._id);
       contextRef.current = buildContext(msgs);
       setError(null);
     } catch {
       setError('Failed to load conversation.');
     }
-  }, []);
+  }, [updateSessionId]);
 
   /** Send a message and stream the response. */
   const handleSend = useCallback(
@@ -90,9 +98,13 @@ export default function SmartAssistant() {
       if (!text.trim()) return;
       setError(null);
 
+      // Always read the CURRENT sessionId from the ref — never from a stale closure.
+      const currentSessionId = sessionIdRef.current;
+
       const userMsg: ChatMessage = {
-        role: 'user',
-        content: text,
+        _id:       `user-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        role:      'user',
+        content:   text,
         timestamp: new Date(),
       };
 
@@ -105,10 +117,10 @@ export default function SmartAssistant() {
       setIsTyping(true);
 
       try {
-        const result = await api.sendMessage(text, contextRef.current.slice(0, -1), sessionId);
+        const result = await api.sendMessage(text, contextRef.current.slice(0, -1), currentSessionId);
 
         const assistantMsg: ChatMessage = {
-          _id:             result.sessionId ?? undefined,
+          _id:             `asst-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           role:            'assistant',
           content:         result.response,
           knowledgeSource: result.knowledgeSource,
@@ -121,9 +133,9 @@ export default function SmartAssistant() {
           return next;
         });
 
-        // Use returned sessionId if we didn't have one yet
-        if (!sessionId && result.sessionId) {
-          setSessionId(result.sessionId);
+        // Sync if backend created/returned a different session than what we sent
+        if (result.sessionId && result.sessionId !== sessionIdRef.current) {
+          updateSessionId(result.sessionId);
         }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Something went wrong.';
@@ -142,7 +154,7 @@ export default function SmartAssistant() {
         setIsTyping(false);
       }
     },
-    [sessionId]
+    [updateSessionId]  // stable — never goes stale because we read from sessionIdRef
   );
 
   /** Delete a session from the list. */
@@ -150,15 +162,15 @@ export default function SmartAssistant() {
     try {
       await api.deleteSession(id);
       setSessions((prev) => prev.filter((s) => s._id !== id));
-      if (id === sessionId) {
+      if (id === sessionIdRef.current) {
         setMessages([]);
-        setSessionId(null);
+        updateSessionId(null);
         contextRef.current = [];
       }
     } catch {
       // silent
     }
-  }, [sessionId]);
+  }, [updateSessionId]);
 
   // ── Effects ────────────────────────────────────────────────────────────────
 
@@ -166,18 +178,18 @@ export default function SmartAssistant() {
   useEffect(() => {
     const token =
       typeof window !== 'undefined'
-        ? localStorage.getItem('token') || localStorage.getItem('authToken')
+        ? localStorage.getItem('auth_token')
         : null;
     if (!token) return;
     (async () => {
       try {
         const newSession = await api.createSession();
-        setSessionId(newSession._id);
+        updateSessionId(newSession._id);
       } catch {
         // session creation is optional
       }
     })();
-  }, []);
+  }, [updateSessionId]);
 
   // Load sessions when panel opens
   useEffect(() => {

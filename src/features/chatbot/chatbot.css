@@ -369,12 +369,113 @@
 /* ─── Glass card + history panel ─────────────────────────────────────────── */
 .sa-glass-card { background: transparent; }
 
-.sa-history-panel {
-  background: rgba(10,12,16,0.97);
-  border-left: 1px solid #1c2028;
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+/* ── History panel – backdrop ── */
+.sa-hist-backdrop {
+  background: rgba(3, 5, 11, 0.68);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
+
+/* ── History panel – floating glass drawer ── */
+.sa-hist-drawer {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  bottom: 0.625rem;
+  left: auto;
+  width: 284px;
+  min-width: 284px;
+  max-width: 284px;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: linear-gradient(155deg, rgba(15,20,34,0.97) 0%, rgba(11,15,26,0.98) 100%);
+  backdrop-filter: blur(32px) saturate(160%);
+  -webkit-backdrop-filter: blur(32px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow:
+    0 40px 100px rgba(0,0,0,0.85),
+    0 0 0 0.5px rgba(255,255,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.09);
+}
+
+/* ── Shimmer top line ── */
+.sa-hist-shimmer {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(34,197,94,0.7) 35%,
+    rgba(56,189,248,0.4) 65%,
+    transparent 100%);
+}
+
+/* ── Header icon box ── */
+.sa-hist-icon {
+  background: rgba(34,197,94,0.12);
+  border: 1px solid rgba(34,197,94,0.25);
+}
+
+/* ── Session count badge ── */
+.sa-hist-badge {
+  background: rgba(34,197,94,0.14);
+  color: #4ade80;
+  border: 1px solid rgba(34,197,94,0.22);
+}
+
+/* ── Close button ── */
+.sa-hist-close   { color: #6b7280; transition: color 0.15s, background 0.15s; }
+.sa-hist-close:hover { color: #e5e7eb; background: rgba(255,255,255,0.08); }
+
+/* ── New conversation button ── */
+.sa-hist-new-btn {
+  background: rgba(34,197,94,0.07);
+  border: 1px dashed rgba(34,197,94,0.35);
+  color: #4ade80;
+  transition: background 0.2s, border-color 0.2s;
+}
+.sa-hist-new-btn:hover {
+  background: rgba(34,197,94,0.13);
+  border-color: rgba(34,197,94,0.55);
+}
+
+/* ── Divider ── */
+.sa-hist-sep { background: rgba(255,255,255,0.07); }
+
+/* ── Section label ── */
+.sa-hist-label { color: #4b5563; }
+
+/* ── Spinner ── */
+.sa-hist-spinner {
+  border-color: rgba(34,197,94,0.2);
+  border-top-color: #22C55E;
+}
+
+/* ── Empty state ── */
+.sa-hist-empty-box {
+  background: rgba(15,19,30,0.9);
+  border: 1px solid rgba(40,50,72,0.8);
+}
+.sa-hist-empty-glow { box-shadow: 0 0 24px rgba(34,197,94,0.06); }
+.sa-hist-empty-title { color: #6b7280; }
+.sa-hist-empty-body  { color: #4b5563; }
+
+/* ── Chat item rows ── */
+.sa-ci-root {
+  border-left: 2px solid transparent;
+  transition: background 0.15s;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.sa-ci-root:hover           { background: rgba(255,255,255,0.055); }
+.sa-ci-root-active          { background: rgba(34,197,94,0.10); border-left-color: rgba(34,197,94,0.7); }
+.sa-ci-icon                 { background: rgba(255,255,255,0.06); }
+.sa-ci-icon-active          { background: rgba(34,197,94,0.18); }
+.sa-ci-title                { color: #c4cad5; }
+.sa-ci-title-active         { color: #ffffff; }
+.sa-ci-time                 { color: #5a6a7a; }
+.sa-ci-summary              { color: #6b7280; }
+.sa-ci-delete               { color: #4b5563; transition: color 0.15s, background 0.15s; border-radius: 6px; }
+.sa-ci-delete:hover         { color: #f87171; background: rgba(239,68,68,0.14); }
 
 /* ─── Small icon box ──────────────────────────────────────────────────────── */
 .sa-icon-box-sm {

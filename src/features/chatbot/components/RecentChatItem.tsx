@@ -38,56 +38,65 @@ function timeAgo(iso: string) {
 export default function RecentChatItem({ session, isActive, onSelect, onDelete }: RecentChatItemProps) {
   return (
     <div
-      className={`sa-root group relative flex flex-col gap-1 p-3 rounded-xl border transition-all duration-150 w-full min-w-0 overflow-hidden
-        ${isActive
-          ? 'bg-[#22C55E]/8 border-[#22C55E]/25'
-          : 'bg-[#13161c] border-[#1c2028] hover:bg-[#1a1d24] hover:border-[#2a303c]'
-        }`}
+      className={`sa-root sa-ci-root group relative flex items-start gap-2.5 px-2.5 py-2.5 rounded-xl w-full min-w-0 overflow-hidden cursor-pointer ${
+        isActive ? 'sa-ci-root-active' : ''
+      }`}
     >
-      {/* Invisible full-area click target */}
+      {/* Click target */}
       <button
         type="button"
         aria-label={`Load conversation: ${session.title || 'Untitled'}`}
         onClick={() => onSelect(session._id)}
-        className="absolute inset-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22C55E]/50 cursor-pointer"
+        className="absolute inset-0 rounded-xl focus:outline-none focus-visible:ring-1 focus-visible:ring-[#22C55E]/40"
       />
-      {/* Title row */}
-      <div className="flex items-start justify-between gap-2 min-w-0 overflow-hidden">
-        <span className="sa-heading text-[12.5px] text-white leading-snug truncate flex-1">
-          {session.title || 'Untitled conversation'}
-        </span>
-        <span className="sa-subtext text-[10px] text-[#4B5563] flex-shrink-0 mt-0.5">
-          {timeAgo(session.updatedAt || session.createdAt)}
-        </span>
+
+      {/* Icon */}
+      <div className={`flex-shrink-0 mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center ${
+        isActive ? 'sa-ci-icon-active' : 'sa-ci-icon'
+      }`}>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={isActive ? '#22C55E' : '#3a4a62'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
       </div>
 
-      {/* Summary preview */}
-      {session.summary && (
-        <p className="sa-subtext text-[11.5px] text-[#6B7280] leading-snug line-clamp-2">
-          {session.summary}
-        </p>
-      )}
+      {/* Text content */}
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex items-center justify-between gap-1 min-w-0 overflow-hidden">
+          <span className={`sa-heading text-[12px] leading-snug truncate min-w-0 overflow-hidden ${
+            isActive ? 'sa-ci-title-active' : 'sa-ci-title'
+          }`}>
+            {session.title || 'Untitled conversation'}
+          </span>
+          <span className="sa-subtext sa-ci-time text-[9.5px] flex-shrink-0 ml-1 whitespace-nowrap">
+            {timeAgo(session.updatedAt || session.createdAt)}
+          </span>
+        </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between mt-0.5">
+        {session.summary && (
+          <p className="sa-subtext sa-ci-summary text-[10.5px] truncate mt-0.5">
+            {session.summary}
+          </p>
+        )}
+
         {session.topicTag && (
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${tagColor(session.topicTag)}`}>
+          <span className={`inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded-full font-medium ${tagColor(session.topicTag)}`}>
             {session.topicTag}
           </span>
         )}
-        <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100">
-          <button
-            type="button"
-            aria-label="Delete conversation"
-            onClick={(e) => { e.stopPropagation(); onDelete(session._id); }}
-            className="relative z-10 p-1 rounded-md text-[#4B5563] hover:text-red-400 hover:bg-red-400/10 transition-colors duration-100 focus:outline-none"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
-            </svg>
-          </button>
-        </div>
       </div>
+
+      {/* Delete — always visible X */}
+      <button
+        type="button"
+        aria-label="Delete conversation"
+        onClick={(e) => { e.stopPropagation(); onDelete(session._id); }}
+        className="sa-ci-delete relative z-10 flex-shrink-0 mt-0.5 w-5 h-5 rounded-md flex items-center justify-center focus:outline-none"
+      >
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
     </div>
   );
 }

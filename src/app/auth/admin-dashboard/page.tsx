@@ -13,6 +13,8 @@ function AdminDashboardContent() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [serviceInfo, setServiceInfo] = useState<ServiceInfo | null>(null);
   const [documents, setDocuments] = useState<any[]>([]);
+  const [aiMetrics, setAiMetrics] = useState<any>(null);
+  const [gapsAnalytics, setGapsAnalytics] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
   const [copied, setCopied] = useState(false);
@@ -42,6 +44,17 @@ function AdminDashboardContent() {
           setDocuments(docs);
         } catch {
           // silently skip
+        }
+        // Fetch AI metrics + knowledge gap analytics (non-blocking)
+        try {
+          const [metrics, gaps] = await Promise.all([
+            authService.getAiMetrics(token),
+            authService.getGapsAnalytics(token),
+          ]);
+          setAiMetrics(metrics);
+          setGapsAnalytics(gaps);
+        } catch {
+          // silently skip — metrics are optional
         }
       } catch (err: any) {
         setError(err.message);
@@ -381,6 +394,85 @@ function AdminDashboardContent() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* AI Monitoring Section */}
+        {aiMetrics && (
+          <div className="mt-6 bg-[#1F2933] rounded-2xl border border-[#CBD5E1]/10 overflow-hidden">
+            <div className="px-6 py-5 border-b border-[#CBD5E1]/10">
+              <h2 className="text-base font-semibold text-[#F9FAFB]">AI Performance Monitoring</h2>
+              <p className="text-[#CBD5E1] text-xs mt-0.5">Research metrics — RAG pipeline evaluation</p>
+            </div>
+
+            {/* Metric cards */}
+            <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: 'Total Queries', value: aiMetrics.totalQueries ?? 0, color: 'text-[#22C55E]' },
+                { label: 'Knowledge Gaps', value: aiMetrics.totalGaps ?? 0, color: 'text-yellow-400' },
+                { label: 'Avg Response (ms)', value: aiMetrics.avgResponseTimeMs ?? 0, color: 'text-blue-400' },
+                { label: 'Store Knowledge Rate', value: `${aiMetrics.storeKnowledgeRate ?? 0}%`, color: 'text-purple-400' },
+              ].map((m) => (
+                <div key={m.label} className="bg-[#0B0F14] rounded-xl border border-[#CBD5E1]/10 p-4">
+                  <p className="text-[#CBD5E1] text-xs mb-1">{m.label}</p>
+                  <p className={`text-2xl font-bold ${m.color}`}>{m.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Model usage breakdown */}
+            {aiMetrics.modelUsage && Object.keys(aiMetrics.modelUsage).length > 0 && (
+              <div className="px-6 pb-5">
+                <p className="text-[#CBD5E1] text-xs font-medium mb-3">LLM Model Usage</p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(aiMetrics.modelUsage as Record<string, number>).map(([model, count]) => (
+                    <span
+                      key={model}
+                      className="px-3 py-1.5 bg-[#0B0F14] border border-[#CBD5E1]/10 rounded-lg text-xs text-[#CBD5E1]"
+                    >
+                      <span className={`font-semibold ${
+                        model.startsWith('ollama') ? 'text-[#22C55E]'
+                        : model.startsWith('groq')  ? 'text-blue-400'
+                        : 'text-purple-400'
+                      }`}>{model}</span>
+                      <span className="ml-2 text-[#CBD5E1]/60">{count} calls</span>
+                    </span>
+                  ))}
+                </div>
+                {aiMetrics.fallbackRate > 0 && (
+                  <p className="text-xs text-yellow-400 mt-2">⚠ Fallback rate: {aiMetrics.fallbackRate}%</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Knowledge Gap Analytics */}
+        {gapsAnalytics && gapsAnalytics.totalGaps > 0 && (
+          <div className="mt-6 bg-[#1F2933] rounded-2xl border border-[#CBD5E1]/10 overflow-hidden">
+            <div className="px-6 py-5 border-b border-[#CBD5E1]/10 flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-[#F9FAFB]">Knowledge Gaps</h2>
+                <p className="text-[#CBD5E1] text-xs mt-0.5">
+                  {gapsAnalytics.unresolvedGaps} unresolved of {gapsAnalytics.totalGaps} total — upload documents to fill these gaps
+                </p>
+              </div>
+            </div>
+            <div className="divide-y divide-[#CBD5E1]/5">
+              {gapsAnalytics.topGaps.map((gap: any) => (
+                <div key={gap._id} className="px-6 py-3 flex items-center justify-between gap-4">
+                  <p className="text-[#CBD5E1] text-sm truncate flex-1">{gap.question}</p>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 rounded text-xs">
+                      asked {gap.frequency}×
+                    </span>
+                    {gap.resolved && (
+                      <span className="px-2 py-0.5 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] rounded text-xs">resolved</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
