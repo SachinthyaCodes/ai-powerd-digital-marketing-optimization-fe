@@ -19,7 +19,7 @@ export default function MessageList({ messages, isTyping }: MessageListProps) {
   }, [messages, isTyping]);
 
   return (
-    <div className="flex-1 overflow-y-auto sa-chat-scroll bg-[#0d0f12]">
+    <div className="flex-1 overflow-y-auto sa-chat-scroll bg-transparent">
       <div className="max-w-3xl mx-auto w-full px-4 md:px-6 py-5">
       {messages.map((msg, idx) => (
         <MessageBubble key={msg._id || idx} message={msg} />

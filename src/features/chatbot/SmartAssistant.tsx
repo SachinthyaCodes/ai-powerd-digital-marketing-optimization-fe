@@ -162,8 +162,13 @@ export default function SmartAssistant() {
 
   // ── Effects ────────────────────────────────────────────────────────────────
 
-  // Create initial session on mount
+  // Create initial session on mount (only if authenticated)
   useEffect(() => {
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('token') || localStorage.getItem('authToken')
+        : null;
+    if (!token) return;
     (async () => {
       try {
         const newSession = await api.createSession();
@@ -183,9 +188,17 @@ export default function SmartAssistant() {
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="sa-root flex h-full w-full overflow-hidden bg-[#0d0f12]">
-      {/* ── Main chat column ────────────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 h-full overflow-hidden">
+    <div className="sa-root relative flex h-full w-full bg-[#0B1120] items-center justify-center">
+      {/* ── Full-screen aurora blobs ────────────────────────────────────── */}
+      <div className="sa-page-aurora-wrap" aria-hidden="true">
+        <div className="sa-page-blob-green" />
+        <div className="sa-page-blob-violet" />
+        <div className="sa-page-blob-blue" />
+        <div className="sa-page-blob-green2" />
+      </div>
+
+      {/* ── Chat card ───────────────────────────────────────────────────── */}
+      <div className="sa-glass-card relative flex flex-col w-full h-full max-w-[900px] z-10 overflow-hidden">
         {/* Header */}
         <ChatHeader
           onOpenRecent={() => setRecentOpen(true)}
@@ -202,40 +215,40 @@ export default function SmartAssistant() {
         {/* Error banner */}
         {error && (
           <div className="flex-shrink-0 w-full px-4 md:px-6 mb-2">
-          <div className="max-w-3xl mx-auto w-full px-4 py-2.5 rounded-xl bg-red-500/8 border border-red-500/15 text-red-400 text-[12.5px] flex items-center gap-2">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <span className="sa-subtext">{error}</span>
-            <button
-              type="button"
-              onClick={() => setError(null)}
-              className="ml-auto text-red-400/50 hover:text-red-400 transition-colors"
-              aria-label="Dismiss error"
-            >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <div className="w-full px-4 py-2.5 rounded-xl bg-red-500/8 border border-red-500/15 text-red-400 text-[12.5px] flex items-center gap-2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
-            </button>
-          </div>
+              <span className="sa-subtext">{error}</span>
+              <button
+                type="button"
+                onClick={() => setError(null)}
+                className="ml-auto text-red-400/50 hover:text-red-400 transition-colors"
+                aria-label="Dismiss error"
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
           </div>
         )}
 
         {/* Input */}
         <ChatInput onSend={handleSend} disabled={isTyping} />
-      </div>
 
-      {/* ── Recent chats panel ───────────────────────────────────────────── */}
-      <RecentChatsPanel
-        open={recentOpen}
-        sessions={sessions}
-        activeSessionId={sessionId}
-        loading={sessionsLoading}
-        onClose={() => setRecentOpen(false)}
-        onNewChat={() => { startNewChat(); setRecentOpen(false); }}
-        onSelectSession={loadSession}
-        onDeleteSession={handleDeleteSession}
-      />
+        {/* ── Recent chats panel (absolute overlay inside card) ─────────── */}
+        <RecentChatsPanel
+          open={recentOpen}
+          sessions={sessions}
+          activeSessionId={sessionId}
+          loading={sessionsLoading}
+          onClose={() => setRecentOpen(false)}
+          onNewChat={() => { startNewChat(); setRecentOpen(false); }}
+          onSelectSession={loadSession}
+          onDeleteSession={handleDeleteSession}
+        />
+      </div>
     </div>
   );
 }

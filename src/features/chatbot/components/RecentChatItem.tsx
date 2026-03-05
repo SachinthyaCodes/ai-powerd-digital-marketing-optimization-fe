@@ -38,7 +38,7 @@ function timeAgo(iso: string) {
 export default function RecentChatItem({ session, isActive, onSelect, onDelete }: RecentChatItemProps) {
   return (
     <div
-      className={`sa-root group relative flex flex-col gap-1 p-3 rounded-xl border transition-all duration-150
+      className={`sa-root group relative flex flex-col gap-1 p-3 rounded-xl border transition-all duration-150 w-full min-w-0 overflow-hidden
         ${isActive
           ? 'bg-[#22C55E]/8 border-[#22C55E]/25'
           : 'bg-[#13161c] border-[#1c2028] hover:bg-[#1a1d24] hover:border-[#2a303c]'
@@ -52,8 +52,8 @@ export default function RecentChatItem({ session, isActive, onSelect, onDelete }
         className="absolute inset-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22C55E]/50 cursor-pointer"
       />
       {/* Title row */}
-      <div className="flex items-start justify-between gap-2">
-        <span className="sa-heading text-[12.5px] text-white leading-snug line-clamp-1 flex-1">
+      <div className="flex items-start justify-between gap-2 min-w-0 overflow-hidden">
+        <span className="sa-heading text-[12.5px] text-white leading-snug truncate flex-1">
           {session.title || 'Untitled conversation'}
         </span>
         <span className="sa-subtext text-[10px] text-[#4B5563] flex-shrink-0 mt-0.5">

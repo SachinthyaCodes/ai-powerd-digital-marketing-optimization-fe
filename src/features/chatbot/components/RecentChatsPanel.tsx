@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import type { ChatSessionSummary } from '../types';
 import RecentChatItem from './RecentChatItem';
 
@@ -25,8 +25,6 @@ export default function RecentChatsPanel({
   onSelectSession,
   onDeleteSession,
 }: RecentChatsPanelProps) {
-  const panelRef = useRef<HTMLDivElement>(null);
-
   // Close on Escape
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -36,30 +34,13 @@ export default function RecentChatsPanel({
     return () => document.removeEventListener('keydown', handleKey);
   }, [open, onClose]);
 
-  // Trap focus inside panel when open
-  useEffect(() => {
-    if (open) panelRef.current?.focus();
-  }, [open]);
-
-  if (!open) return null;
-
   return (
-    <>
-      {/* Backdrop (mobile overlay + desktop dim) */}
-      <div
-        className="fixed inset-0 z-30 bg-black/40 backdrop-blur-[2px] md:bg-black/20"
-        aria-hidden="true"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-label="Recent chats"
-        tabIndex={-1}
-        className="sa-root sa-panel-enter fixed right-0 top-0 h-full z-40 w-[80vw] max-w-[320px] flex flex-col bg-[#0d0f12] border-l border-[#1c2028] shadow-2xl focus:outline-none"
-      >
+    <div
+      role="dialog"
+      aria-label="Recent chats"
+      className={`sa-root sa-history-panel absolute top-0 right-0 h-full w-[280px] min-w-[280px] max-w-[280px] z-30 flex flex-col transition-transform duration-300 ease-in-out
+        ${open ? 'translate-x-0' : 'translate-x-full'}`}
+    >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-[#1c2028] flex-shrink-0">
           <h2 className="sa-heading text-white text-[14px]">Recent Chats</h2>
@@ -118,7 +99,6 @@ export default function RecentChatsPanel({
               />
             ))}
         </div>
-      </div>
-    </>
+    </div>
   );
 }

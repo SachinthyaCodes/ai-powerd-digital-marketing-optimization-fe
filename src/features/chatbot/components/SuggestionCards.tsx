@@ -54,10 +54,19 @@ interface SuggestionCardsProps {
 
 export default function SuggestionCards({ onSelect }: SuggestionCardsProps) {
   return (
-    <div className="sa-root flex flex-col items-center justify-center h-full px-4 md:px-6 py-8 select-none bg-[#0d0f12]">
+    <div className="sa-root relative flex flex-col items-center justify-center h-full px-4 md:px-6 py-8 select-none bg-transparent overflow-hidden">
+      {/* Aurora inner blobs */}
+      <div className="sa-aurora-wrap" aria-hidden="true">
+        <div className="sa-aurora-blob sa-aurora-blob-1" />
+        <div className="sa-aurora-blob sa-aurora-blob-2" />
+        <div className="sa-aurora-blob sa-aurora-blob-3" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center w-full">
       {/* Welcome header */}
       <div className="text-center mb-8">
-        <div className="sa-icon-box sa-icon-box-green w-12 h-12 rounded-xl mx-auto mb-5">
+        <div className="sa-icon-box sa-icon-box-green sa-float w-12 h-12 rounded-xl mx-auto mb-5">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7H3a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
             <path d="M5 14v2a7 7 0 0 0 14 0v-2"/>
@@ -71,14 +80,14 @@ export default function SuggestionCards({ onSelect }: SuggestionCardsProps) {
         </p>
       </div>
 
-      {/* Cards grid — matches the card style in the screenshot */}
+      {/* Cards grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-2xl">
         {SUGGESTIONS.map((s) => (
           <button
             key={s.id}
             onClick={() => onSelect(s.prompt)}
             aria-label={`Ask about ${s.label}`}
-            className="sa-suggestion-card group relative text-left p-4 rounded-xl border border-[#1c2028] bg-[#13161c] hover:border-[#2a303c] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22C55E]/40"
+            className="sa-suggestion-card group relative text-left p-4 rounded-xl border border-[#1c2028]/80 bg-[#13161c]/60 hover:border-[#22C55E]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22C55E]/40 backdrop-blur-sm"
           >
             {/* Icon box */}
             <div className="sa-icon-box sa-icon-box-default mb-3">
@@ -98,6 +107,7 @@ export default function SuggestionCards({ onSelect }: SuggestionCardsProps) {
             </span>
           </button>
         ))}
+      </div>
       </div>
     </div>
   );
