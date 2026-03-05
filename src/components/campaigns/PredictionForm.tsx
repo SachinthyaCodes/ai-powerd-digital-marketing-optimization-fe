@@ -31,7 +31,6 @@ interface PredictionFormProps {
 const PLATFORMS = ['Facebook', 'Instagram', 'TikTok', 'Twitter', 'YouTube'];
 
 const today = new Date().toISOString().split('T')[0];
-const defaultTime = '09:00';
 
 export default function PredictionForm({ onResult, onLoading, loading }: PredictionFormProps) {
   const [form, setForm] = useState<FormValues>({
@@ -39,8 +38,8 @@ export default function PredictionForm({ onResult, onLoading, loading }: Predict
     content: '',
     platform: 'Facebook',
     post_date: today,
-    post_time: defaultTime,
-    followers: '1000',
+    post_time: '',
+    followers: '',
     ad_boost: false,
   });
   const [error, setError] = useState<string | null>(null);
