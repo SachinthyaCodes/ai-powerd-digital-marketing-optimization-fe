@@ -12,6 +12,8 @@ interface ExplainabilityPanelProps {
 interface Improvement {
   metric: string;
   current_score: string;
+  potential_score?: string;
+  root_cause?: string;
   improvement_tips: string[];
 }
 
@@ -21,17 +23,95 @@ interface BestPostingTime {
   reasoning: string;
 }
 
+interface LinguisticAnalysis {
+  tone: string;
+  tone_explanation: string;
+  sentiment: string;
+  sentiment_impact: string;
+  language_mix: string;
+  readability_verdict: string;
+  bilingual_effectiveness: string;
+  keyword_density: string;
+}
+
+interface PresentTrigger {
+  trigger: string;
+  evidence: string;
+  strength: string;
+  strength_reason: string;
+  metric_impact: string;
+}
+
+interface MissingTrigger {
+  trigger: string;
+  why_it_matters: string;
+  how_to_add: string;
+  expected_uplift: string;
+}
+
+interface PsychologicalTriggers {
+  present: PresentTrigger[];
+  missing: MissingTrigger[];
+}
+
+interface EngagementPsychology {
+  current_motivation: string;
+  friction_points: string;
+  desired_action: string;
+  cognitive_load: string;
+  emotional_hook: string;
+}
+
+interface StructuralScoring {
+  hook_strength: string;
+  cta_clarity: string;
+  emoji_usage: string;
+  urgency_level: string;
+  question_engagement: string;
+  hashtag_placement: string;
+}
+
 interface CaptionAnalysis {
   score: string;
+  structural_scoring?: StructuralScoring;
   strengths: string[];
   weaknesses: string[];
+  language_effectiveness?: string;
   rewritten_caption: string;
 }
 
 interface ContentAnalysis {
   score: string;
   current_length_verdict: string;
+  storytelling_analysis?: string;
+  value_proposition?: string;
+  visual_content_recommendation?: string;
   improvement_tips: string[];
+}
+
+interface PlatformTip {
+  tip: string;
+  detail: string;
+  algorithm_reason: string;
+  implementation: string;
+  expected_impact: string;
+}
+
+interface NoveltyInsight {
+  insight: string;
+  research_basis: string;
+  application: string;
+  competitive_advantage: string;
+}
+
+interface PeakTimesAnalysis {
+  recommended_days: string[];
+  recommended_hours: string;
+  why_these_days: string;
+  why_these_hours: string;
+  missed_opportunity_cost?: string;
+  category_timing_note: string;
+  current_vs_optimal: string;
 }
 
 interface WorkingElement {
@@ -92,16 +172,20 @@ interface Explanation {
   overall_assessment: string;
   performance_level: string;
   improvements: Improvement[];
-  caption_advice: string;
+  caption_advice?: string;
   hashtag_suggestions: string[];
-  content_quality_tips: string[];
+  content_quality_tips?: string[];
   best_posting_time: BestPostingTime;
-  platform_specific_tips: string[];
-  ad_boost_advice: string;
-  novelty_insight: string;
+  platform_specific_tips: (string | PlatformTip)[];
+  ad_boost_advice?: string;
+  novelty_insight: string | NoveltyInsight;
   caption_analysis?: CaptionAnalysis;
   content_analysis?: ContentAnalysis;
   caption_content_explainability?: CaptionContentExplainability;
+  linguistic_analysis?: LinguisticAnalysis;
+  psychological_triggers?: PsychologicalTriggers;
+  engagement_psychology?: EngagementPsychology;
+  peak_times_analysis?: PeakTimesAnalysis;
 }
 
 const badgeClass: Record<string, string> = {
@@ -195,6 +279,142 @@ export default function ExplainabilityPanel({ prediction, formValues }: Explaina
       {/* Overall assessment */}
       <p className={styles.assessment}>{explanation.overall_assessment}</p>
 
+      {/* ── Linguistic Analysis ──────────────────────────────────────────── */}
+      {explanation.linguistic_analysis && (() => {
+        const la = explanation.linguistic_analysis!;
+        return (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Linguistic Analysis</h3>
+            <div className={styles.lingGrid}>
+              <div className={styles.lingItem}>
+                <span className={styles.lingKey}>Tone</span>
+                <span className={styles.lingVal}>{la.tone}</span>
+              </div>
+              <div className={styles.lingItem}>
+                <span className={styles.lingKey}>Sentiment</span>
+                <span className={styles.lingVal}>{la.sentiment}</span>
+              </div>
+              <div className={styles.lingItem}>
+                <span className={styles.lingKey}>Readability</span>
+                <span className={styles.lingVal}>{la.readability_verdict?.split(' — ')[0] || la.readability_verdict}</span>
+              </div>
+              <div className={styles.lingItem}>
+                <span className={styles.lingKey}>Language Mix</span>
+                <span className={styles.lingVal}>{la.language_mix?.split(' — ')[0] || la.language_mix}</span>
+              </div>
+            </div>
+            {la.tone_explanation && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Tone Analysis</p>
+                <p className={styles.subCardText}>{la.tone_explanation}</p>
+              </div>
+            )}
+            {la.sentiment_impact && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Sentiment Impact</p>
+                <p className={styles.subCardText}>{la.sentiment_impact}</p>
+              </div>
+            )}
+            {la.bilingual_effectiveness && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Bilingual Effectiveness</p>
+                <p className={styles.subCardText}>{la.bilingual_effectiveness}</p>
+              </div>
+            )}
+            {la.keyword_density && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Keyword Themes</p>
+                <p className={styles.subCardText}>{la.keyword_density}</p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Psychological Triggers ─────────────────────────────────────────── */}
+      {explanation.psychological_triggers && (() => {
+        const pt = explanation.psychological_triggers!;
+        return (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Psychological Triggers</h3>
+            {pt.present?.length > 0 && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>✓ Active Triggers</p>
+                {pt.present.map((t, i) => (
+                  <div key={i} className={styles.triggerRow}>
+                    <div className={styles.triggerHeader}>
+                      <span className={styles.triggerName}>{t.trigger}</span>
+                      <span className={`${styles.strengthBadge} ${t.strength === 'Strong' ? styles.strengthStrong : t.strength === 'Moderate' ? styles.strengthModerate : styles.strengthWeak}`}>{t.strength}</span>
+                    </div>
+                    <p className={styles.triggerEvidence}>&ldquo;{t.evidence}&rdquo;</p>
+                    <p className={styles.triggerReason}>{t.strength_reason}</p>
+                    {t.metric_impact && <span className={styles.impactTag}>{t.metric_impact}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {pt.missing?.length > 0 && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>✗ Missing Triggers</p>
+                {pt.missing.map((m, i) => (
+                  <div key={i} className={styles.missingRow}>
+                    <div className={styles.missingHeader}>
+                      <span className={styles.missingTag}>{m.trigger}</span>
+                      <span className={styles.upliftTag}>{m.expected_uplift}</span>
+                    </div>
+                    <p className={styles.missingReason}>{m.why_it_matters}</p>
+                    <div className={styles.exampleBox}>
+                      <span className={styles.exampleLabel}>How to add: </span>
+                      <span className={styles.exampleText}>{m.how_to_add}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Engagement Psychology ──────────────────────────────────────────── */}
+      {explanation.engagement_psychology && (() => {
+        const ep = explanation.engagement_psychology!;
+        return (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Engagement Psychology</h3>
+            {ep.current_motivation && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Current Motivation Activated</p>
+                <p className={styles.subCardText}>{ep.current_motivation}</p>
+              </div>
+            )}
+            {ep.friction_points && (
+              <div className={styles.frictionBox}>
+                <p className={styles.frictionLabel}>Friction Points</p>
+                <p className={styles.frictionText}>{ep.friction_points}</p>
+              </div>
+            )}
+            {ep.desired_action && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Desired Action Clarity</p>
+                <p className={styles.subCardText}>{ep.desired_action}</p>
+              </div>
+            )}
+            {ep.cognitive_load && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Cognitive Load</p>
+                <p className={styles.subCardText}>{ep.cognitive_load}</p>
+              </div>
+            )}
+            {ep.emotional_hook && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Emotional Hook</p>
+                <p className={styles.subCardText}>{ep.emotional_hook}</p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Per-metric improvements */}
       {explanation.improvements && explanation.improvements.length > 0 && (
         <div className={styles.section}>
@@ -205,6 +425,12 @@ export default function ExplainabilityPanel({ prediction, formValues }: Explaina
                 <span className={styles.improvementMetric}>{imp.metric}</span>
                 <span className={styles.improvementScore}>Current: {imp.current_score}</span>
               </div>
+              {imp.root_cause && (
+                <div className={styles.rootCauseBox}>
+                  <span className={styles.rootCauseLabel}>Root Cause: </span>
+                  <span className={styles.rootCauseText}>{imp.root_cause}</span>
+                </div>
+              )}
               <ul className={styles.tipList}>
                 {imp.improvement_tips?.map((tip, j) => (
                   <li key={j} className={styles.tipItem}>
@@ -273,6 +499,38 @@ export default function ExplainabilityPanel({ prediction, formValues }: Explaina
               <p className={styles.rewrittenText}>&ldquo;{explanation.caption_analysis.rewritten_caption}&rdquo;</p>
             </div>
           )}
+
+          {/* Structural Scoring */}
+          {explanation.caption_analysis.structural_scoring && (() => {
+            const ss = explanation.caption_analysis!.structural_scoring!;
+            const rows: [string, string][] = [
+              ['Hook Strength', ss.hook_strength],
+              ['CTA Clarity', ss.cta_clarity],
+              ['Emoji Usage', ss.emoji_usage],
+              ['Urgency Level', ss.urgency_level],
+              ['Question Engagement', ss.question_engagement],
+              ['Hashtag Placement', ss.hashtag_placement],
+            ];
+            return (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Structural Scoring</p>
+                {rows.filter(([, v]) => v).map(([label, val], i) => (
+                  <div key={i} className={styles.scoringRow}>
+                    <span className={styles.scoringLabel}>{label}</span>
+                    <span className={styles.scoringVal}>{val}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+
+          {/* Language effectiveness */}
+          {explanation.caption_analysis.language_effectiveness && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>Bilingual / Language Effectiveness</p>
+              <p className={styles.subCardText}>{explanation.caption_analysis.language_effectiveness}</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -288,6 +546,27 @@ export default function ExplainabilityPanel({ prediction, formValues }: Explaina
             <div className={styles.subCard}>
               <p className={styles.subCardLabel}>Length Verdict</p>
               <p className={styles.subCardText}>{explanation.content_analysis.current_length_verdict}</p>
+            </div>
+          )}
+
+          {explanation.content_analysis.storytelling_analysis && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>Storytelling Analysis</p>
+              <p className={styles.subCardText}>{explanation.content_analysis.storytelling_analysis}</p>
+            </div>
+          )}
+
+          {explanation.content_analysis.value_proposition && (
+            <div className={styles.subCard}>
+              <p className={styles.subCardLabel}>Value Proposition</p>
+              <p className={styles.subCardText}>{explanation.content_analysis.value_proposition}</p>
+            </div>
+          )}
+
+          {explanation.content_analysis.visual_content_recommendation && (
+            <div className={styles.rewrittenBox}>
+              <p className={styles.rewrittenLabel}>Visual Content Recommendation</p>
+              <p className={styles.rewrittenText}>{explanation.content_analysis.visual_content_recommendation}</p>
             </div>
           )}
 
@@ -507,32 +786,52 @@ export default function ExplainabilityPanel({ prediction, formValues }: Explaina
         </div>
       )}
 
-      {/* Best posting time */}
-      {explanation.best_posting_time && (
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Best Posting Window</h3>
-          <div className={styles.timeCard}>
-            <div className={styles.timeRow}>
-              <span className={styles.timeKey}>Days</span>
-              <span className={styles.timeValue}>
-                {explanation.best_posting_time.recommended_days?.join(', ')}
-              </span>
+      {/* Best posting time — use rich peak_times_analysis if available */}
+      {(explanation.peak_times_analysis || explanation.best_posting_time) && (() => {
+        const pta = explanation.peak_times_analysis;
+        const bpt = explanation.best_posting_time;
+        const days = pta?.recommended_days || bpt?.recommended_days;
+        const hours = pta?.recommended_hours || bpt?.recommended_hours;
+        return (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Best Posting Window</h3>
+            <div className={styles.timeCard}>
+              <div className={styles.timeRow}>
+                <span className={styles.timeKey}>Days</span>
+                <span className={styles.timeValue}>{days?.join(', ')}</span>
+              </div>
+              <div className={styles.timeRow}>
+                <span className={styles.timeKey}>Hours</span>
+                <span className={styles.timeValue}>{hours}</span>
+              </div>
+              {(pta?.why_these_days || bpt?.reasoning) && (
+                <div className={styles.timeRow}>
+                  <span className={styles.timeKey}>Why Days</span>
+                  <span className={styles.timeValue}>{pta?.why_these_days || bpt?.reasoning}</span>
+                </div>
+              )}
+              {pta?.why_these_hours && (
+                <div className={styles.timeRow}>
+                  <span className={styles.timeKey}>Why Hours</span>
+                  <span className={styles.timeValue}>{pta.why_these_hours}</span>
+                </div>
+              )}
             </div>
-            <div className={styles.timeRow}>
-              <span className={styles.timeKey}>Hours</span>
-              <span className={styles.timeValue}>
-                {explanation.best_posting_time.recommended_hours}
-              </span>
-            </div>
-            <div className={styles.timeRow}>
-              <span className={styles.timeKey}>Why</span>
-              <span className={styles.timeValue}>
-                {explanation.best_posting_time.reasoning}
-              </span>
-            </div>
+            {pta?.missed_opportunity_cost && (
+              <div className={styles.frictionBox}>
+                <p className={styles.frictionLabel}>Missed Opportunity Cost</p>
+                <p className={styles.frictionText}>{pta.missed_opportunity_cost}</p>
+              </div>
+            )}
+            {pta?.current_vs_optimal && (
+              <div className={styles.subCard}>
+                <p className={styles.subCardLabel}>Current vs Optimal Schedule</p>
+                <p className={styles.subCardText}>{pta.current_vs_optimal}</p>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Content quality tips */}
       {explanation.content_quality_tips && explanation.content_quality_tips.length > 0 && (
@@ -549,18 +848,40 @@ export default function ExplainabilityPanel({ prediction, formValues }: Explaina
         </div>
       )}
 
-      {/* Platform-specific tips */}
+      {/* Platform-specific tips — handles both string[] and PlatformTip[] */}
       {explanation.platform_specific_tips && explanation.platform_specific_tips.length > 0 && (
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Platform-Specific Tips</h3>
-          <ul className={styles.bulletList}>
-            {explanation.platform_specific_tips.map((tip, i) => (
-              <li key={i} className={styles.bulletItem}>
-                <span className={styles.bulletNumber}>{i + 1}</span>
-                {tip}
-              </li>
-            ))}
-          </ul>
+          {explanation.platform_specific_tips.map((tip, i) => {
+            if (typeof tip === 'string') {
+              return (
+                <div key={i} className={styles.platformTipCard}>
+                  <span className={styles.bulletNumber}>{i + 1}</span>
+                  <p className={styles.platformTipDetail}>{tip}</p>
+                </div>
+              );
+            }
+            const t = tip as PlatformTip;
+            return (
+              <div key={i} className={styles.platformTipCard}>
+                <p className={styles.platformTipTitle}>{t.tip}</p>
+                {t.detail && <p className={styles.platformTipDetail}>{t.detail}</p>}
+                {t.algorithm_reason && (
+                  <div className={styles.algoReasonBox}>
+                    <span className={styles.algoReasonLabel}>Algorithm Mechanism: </span>
+                    <span className={styles.algoReasonText}>{t.algorithm_reason}</span>
+                  </div>
+                )}
+                {t.implementation && (
+                  <div className={styles.exampleBox}>
+                    <span className={styles.exampleLabel}>How to implement: </span>
+                    <span className={styles.exampleText}>{t.implementation}</span>
+                  </div>
+                )}
+                {t.expected_impact && <span className={styles.upliftTag}>{t.expected_impact}</span>}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -572,13 +893,43 @@ export default function ExplainabilityPanel({ prediction, formValues }: Explaina
         </div>
       )}
 
-      {/* Novelty insight */}
-      {explanation.novelty_insight && (
-        <div className={styles.noveltyBox}>
-          <p className={styles.noveltyLabel}>Research Insight</p>
-          <p className={styles.noveltyText}>{explanation.novelty_insight}</p>
-        </div>
-      )}
+      {/* Novelty insight — handles both string and object */}
+      {explanation.novelty_insight && (() => {
+        const ni = explanation.novelty_insight;
+        if (typeof ni === 'string') {
+          return (
+            <div className={styles.noveltyBox}>
+              <p className={styles.noveltyLabel}>Research Insight</p>
+              <p className={styles.noveltyText}>{ni}</p>
+            </div>
+          );
+        }
+        const n = ni as NoveltyInsight;
+        return (
+          <div className={styles.noveltyBox}>
+            <p className={styles.noveltyLabel}>Research Insight</p>
+            {n.insight && <p className={styles.noveltyText}>{n.insight}</p>}
+            {n.research_basis && (
+              <div style={{ marginTop: 10 }}>
+                <p className={styles.noveltySubLabel}>Research Basis</p>
+                <p className={styles.noveltySubText}>{n.research_basis}</p>
+              </div>
+            )}
+            {n.application && (
+              <div style={{ marginTop: 8 }}>
+                <p className={styles.noveltySubLabel}>Application to This Post</p>
+                <p className={styles.noveltySubText}>{n.application}</p>
+              </div>
+            )}
+            {n.competitive_advantage && (
+              <div style={{ marginTop: 8 }}>
+                <p className={styles.noveltySubLabel}>Competitive Advantage</p>
+                <p className={styles.noveltySubText}>{n.competitive_advantage}</p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
