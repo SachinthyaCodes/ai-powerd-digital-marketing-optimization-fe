@@ -45,6 +45,19 @@
   margin: 0;
 }
 
+.topicBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  vertical-align: middle;
+}
+
 .overallBadge {
   padding: 4px 14px;
   border-radius: 20px;
