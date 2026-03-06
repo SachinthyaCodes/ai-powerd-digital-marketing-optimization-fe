@@ -14,7 +14,7 @@ export interface BusinessProfile {
 
 export interface MarketingBudgetResources {
   monthlyBudget: string;
-  hasMarketingTeam: boolean;
+  hasMarketingTeam: string;
   teamSize?: number;
   contentCreationCapacity: string[];
 }
@@ -64,7 +64,7 @@ export interface MarketSituation {
   seasonalityOther?: string;
   competitorBehavior: string;
   stockAvailability: 'always-available' | 'seasonal' | 'limited' | 'pre-order';
-  recentPriceChanges: boolean;
+  recentPriceChanges: string;
   priceChangeDetails?: string;
 }
 

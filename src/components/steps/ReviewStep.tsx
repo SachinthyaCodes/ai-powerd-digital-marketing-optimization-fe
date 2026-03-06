@@ -14,14 +14,14 @@ interface ReviewStepProps {
 export function ReviewStep({ data, onSubmit, isSubmitting, processingStatus, processingResult }: ReviewStepProps) {
   const getCompletionStatus = () => {
     const sections = [
-      { name: 'Business Profile', data: data.businessprofile },
-      { name: 'Budget & Resources', data: data.budgetresources },
-      { name: 'Business Goals', data: data.businessgoals },
-      { name: 'Target Audience', data: data.targetaudience },
-      { name: 'Platforms & Preferences', data: data.platformspreferences },
-      { name: 'Current Challenges', data: data.currentchallenges },
-      { name: 'Strengths & Opportunities', data: data.strengthsopportunities },
-      { name: 'Market Situation', data: data.marketsituation }
+      { name: 'Business Profile', data: data.businessProfile },
+      { name: 'Budget & Resources', data: data.budgetResources },
+      { name: 'Business Goals', data: data.businessGoals },
+      { name: 'Target Audience', data: data.targetAudience },
+      { name: 'Platforms & Preferences', data: data.platformsPreferences },
+      { name: 'Current Challenges', data: data.currentChallenges },
+      { name: 'Strengths & Opportunities', data: data.strengthsOpportunities },
+      { name: 'Market Situation', data: data.marketSituation }
     ];
 
     const completed = sections.filter(section => section.data && Object.keys(section.data).length > 0);

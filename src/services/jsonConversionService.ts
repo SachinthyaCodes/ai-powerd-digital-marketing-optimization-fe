@@ -131,7 +131,7 @@ export class FormDataProcessor {
     // Process marketing budget
     const marketingBudget = {
       monthlyBudget: formData.budgetResources?.monthlyBudget || '',
-      hasMarketingTeam: formData.budgetResources?.hasMarketingTeam || false,
+      hasMarketingTeam: String(formData.budgetResources?.hasMarketingTeam) === 'true',
       teamSize: formData.budgetResources?.teamSize,
       contentCreationCapacity: formData.budgetResources?.contentCreationCapacity || [],
     };
@@ -170,7 +170,7 @@ export class FormDataProcessor {
       competitorBehavior: formData.marketSituation?.competitorBehavior || '',
       stockAvailability: this.mapStockAvailability(formData.marketSituation?.stockAvailability),
       pricingChanges: {
-        hasRecentChanges: formData.marketSituation?.recentPriceChanges || false,
+        hasRecentChanges: String(formData.marketSituation?.recentPriceChanges) === 'true',
         details: formData.marketSituation?.priceChangeDetails,
       },
     };

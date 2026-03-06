@@ -110,6 +110,32 @@ export class ApiService {
   }
 
   /**
+   * Update existing business profile
+   */
+  async updateProfile(profileId: string, formData: any, generateStrategy: boolean = false): Promise<BackendSubmissionResponse> {
+    try {
+      const url = `${this.baseUrl}/api/v1/forms/profile/${profileId}${generateStrategy ? '?generate_strategy=true' : ''}`;
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: this.getHeaders(true), // Include JWT token
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Profile update failed (${response.status}): ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Business profile updated successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('Profile update error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get list of submissions
    */
   async getSubmissions(page: number = 1, limit: number = 50): Promise<BackendSubmissionListResponse> {

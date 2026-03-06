@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { 
   ArrowLeftIcon, 
   ArrowPathIcon, 
@@ -22,6 +23,14 @@ import {
 } from '@/services/strategyApiService';
 
 export default function StrategyViewPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-[#0B0F14] text-[#CBD5E1]">Loading...</div>}>
+      <StrategyViewContent />
+    </Suspense>
+  );
+}
+
+function StrategyViewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('overview');

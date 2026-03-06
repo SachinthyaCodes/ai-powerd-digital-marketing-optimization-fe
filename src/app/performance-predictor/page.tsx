@@ -11,6 +11,34 @@ import RecommendationsPanel from '@/components/campaigns/RecommendationsPanel';
 import styles from './styles/campaigns.module.css';
 
 /* ─── Types ──────────────────────────────────────────────────── */
+export interface CampaignData {
+  caption: string;
+  contentImage: File | null;
+  contentText: string;
+  platform: string;
+  postDate: string;
+  postTime: string;
+  followers: number;
+  adBoost: boolean;
+}
+
+export interface PredictionResult {
+  id: string;
+  timestamp: string;
+  campaignData: CampaignData;
+  predictions: {
+    score: number;
+    expectedReach: number;
+    expectedEngagement: number;
+    expectedClicks: number;
+    expectedConversions: number;
+    engagementRate: number;
+    ctr: number;
+  };
+  insights: string[];
+  recommendations: string[];
+}
+
 interface HistoryItem {
   _id: string;
   caption: string;

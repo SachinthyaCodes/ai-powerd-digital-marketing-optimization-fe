@@ -163,7 +163,7 @@ export default function CalendarPage() {
     ? tasks.filter((t) => t.platform === filterPlatform)
     : tasks;
   const weeks = groupByWeek(filteredTasks);
-  const platforms = [...new Set(tasks.map((t) => t.platform))];
+  const platforms = Array.from(new Set(tasks.map((t) => t.platform)));
 
   const totalTasks = tasks.length;
   const todayTasks = tasks.filter((t) => isToday(t.date)).length;

@@ -255,7 +255,7 @@ const badgeClass: Record<string, string> = {
 /** Returns true if the stored explanation is just the error fallback — not real data */
 function isErrorFallback(exp: Record<string, unknown> | null | undefined): boolean {
   if (!exp) return false;
-  const assessment = (exp as Explanation).overall_assessment;
+  const assessment = (exp as unknown as Explanation).overall_assessment;
   return typeof assessment === 'string' && assessment.includes('temporarily unavailable');
 }
 
@@ -264,7 +264,7 @@ export default function ExplainabilityPanel({ prediction, formValues, prediction
   const hasRealData = Boolean(preloadedExplanation) && !isErrorFallback(preloadedExplanation);
 
   const [explanation, setExplanation] = useState<Explanation | null>(
-    hasRealData ? (preloadedExplanation as Explanation) : null
+    hasRealData ? (preloadedExplanation as unknown as Explanation) : null
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
