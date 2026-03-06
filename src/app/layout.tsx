@@ -1,23 +1,11 @@
 import '../styles/globals.css'
 import type { Metadata } from 'next'
-import { Montserrat, Poppins } from 'next/font/google'
+// next/font/google removed — CSS variables are defined in globals.css so the
+// app works fully offline (Turbopack re-downloads fonts on every dev render).
 import { AuthProvider } from '@/contexts/AuthContext'
 // ─── Add new provider imports directly below this line ────────────────────────
 // e.g.  import { ThemeProvider } from '@/contexts/ThemeContext'
 // ──────────────────────────────────────────────────────────────────────────────
-
-const montserrat = Montserrat({ 
-  subsets: ['latin'],
-  variable: '--font-montserrat',
-  display: 'swap',
-})
-
-const poppins = Poppins({ 
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-poppins',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: 'Serendib AI - AI-Powered Marketing Optimizer',
@@ -31,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${montserrat.variable} ${poppins.variable} font-sans`}>
+      <body className="font-sans">
         {/* ── AuthProvider (Smart-Assistant auth) ── owns: src/app/auth/, src/contexts/AuthContext.tsx ── */}
         <AuthProvider>
           {/* ── Add other team providers as siblings or nested here ── */}

@@ -367,7 +367,15 @@
 .sa-float { animation: sa-float 3.5s ease-in-out infinite; }
 
 /* ─── Glass card + history panel ─────────────────────────────────────────── */
-.sa-glass-card { background: transparent; }
+.sa-glass-card {
+  background: rgba(10, 13, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 1rem;
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.65),
+    0 0 0 0.5px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
 
 /* ── History panel – backdrop ── */
 .sa-hist-backdrop {

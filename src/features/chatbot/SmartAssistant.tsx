@@ -11,9 +11,11 @@ import SuggestionCards from './components/SuggestionCards';
 import MessageList     from './components/MessageList';
 import ChatInput       from './components/ChatInput';
 import RecentChatsPanel from './components/RecentChatsPanel';
+import AssistantLanding from './components/AssistantLanding';
 
 export default function SmartAssistant() {
   // ── State ──────────────────────────────────────────────────────────────────
+  const [showLanding, setShowLanding]     = useState(true);
   const [messages, setMessages]           = useState<ChatMessage[]>([]);
   const [sessionId, setSessionId]         = useState<string | null>(null);
   const [isTyping, setIsTyping]           = useState(false);
@@ -199,8 +201,13 @@ export default function SmartAssistant() {
   // ── Render ─────────────────────────────────────────────────────────────────
   const hasMessages = messages.length > 0;
 
+  // Show landing page until user clicks "Start"
+  if (showLanding) {
+    return <AssistantLanding onStart={() => setShowLanding(false)} />;
+  }
+
   return (
-    <div className="sa-root relative flex h-full w-full bg-[#0B1120] items-center justify-center">
+    <div className="sa-root relative flex flex-col h-full w-full bg-[#0B1120] items-center justify-center p-3 sm:p-4 md:p-5 lg:p-6">
       {/* ── Full-screen aurora blobs ────────────────────────────────────── */}
       <div className="sa-page-aurora-wrap" aria-hidden="true">
         <div className="sa-page-blob-green" />
@@ -210,7 +217,7 @@ export default function SmartAssistant() {
       </div>
 
       {/* ── Chat card ───────────────────────────────────────────────────── */}
-      <div className="sa-glass-card relative flex flex-col w-full h-full max-w-[900px] z-10 overflow-hidden">
+      <div className="sa-glass-card relative flex flex-col w-full max-w-[860px] flex-1 min-h-0 z-10 overflow-hidden">
         {/* Header */}
         <ChatHeader
           onOpenRecent={() => setRecentOpen(true)}

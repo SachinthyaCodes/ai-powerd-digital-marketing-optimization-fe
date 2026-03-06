@@ -370,6 +370,34 @@ class AuthService {
     if (!response.ok) throw new Error('Failed to get gaps analytics');
     return response.json();
   }
+
+  // Admin – get tool registry + current assistant settings
+  async getAssistantSettings(token: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/api/admin/tools`, {
+      method: 'GET',
+      headers: this.getHeaders(token),
+    });
+    if (!response.ok) throw new Error('Failed to get assistant settings');
+    return response.json();
+  }
+
+  // Admin – update assistant settings (tools, tone, language)
+  async updateAssistantSettings(token: string, data: {
+    enabledTools?: string[];
+    assistantTone?: string;
+    assistantLanguage?: string;
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/api/admin/service/settings`, {
+      method: 'PUT',
+      headers: this.getHeaders(token),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update settings');
+    }
+    return response.json();
+  }
 }
 
 export const authService = new AuthService();

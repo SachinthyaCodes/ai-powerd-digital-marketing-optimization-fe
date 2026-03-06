@@ -206,6 +206,33 @@ function AdminDashboardContent() {
                     </button>
                   </div>
                 </div>
+
+                {/* Customer Chat Link */}
+                <div className="mt-4 pt-4 border-t border-[#1F2933]">
+                  <p className="text-[#CBD5E1] text-xs mb-1.5">
+                    Customer Chat Link
+                    <span className="ml-1 text-[#CBD5E1]/50">(share with your customers)</span>
+                  </p>
+                  <div className="flex items-center gap-2 mb-3">
+                    <code className="flex-1 bg-[#0B0F14] border border-[#CBD5E1]/10 rounded-lg px-3 py-2 text-[#22C55E] text-xs font-mono truncate">
+                      {typeof window !== 'undefined' ? window.location.origin : ''}/chat/{serviceInfo.tenantId}
+                    </code>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/chat/${serviceInfo.tenantId}`); }}
+                      className="flex-shrink-0 px-4 py-2.5 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] hover:bg-[#22C55E]/20 rounded-lg text-xs font-medium transition whitespace-nowrap"
+                    >
+                      Copy Link
+                    </button>
+                  </div>
+                  <details className="group">
+                    <summary className="text-[#CBD5E1] text-xs cursor-pointer hover:text-[#22C55E] transition-colors list-none flex items-center gap-1 select-none">
+                      <span className="group-open:hidden">▸</span>
+                      <span className="hidden group-open:inline">▾</span>
+                      &nbsp;Show embed code
+                    </summary>
+                    <pre className="mt-2 bg-[#0B0F14] border border-[#CBD5E1]/10 rounded-lg p-3 text-[10px] text-[#6B7280] overflow-x-auto whitespace-pre-wrap">{`<iframe\n  src="${typeof window !== 'undefined' ? window.location.origin : 'https://yoursite.com'}/chat/${serviceInfo.tenantId}"\n  width="400"\n  height="650"\n  style="border:none;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.3);"\n  title="Smart Assistant"\n></iframe>`}</pre>
+                  </details>
+                </div>
               </div>
             </div>
           </div>
