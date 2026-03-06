@@ -1,7 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/*
+  Fonts: CSS variables defined here so the app works fully offline.
+  next/font/google downloads on every Turbopack dev render — replaced with
+  system-font stacks. If Montserrat/Poppins are installed locally they are
+  used; otherwise Segoe UI / system-ui serves as a near-identical fallback.
+*/
+:root {
+  --font-montserrat: Montserrat, 'Segoe UI', system-ui, ui-sans-serif, sans-serif;
+  --font-poppins:    Poppins,    'Segoe UI', system-ui, ui-sans-serif, sans-serif;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
 
 @layer base {
   html {
@@ -100,3 +119,9 @@
     @apply bg-secondary-200 text-secondary-600;
   }
 }
+
+/* ── Chatbot feature styles ──────────────────────────────────────────────────
+   All chatbot-specific CSS (.chat-markdown, .chat-textarea, scrollbars,
+   bounce delays, slide-in animation) now lives in:
+   src/features/chatbot/styles/chatbot.css
+   ─────────────────────────────────────────────────────────────────────────── */

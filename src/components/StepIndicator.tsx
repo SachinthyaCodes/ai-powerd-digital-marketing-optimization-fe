@@ -9,21 +9,21 @@ interface StepIndicatorProps {
 
 export function StepIndicator({ steps, currentStepIndex, onStepClick }: StepIndicatorProps) {
   return (
-    <nav aria-label="Progress">
-      <ol className="flex items-center justify-between max-w-4xl mx-auto">
+    <nav aria-label="Progress" className="overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <ol className="flex items-center justify-start sm:justify-between gap-3 sm:gap-0 max-w-4xl mx-auto min-w-max sm:min-w-0">
         {steps.map((step, index) => {
           const isCompleted = index < currentStepIndex;
           const isActive = index === currentStepIndex;
           const isClickable = index <= currentStepIndex;
 
           return (
-            <li key={step.id} className="flex items-center">
+            <li key={step.id} className="flex items-center flex-shrink-0">
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => isClickable && onStepClick(index)}
                   disabled={!isClickable}
                   className={`
-                    flex items-center justify-center w-10 h-10 rounded-full text-sm font-semibold transition-all duration-200
+                    flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200
                     ${
                       isCompleted
                         ? 'bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]'
@@ -37,15 +37,16 @@ export function StepIndicator({ steps, currentStepIndex, onStepClick }: StepIndi
                         : 'cursor-not-allowed opacity-40'
                     }
                   `}
+                  title={step.title}
                 >
                   {isCompleted ? (
-                    <Check className="w-5 h-5" />
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5" />
                   ) : (
                     <span>{index + 1}</span>
                   )}
                 </button>
                 
-                <p className={`mt-3 text-xs font-medium text-center max-w-20 leading-tight ${
+                <p className={`mt-2 sm:mt-3 text-[10px] sm:text-xs font-medium text-center max-w-16 sm:max-w-20 leading-tight hidden sm:block ${
                   isActive ? 'text-[#F9FAFB]' : 
                   isCompleted ? 'text-[#22C55E]' : 'text-[#CBD5E1]/60'
                 }`}>
@@ -54,7 +55,7 @@ export function StepIndicator({ steps, currentStepIndex, onStepClick }: StepIndi
               </div>
               
               {index < steps.length - 1 && (
-                <div className={`h-px w-12 mx-3 mt-[-28px] ${
+                <div className={`h-px w-8 sm:w-12 mx-2 sm:mx-3 mt-[-20px] sm:mt-[-28px] ${
                   isCompleted ? 'bg-[#22C55E]/40' : 'bg-[#1F2933]'
                 }`} />
               )}
