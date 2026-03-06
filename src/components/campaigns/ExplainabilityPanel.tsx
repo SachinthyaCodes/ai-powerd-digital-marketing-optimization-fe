@@ -7,6 +7,8 @@ import type { PredictionOutput, FormValues } from './PredictionForm';
 interface ExplainabilityPanelProps {
   prediction: PredictionOutput;
   formValues: FormValues;
+  predictionId?: string | null;
+  preloadedExplanation?: Record<string, unknown> | null;
 }
 
 interface Improvement {
@@ -188,6 +190,61 @@ interface Explanation {
   peak_times_analysis?: PeakTimesAnalysis;
 }
 
+// ── SHAP / LIME types ─────────────────────────────────────────────────────────
+
+interface SHAPFeature {
+  feature: string;
+  label: string;
+  display_value: string;
+  shap_value: number;
+  direction: 'positive' | 'negative';
+  importance_pct: number;
+}
+
+interface LIMENumericFeature {
+  feature_range: string;
+  label: string;
+  weight: number;
+  direction: 'positive' | 'negative';
+  importance_pct: number;
+}
+
+interface LIMETextWord {
+  word: string;
+  weight: number;
+  direction: 'positive' | 'negative';
+  importance_pct: number;
+}
+
+interface ConcordanceEntry {
+  agree: boolean;
+  shap_top: string;
+  lime_top: string;
+  message: string;
+}
+
+interface ShapLimeData {
+  shap_numeric:   Record<string, SHAPFeature[]>;
+  lime_numeric:   Record<string, LIMENumericFeature[]>;
+  lime_text:      Record<string, LIMETextWord[]>;
+  summaries:      Record<string, string>;
+  concordance:    Record<string, ConcordanceEntry>;
+  feature_labels: Record<string, string>;
+  target_labels:  Record<string, string>;
+  targets:        string[];
+  method_notes:   Record<string, string>;
+}
+
+type ShapLimeTab = 'shap' | 'lime' | 'text';
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+const METRIC_TARGETS = ['likes', 'comments', 'shares', 'clicks', 'timing_quality_score'] as const;
+const METRIC_LABELS: Record<string, string> = {
+  likes: 'Likes', comments: 'Comments', shares: 'Shares',
+  clicks: 'Clicks', timing_quality_score: 'Timing',
+};
+
 const badgeClass: Record<string, string> = {
   Low: styles.badgeLow,
   Moderate: styles.badgeModerate,
@@ -195,33 +252,88 @@ const badgeClass: Record<string, string> = {
   Excellent: styles.badgeExcellent,
 };
 
-export default function ExplainabilityPanel({ prediction, formValues }: ExplainabilityPanelProps) {
-  const [explanation, setExplanation] = useState<Explanation | null>(null);
+/** Returns true if the stored explanation is just the error fallback — not real data */
+function isErrorFallback(exp: Record<string, unknown> | null | undefined): boolean {
+  if (!exp) return false;
+  const assessment = (exp as Explanation).overall_assessment;
+  return typeof assessment === 'string' && assessment.includes('temporarily unavailable');
+}
+
+export default function ExplainabilityPanel({ prediction, formValues, predictionId, preloadedExplanation }: ExplainabilityPanelProps) {
+  // Only use preloaded data if it contains a real (non-fallback) explanation
+  const hasRealData = Boolean(preloadedExplanation) && !isErrorFallback(preloadedExplanation);
+
+  const [explanation, setExplanation] = useState<Explanation | null>(
+    hasRealData ? (preloadedExplanation as Explanation) : null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
+  // ── SHAP / LIME state ────────────────────────────────────────────────────
+  const [shapLimeData,    setShapLimeData]    = useState<ShapLimeData | null>(null);
+  const [shapLimeLoading, setShapLimeLoading] = useState(false);
+  const [shapLimeError,   setShapLimeError]   = useState<string | null>(null);
+  const [shapLimeTab,     setShapLimeTab]     = useState<ShapLimeTab>('shap');
+  const [activeTarget,    setActiveTarget]    = useState<string>('likes');
+
   useEffect(() => {
-    fetchExplanation();
+    if (hasRealData) return; // already have real saved explanation
+    const controller = new AbortController();
+    fetchExplanation(controller.signal);
+    return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function fetchExplanation() {
+  // Auto-fetch SHAP/LIME separately (it can take 30-90s; has its own loading state)
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchShapLime(controller.signal);
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function fetchShapLime(signal?: AbortSignal) {
+    setShapLimeLoading(true);
+    setShapLimeError(null);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shap-lime`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ ...formValues }),
+        signal,
+      });
+      if (signal?.aborted) return;
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'SHAP/LIME analysis failed');
+      setShapLimeData(json.shapLime as ShapLimeData);
+    } catch (err: unknown) {
+      if (signal?.aborted) return; // cancelled by StrictMode cleanup — not a real error
+      setShapLimeError(err instanceof Error ? err.message : 'SHAP/LIME analysis failed');
+    } finally {
+      if (!signal?.aborted) setShapLimeLoading(false);
+    }
+  }
+
+  async function fetchExplanation(signal?: AbortSignal) {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/explain`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formValues, ...prediction }),
+        body: JSON.stringify({ ...formValues, ...prediction, predictionId: predictionId ?? undefined }),
+        signal,
       });
+      if (signal?.aborted) return;
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load insights');
       setExplanation(json.explanation);
     } catch (err: unknown) {
+      if (signal?.aborted) return; // cancelled by StrictMode cleanup — not a real error
       setError(err instanceof Error ? err.message : 'Failed to generate insights');
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }
 
@@ -251,7 +363,7 @@ export default function ExplainabilityPanel({ prediction, formValues }: Explaina
         <p className={styles.errorBox}>{error}</p>
         <button
           style={{ fontSize: 12, color: '#22c55e', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-          onClick={fetchExplanation}
+          onClick={() => fetchExplanation()}
         >
           Retry
         </button>
@@ -278,6 +390,243 @@ export default function ExplainabilityPanel({ prediction, formValues }: Explaina
 
       {/* Overall assessment */}
       <p className={styles.assessment}>{explanation.overall_assessment}</p>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          SHAP / LIME  Explainability  (quantitative feature attribution)
+      ═══════════════════════════════════════════════════════════════════ */}
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>
+          SHAP &amp; LIME Explainability
+          <span className={styles.methodBadge}>Quantitative</span>
+        </h3>
+
+        {/* ── Loading ── */}
+        {shapLimeLoading && (
+          <div className={styles.shapLoadingBox}>
+            <div className={styles.loadingSpinner} />
+            <div className={styles.shapLoadingText}>
+              <p className={styles.shapLoadingTitle}>Running SHAP &amp; LIME analysis…</p>
+              <p className={styles.shapLoadingHint}>
+                Computing Shapley values, local surrogate models, and word-level attributions.
+                This typically takes 30–90 seconds.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Error ── */}
+        {!shapLimeLoading && shapLimeError && (
+          <div className={styles.shapErrorBox}>
+            <p className={styles.shapErrorText}>{shapLimeError}</p>
+            <button className={styles.retryBtn} onClick={() => fetchShapLime()}>Retry SHAP/LIME</button>
+          </div>
+        )}
+
+        {/* ── Results ── */}
+        {!shapLimeLoading && shapLimeData && (() => {
+          const { shap_numeric, lime_numeric, lime_text, summaries, concordance, method_notes } = shapLimeData;
+
+          return (
+            <>
+              {/* Method explanation pills */}
+              <div className={styles.methodPills}>
+                <span className={styles.methodPill} title={method_notes?.shap}>
+                  SHAP <span className={styles.methodPillSub}>Shapley Values</span>
+                </span>
+                <span className={styles.methodPill} title={method_notes?.lime_numeric}>
+                  LIME <span className={styles.methodPillSub}>Local Surrogate</span>
+                </span>
+                <span className={styles.methodPill} title={method_notes?.lime_text}>
+                  LIME Text <span className={styles.methodPillSub}>Word Attribution</span>
+                </span>
+              </div>
+
+              {/* Tab selector */}
+              <div className={styles.tabGroup}>
+                {(['shap', 'lime', 'text'] as ShapLimeTab[]).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setShapLimeTab(tab)}
+                    className={`${styles.tab} ${shapLimeTab === tab ? styles.tabActive : ''}`}
+                  >
+                    {tab === 'shap'  ? 'SHAP Features' :
+                     tab === 'lime'  ? 'LIME Features' :
+                                       'LIME Text Words'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Metric pills */}
+              <div className={styles.targetPills}>
+                {METRIC_TARGETS.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setActiveTarget(t)}
+                    className={`${styles.targetPill} ${activeTarget === t ? styles.targetPillActive : ''}`}
+                  >
+                    {METRIC_LABELS[t]}
+                  </button>
+                ))}
+              </div>
+
+              {/* Concordance check */}
+              {concordance?.[activeTarget] && (
+                <div className={`${styles.concordanceBox} ${concordance[activeTarget].agree ? styles.concordanceAgree : styles.concordanceWarn}`}>
+                  <span className={styles.concordanceIcon}>
+                    {concordance[activeTarget].agree ? '✓' : '⚠'}
+                  </span>
+                  <span className={styles.concordanceText}>
+                    {concordance[activeTarget].message}
+                  </span>
+                </div>
+              )}
+
+              {/* ── SHAP bar chart ── */}
+              {shapLimeTab === 'shap' && shap_numeric?.[activeTarget] && (
+                <div className={styles.subCard}>
+                  <p className={styles.subCardLabel}>
+                    SHAP Feature Attribution — {METRIC_LABELS[activeTarget]}
+                  </p>
+                  <p className={styles.shapDesc}>
+                    Each bar shows how much that feature <em>pushes the {METRIC_LABELS[activeTarget]} prediction
+                    up (green) or down (red)</em> relative to the average prediction across all posts.
+                    Wider bar = greater impact.
+                  </p>
+                  <div className={styles.barChart}>
+                    {shap_numeric[activeTarget].map((f, i) => (
+                      <div key={i} className={styles.featureRow}>
+                        <div className={styles.featureMeta}>
+                          <span className={styles.featureLabel}>{f.label}</span>
+                          <span className={styles.featureValue}>{f.display_value}</span>
+                        </div>
+                        <div className={styles.barTrack}>
+                          <div
+                            className={`${styles.barFill} ${f.direction === 'positive' ? styles.barPos : styles.barNeg}`}
+                            style={{ width: `${f.importance_pct}%` }}
+                          />
+                        </div>
+                        <div className={styles.barMeta}>
+                          <span className={`${styles.barPct} ${f.direction === 'positive' ? styles.pctPos : styles.pctNeg}`}>
+                            {f.importance_pct}%
+                          </span>
+                          <span className={`${styles.shapVal} ${f.direction === 'positive' ? styles.pctPos : styles.pctNeg}`}>
+                            {f.shap_value > 0 ? '+' : ''}{f.shap_value.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {summaries?.[activeTarget] && (
+                    <p className={styles.shapSummary}>{summaries[activeTarget]}</p>
+                  )}
+                </div>
+              )}
+
+              {/* ── LIME numeric bar chart ── */}
+              {shapLimeTab === 'lime' && lime_numeric?.[activeTarget] && (
+                <div className={styles.subCard}>
+                  <p className={styles.subCardLabel}>
+                    LIME Feature Importance — {METRIC_LABELS[activeTarget]}
+                  </p>
+                  <p className={styles.shapDesc}>
+                    LIME fits a local linear model around your exact prediction. Each bar shows
+                    the <em>local importance</em> of that feature condition for {METRIC_LABELS[activeTarget]}.
+                    Green = helps prediction; Red = hurts prediction.
+                  </p>
+                  <div className={styles.barChart}>
+                    {lime_numeric[activeTarget].map((f, i) => (
+                      <div key={i} className={styles.featureRow}>
+                        <div className={styles.featureMeta}>
+                          <span className={styles.featureLabel}>{f.label}</span>
+                          <span className={styles.featureRangeTag}>{f.feature_range}</span>
+                        </div>
+                        <div className={styles.barTrack}>
+                          <div
+                            className={`${styles.barFill} ${f.direction === 'positive' ? styles.barPos : styles.barNeg}`}
+                            style={{ width: `${f.importance_pct}%` }}
+                          />
+                        </div>
+                        <div className={styles.barMeta}>
+                          <span className={`${styles.barPct} ${f.direction === 'positive' ? styles.pctPos : styles.pctNeg}`}>
+                            {f.importance_pct}%
+                          </span>
+                          <span className={`${styles.shapVal} ${f.direction === 'positive' ? styles.pctPos : styles.pctNeg}`}>
+                            {f.weight > 0 ? '+' : ''}{f.weight.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── LIME text word attribution ── */}
+              {shapLimeTab === 'text' && (
+                <div className={styles.subCard}>
+                  <p className={styles.subCardLabel}>
+                    LIME Text Word Attribution — {METRIC_LABELS[activeTarget]}
+                  </p>
+                  <p className={styles.shapDesc}>
+                    Each word&apos;s contribution to the {METRIC_LABELS[activeTarget]} prediction is shown below.
+                    <span className={styles.posWord}> Green words</span> increase the prediction;
+                    <span className={styles.negWord}> red words</span> decrease it.
+                    Larger text = stronger influence.
+                  </p>
+
+                  {lime_text?.[activeTarget] && lime_text[activeTarget].length > 0 ? (
+                    <>
+                      {/* Word cloud */}
+                      <div className={styles.wordCloud}>
+                        {lime_text[activeTarget].map((w, i) => {
+                          const scale = 0.8 + (w.importance_pct / 100) * 1.2;
+                          return (
+                            <span
+                              key={i}
+                              className={`${styles.wordPill} ${w.direction === 'positive' ? styles.wordPillPos : styles.wordPillNeg}`}
+                              style={{ fontSize: `${Math.round(scale * 12)}px` }}
+                              title={`Weight: ${w.weight > 0 ? '+' : ''}${w.weight.toFixed(3)} | Importance: ${w.importance_pct}%`}
+                            >
+                              {w.word}
+                            </span>
+                          );
+                        })}
+                      </div>
+
+                      {/* Word attribution bars */}
+                      <div className={styles.barChart} style={{ marginTop: 12 }}>
+                        {lime_text[activeTarget].slice(0, 10).map((w, i) => (
+                          <div key={i} className={styles.featureRow}>
+                            <div className={styles.featureMeta}>
+                              <span className={`${styles.wordToken} ${w.direction === 'positive' ? styles.pctPos : styles.pctNeg}`}>
+                                &ldquo;{w.word}&rdquo;
+                              </span>
+                            </div>
+                            <div className={styles.barTrack}>
+                              <div
+                                className={`${styles.barFill} ${w.direction === 'positive' ? styles.barPos : styles.barNeg}`}
+                                style={{ width: `${w.importance_pct}%` }}
+                              />
+                            </div>
+                            <div className={styles.barMeta}>
+                              <span className={`${styles.barPct} ${w.direction === 'positive' ? styles.pctPos : styles.pctNeg}`}>
+                                {w.importance_pct}%
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p className={styles.shapDesc} style={{ color: '#64748b' }}>
+                      No text attribution available — caption and content may be empty.
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
+          );
+        })()}
+      </div>
 
       {/* ── Linguistic Analysis ──────────────────────────────────────────── */}
       {explanation.linguistic_analysis && (() => {

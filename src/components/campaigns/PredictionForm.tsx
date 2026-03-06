@@ -23,7 +23,7 @@ export interface PredictionOutput {
 }
 
 interface PredictionFormProps {
-  onResult: (result: PredictionOutput, formValues: FormValues) => void;
+  onResult: (result: PredictionOutput, formValues: FormValues, id: string | null) => void;
   onLoading: (loading: boolean) => void;
   loading: boolean;
 }
@@ -76,7 +76,7 @@ export default function PredictionForm({ onResult, onLoading, loading }: Predict
       });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Prediction failed');
-      onResult(json.prediction, form);
+      onResult(json.prediction, form, json.id ?? null);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Prediction failed';
       setError(message);

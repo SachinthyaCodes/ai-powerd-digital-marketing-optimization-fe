@@ -220,13 +220,9 @@
 }
 
 .sideRight {
-  position: sticky;
-  top: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-height: calc(100vh - 100px);
-  overflow: hidden;
 }
 
 /* ─── Results section (below form) ──────────────────────────── */
@@ -388,3 +384,287 @@
     height: 1px;
   }
 }
+
+/* ─── History Hero Button ─────────────────────────────────────── */
+
+.historyHeroBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: transparent;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  border-radius: 14px;
+  border: 1px solid #1f2933;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.historyHeroBtn:hover {
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.05);
+}
+
+/* ─── Saved Banner ───────────────────────────────────────────── */
+
+.savedBanner {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #22c55e;
+  letter-spacing: 0.03em;
+}
+
+/* ─── History Page Header ────────────────────────────────────── */
+
+.historyPageHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.historyRefreshBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid #1f2933;
+  border-radius: 10px;
+  color: #64748b;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.historyRefreshBtn:hover:not(:disabled) {
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+}
+
+.historyRefreshBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── History States ─────────────────────────────────────────── */
+
+.historyLoadingBox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  color: #64748b;
+}
+
+.historyErrorBox {
+  padding: 14px 18px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  color: #f87171;
+  font-size: 14px;
+}
+
+.historyEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 24px;
+  color: #64748b;
+  font-size: 15px;
+  text-align: center;
+}
+
+.loadingSpinnerSm {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #1f2933;
+  border-top-color: #22c55e;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── History List ───────────────────────────────────────────── */
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ─── History Card ───────────────────────────────────────────── */
+
+.historyCard {
+  background: #111827;
+  border: 1px solid #1f2933;
+  border-radius: 14px;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.15s;
+}
+
+.historyCard:hover {
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.historyCardTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.historyPlatformBadge {
+  padding: 4px 10px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 20px;
+  color: #22c55e;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.historyDate {
+  font-size: 12px;
+  color: #4b5563;
+  margin-left: auto;
+}
+
+.historyExplainBadge {
+  padding: 3px 9px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 20px;
+  color: #60a5fa;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.historyCaption {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.5;
+  font-style: normal;
+}
+
+.historyCaption em {
+  color: #374151;
+  font-style: italic;
+}
+
+/* ─── History Metrics Row ────────────────────────────────────── */
+
+.historyMetrics {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.historyMetric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 50px;
+}
+
+.historyMetricVal {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f9fafb;
+  letter-spacing: -0.02em;
+}
+
+.historyMetricLbl {
+  font-size: 10px;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ─── History Actions ────────────────────────────────────────── */
+
+.historyActions {
+  display: flex;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid #1f2933;
+}
+
+.historyViewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 8px;
+  color: #22c55e;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.historyViewBtn:hover {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.historyDeleteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: 8px;
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.historyDeleteBtn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.historyDeleteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deletingSpinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(248, 113, 113, 0.3);
+  border-top-color: #f87171;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
