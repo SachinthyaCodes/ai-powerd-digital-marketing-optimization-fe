@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import styles from './ExplainabilityPanel.module.css';
+import { API_BASE_URL } from '@/config/api';
 import type { PredictionOutput, FormValues } from './PredictionForm';
 
 interface ExplainabilityPanelProps {
@@ -297,7 +298,7 @@ export default function ExplainabilityPanel({ prediction, formValues, prediction
     setShapLimeLoading(true);
     setShapLimeError(null);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shap-lime`, {
+      const res = await fetch(`${API_BASE_URL}/api/shap-lime`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ ...formValues }),
@@ -319,7 +320,7 @@ export default function ExplainabilityPanel({ prediction, formValues, prediction
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/explain`, {
+      const res = await fetch(`${API_BASE_URL}/api/explain`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formValues, ...prediction, predictionId: predictionId ?? undefined }),

@@ -44,14 +44,14 @@ export class FormDataProcessorService {
    */
   private normalizeFormData(formData: any): MarketingStrategyFormData {
     return {
-      businessProfile: formData.businessprofile || {},
-      targetAudience: formData.targetaudience || {},
-      businessGoals: formData.businessgoals || {},
-      budgetResources: formData.budgetresources || {},
-      platformsPreferences: formData.platformspreferences || {},
-      currentChallenges: formData.currentchallenges || {},
-      strengthsOpportunities: formData.strengthsopportunities || {},
-      marketSituation: formData.marketsituation || {},
+      businessProfile: formData.businessProfile || formData.businessprofile || {},
+      targetAudience: formData.targetAudience || formData.targetaudience || {},
+      businessGoals: formData.businessGoals || formData.businessgoals || {},
+      budgetResources: formData.budgetResources || formData.budgetresources || {},
+      platformsPreferences: formData.platformsPreferences || formData.platformspreferences || {},
+      currentChallenges: formData.currentChallenges || formData.currentchallenges || {},
+      strengthsOpportunities: formData.strengthsOpportunities || formData.strengthsopportunities || {},
+      marketSituation: formData.marketSituation || formData.marketsituation || {},
     };
   }
 
@@ -436,21 +436,19 @@ export class FormDataProcessorService {
     completionRate: number;
   } {
     // The form data uses step IDs with hyphens removed as keys
-    const businessProfile = formData.businessprofile || {};
-    const targetAudience = formData.targetaudience || {};
-    const businessGoals = formData.businessgoals || {};
-    const budgetResources = formData.budgetresources || {};
-    const platformsPreferences = formData.platformspreferences || {};
+    const businessProfile = formData.businessProfile || formData.businessprofile || {};
+    const targetAudience = formData.targetAudience || formData.targetaudience || {};
+    const businessGoals = formData.businessGoals || formData.businessgoals || {};
+    const budgetResources = formData.budgetResources || formData.budgetresources || {};
+    const platformsPreferences = formData.platformsPreferences || formData.platformspreferences || {};
 
     const requiredFields = [
       { path: 'businessProfile.businessType', value: businessProfile.businessType },
-      { path: 'businessProfile.industry', value: businessProfile.industry },
       { path: 'businessProfile.businessSize', value: businessProfile.businessSize },
       { path: 'businessProfile.location.city', value: businessProfile.location?.city },
       { path: 'targetAudience.demographics.ageRange', value: targetAudience.demographics?.ageRange },
       { path: 'businessGoals.primaryGoal', value: businessGoals.primaryGoal },
       { path: 'budgetResources.monthlyBudget', value: budgetResources.monthlyBudget },
-      // platformsPreferences.preferredPlatforms is optional - removed from required fields
     ];
 
     const missingFields: string[] = [];

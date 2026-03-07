@@ -43,9 +43,7 @@ export function BusinessGoalsStep({ data, onDataUpdate }: BusinessGoalsStepProps
 
   useEffect(() => {
     const subscription = watch((value) => {
-      if (value.primaryGoal) {
-        onDataUpdate(value as BusinessGoals);
-      }
+      onDataUpdate(value as BusinessGoals);
     });
     return () => subscription.unsubscribe();
   }, [watch, onDataUpdate]);

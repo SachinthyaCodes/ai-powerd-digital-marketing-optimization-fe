@@ -42,9 +42,7 @@ export function BudgetResourcesStep({ data, onDataUpdate }: BudgetResourcesStepP
 
   useEffect(() => {
     const subscription = watch((value) => {
-      if (value.monthlyBudget) {
-        onDataUpdate(value as MarketingBudgetResources);
-      }
+      onDataUpdate(value as MarketingBudgetResources);
     });
     return () => subscription.unsubscribe();
   }, [watch, onDataUpdate]);

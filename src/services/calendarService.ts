@@ -4,7 +4,7 @@
  */
 
 const API_BASE =
-  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_BASE_URL) ||
+  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_STRATEGY_BASE_URL) ||
   'http://localhost:8000';
 
 // ── Types ────────────────────────────────────────────────────────────────────

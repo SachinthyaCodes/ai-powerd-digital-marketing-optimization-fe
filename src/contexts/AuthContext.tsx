@@ -25,24 +25,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
 
   // Check if user is authenticated on mount
+  // Auth API not available on current backend — skip remote check.
+  // Re-enable once auth endpoints are implemented.
   useEffect(() => {
-    const initAuth = async () => {
+    const initAuth = () => {
       try {
-        const token = authService.getToken();
-        if (token) {
-          const storedUser = authService.getUser();
-          if (storedUser) {
-            setUser(storedUser);
-          } else {
-            // Token exists but no user data, fetch it
-            const currentUser = await authService.getCurrentUser();
-            setUser(currentUser);
-            authService.setUser(currentUser);
-          }
+        const storedUser = authService.getUser();
+        if (storedUser) {
+          setUser(storedUser);
         }
       } catch (error) {
         console.error('Failed to initialize auth:', error);
-        authService.logout();
       } finally {
         setLoading(false);
       }

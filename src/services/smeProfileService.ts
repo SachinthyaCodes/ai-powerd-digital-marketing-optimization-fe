@@ -171,10 +171,18 @@ export async function updateSMEProfile(
   return true;
 }
 // ── Internal helper (mirrors strategyApiService.ts) ──────────────────────────
-function stepKey(stepId: string): string {
-  return stepId.replace('-', '');
-}
+const STEP_CAMEL_MAP: Record<string, string> = {
+  'business-profile': 'businessProfile',
+  'budget-resources': 'budgetResources',
+  'business-goals': 'businessGoals',
+  'target-audience': 'targetAudience',
+  'platforms-preferences': 'platformsPreferences',
+  'current-challenges': 'currentChallenges',
+  'strengths-opportunities': 'strengthsOpportunities',
+  'market-situation': 'marketSituation',
+};
 
 function getSection(formData: any, stepId: string): any {
-  return formData[stepKey(stepId)] || {};
+  const camelKey = STEP_CAMEL_MAP[stepId];
+  return (camelKey && formData[camelKey]) || formData[stepId.replace('-', '')] || {};
 }
