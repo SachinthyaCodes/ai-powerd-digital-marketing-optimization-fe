@@ -7,11 +7,12 @@ const nextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
-  // Proxy /api/* to the Node.js backend
+  // Proxy /api/* to the Node.js backend, but exclude /api/sa-proxy/* which
+  // is handled by the built-in Route Handler (Smart Assistant VM proxy)
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
+        source: '/api/:path((?!sa-proxy).*)',
         destination: 'http://localhost:8000/api/:path*',
       },
     ]

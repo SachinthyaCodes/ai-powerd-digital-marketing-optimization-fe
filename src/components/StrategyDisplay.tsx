@@ -60,17 +60,7 @@ const StrategyDisplay: React.FC<StrategyDisplayProps> = ({ strategy, metadata })
   };
 
   const getPlatformIcon = (platform: string) => {
-    const icons: Record<string, string> = {
-      'Instagram': '📸',
-      'Facebook': '👥',
-      'WhatsApp Business': '💬',
-      'TikTok': '🎵',
-      'LinkedIn': '💼',
-      'YouTube': '📹',
-      'Twitter': '🐦',
-      'Google': '🔍',
-    };
-    return icons[platform] || '📱';
+    return platform.charAt(0).toUpperCase();
   };
 
   return (
@@ -119,7 +109,7 @@ const StrategyDisplay: React.FC<StrategyDisplayProps> = ({ strategy, metadata })
               <div key={index} className="bg-black/30 rounded-xl p-5 border border-gray-800 hover:border-gray-700 transition-colors">
                 <div className="flex items-start space-x-3">
                   <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-xl">{['🎯', '🚀', '💡', '⭐'][index]}</span>
+                    <span className="text-xl">{index + 1}</span>
                   </div>
                   <div>
                     <h4 className="font-semibold text-white text-base mb-2">{pillar.name}</h4>
@@ -153,7 +143,7 @@ const StrategyDisplay: React.FC<StrategyDisplayProps> = ({ strategy, metadata })
               <div key={index} className="bg-black/30 rounded-xl p-4 border border-gray-800">
                 <h4 className="font-semibold text-white mb-3 flex items-center text-sm">
                   <div className="w-6 h-6 bg-green-500/10 rounded flex items-center justify-center mr-2">
-                    <span className="text-xs">✨</span>
+                    <span className="text-xs text-green-400">{index + 1}</span>
                   </div>
                   {category.category}
                 </h4>
@@ -225,17 +215,17 @@ const StrategyDisplay: React.FC<StrategyDisplayProps> = ({ strategy, metadata })
           <div className="p-6">
             <div className="space-y-4">
               {[
-                { key: 'paid_ads', label: 'Paid Advertising', color: '#3b82f6', icon: '📢' },
-                { key: 'content_creation', label: 'Content Creation', color: '#10b981', icon: '🎬' },
-                { key: 'influencers', label: 'Influencer Collaboration', color: '#a855f7', icon: '⭐' },
-                { key: 'tools', label: 'Tools & Software', color: '#f59e0b', icon: '🛠️' },
+                { key: 'paid_ads', label: 'Paid Advertising', color: '#3b82f6', icon: 'PA' },
+                { key: 'content_creation', label: 'Content Creation', color: '#10b981', icon: 'CC' },
+                { key: 'influencers', label: 'Influencer Collaboration', color: '#a855f7', icon: 'IC' },
+                { key: 'tools', label: 'Tools & Software', color: '#f59e0b', icon: 'TS' },
               ].map(({ key, label, color, icon }) => {
                 const value = strategy.budget_split[key as keyof BudgetSplit];
                 return (
                   <div key={key}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
-                        <span className="text-lg">{icon}</span>
+                        <span className="text-xs font-bold text-gray-400 bg-gray-800 rounded px-1.5 py-0.5">{icon}</span>
                         <span className="text-sm font-medium text-gray-300">{label}</span>
                       </div>
                       <span className="text-base font-bold text-white">{value}%</span>

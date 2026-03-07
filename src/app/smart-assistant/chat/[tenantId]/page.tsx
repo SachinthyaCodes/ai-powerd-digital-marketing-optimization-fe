@@ -80,7 +80,7 @@ export default function PublicChatPage() {
     return (
       <div className="sa-public-chat-page sa-public-chat-page--center">
         <div className="sa-public-chat-error">
-          <div className="sa-public-chat-error-icon">⚠️</div>
+          <div className="sa-public-chat-error-icon">!</div>
           <p>{storeError}</p>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function PublicChatPage() {
     <div className="sa-public-chat-page">
       {/* Header */}
       <div className="sa-public-chat-header">
-        <div className="sa-public-chat-avatar">🤖</div>
+        <div className="sa-public-chat-avatar">AI</div>
         <div>
           <div className="sa-public-chat-store-name">{storeName}</div>
           <div className="sa-public-chat-status">
@@ -105,7 +105,7 @@ export default function PublicChatPage() {
       <div className="sa-public-chat-messages">
         {messages.length === 0 && (
           <div className="sa-public-chat-welcome">
-            <div className="sa-public-chat-welcome-icon">👋</div>
+            <div className="sa-public-chat-welcome-icon">Hi</div>
             <p>Hi! I&apos;m the AI assistant for <strong>{storeName}</strong>.</p>
             <p>How can I help you today?</p>
           </div>
@@ -114,13 +114,13 @@ export default function PublicChatPage() {
         {messages.map((m, i) => (
           <div key={i} className={`sa-public-bubble sa-public-bubble--${m.role}`}>
             {m.role === 'assistant' && (
-              <div className="sa-public-bubble-avatar">🤖</div>
+              <div className="sa-public-bubble-avatar">AI</div>
             )}
             <div className="sa-public-bubble-body">
               <div className="sa-public-bubble-text">{m.content}</div>
               {m.role === 'assistant' && m.knowledgeSource && (
                 <div className="sa-public-bubble-meta">
-                  {m.knowledgeSource === 'store' ? '📚 From store knowledge base' : '🌐 General knowledge'}
+                  {m.knowledgeSource === 'store' ? 'From store knowledge base' : 'General knowledge'}
                 </div>
               )}
             </div>
@@ -129,7 +129,7 @@ export default function PublicChatPage() {
 
         {loading && (
           <div className="sa-public-bubble sa-public-bubble--assistant">
-            <div className="sa-public-bubble-avatar">🤖</div>
+            <div className="sa-public-bubble-avatar">AI</div>
             <div className="sa-public-bubble-body">
               <div className="sa-chat-typing">
                 <span /><span /><span />

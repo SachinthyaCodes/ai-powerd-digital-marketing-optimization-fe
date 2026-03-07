@@ -225,9 +225,9 @@ export default function SuperadminDashboardPage() {
             className={`sa-dash-tab-btn${activeTab === t ? ' sa-dash-tab-btn--active' : ''}`}
             onClick={() => loadTab(t)}
           >
-            {t === 'overview' && '📊 Overview'}
-            {t === 'users' && '👥 All Users'}
-            {t === 'services' && '🔧 Services'}
+            {t === 'overview' && 'Overview'}
+            {t === 'users' && 'All Users'}
+            {t === 'services' && 'Services'}
           </button>
         ))}
       </div>

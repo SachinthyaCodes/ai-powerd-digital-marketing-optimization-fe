@@ -75,7 +75,7 @@ export default function PublicChatWidget({ tenantId, storeName }: Props) {
       <div className="sa-public-body">
         {messages.length === 0 ? (
           <div className="sa-public-welcome">
-            <p>👋 Hi! How can I help you with <strong>{storeName}</strong> today?</p>
+            <p>Hi! How can I help you with <strong>{storeName}</strong> today?</p>
           </div>
         ) : (
           <MessageList messages={messages} isTyping={isTyping} />

@@ -265,12 +265,12 @@ export default function AdminDashboardPage() {
             className={`sa-dash-tab-btn ${activeTab === t ? 'sa-dash-tab-btn--active' : ''}`}
             onClick={() => loadTab(t)}
           >
-            {t === 'overview' && '📊 Overview'}
-            {t === 'customers' && '👥 Customers'}
-            {t === 'documents' && '📄 Documents'}
-            {t === 'gaps' && '🔍 Knowledge Gaps'}
-            {t === 'settings' && '⚙️ Settings'}
-            {t === 'chat' && '💬 Chat & Widget'}
+            {t === 'overview' && 'Overview'}
+            {t === 'customers' && 'Customers'}
+            {t === 'documents' && 'Documents'}
+            {t === 'gaps' && 'Knowledge Gaps'}
+            {t === 'settings' && 'Settings'}
+            {t === 'chat' && 'Chat & Widget'}
           </button>
         ))}
       </div>
@@ -618,7 +618,7 @@ export default function AdminDashboardPage() {
             <div className="sa-chat-messages" id="sa-chat-messages-box">
               {chatMessages.length === 0 ? (
                 <div className="sa-chat-empty">
-                  <div className="sa-chat-empty-icon">🤖</div>
+                  <div className="sa-chat-empty-icon">AI</div>
                   <div>Ask your AI assistant anything…</div>
                 </div>
               ) : (
@@ -628,7 +628,7 @@ export default function AdminDashboardPage() {
                     {m.role === 'assistant' && (m.model || m.knowledgeSource) && (
                       <div className="sa-chat-bubble-meta">
                         {m.model && <span>{m.model}</span>}
-                        {m.knowledgeSource && <span>{m.knowledgeSource === 'store' ? '📚 Store KB' : '🌐 General'}</span>}
+                        {m.knowledgeSource && <span>{m.knowledgeSource === 'store' ? 'Store KB' : 'General'}</span>}
                       </div>
                     )}
                   </div>

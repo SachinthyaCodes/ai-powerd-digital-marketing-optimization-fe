@@ -1786,8 +1786,18 @@
 }
 
 .sa-chat-empty-icon {
-  font-size: 2rem;
-  margin-bottom: 0.25rem;
+  font-size: 1rem;
+  font-weight: 700;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--sa-accent-dim, rgba(34,197,94,0.12));
+  color: var(--sa-accent, #22C55E);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.5rem;
+  letter-spacing: 0.02em;
 }
 
 .sa-chat-bubble {
@@ -1955,7 +1965,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--sa-accent, #22C55E);
+  letter-spacing: 0.02em;
   flex-shrink: 0;
 }
 
@@ -2005,7 +2018,9 @@
 }
 
 .sa-public-chat-welcome-icon {
-  font-size: 2.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sa-accent, #22C55E);
   margin-bottom: 0.5rem;
 }
 
@@ -2033,7 +2048,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--sa-accent, #22C55E);
+  letter-spacing: 0.02em;
   flex-shrink: 0;
   margin-top: 0.15rem;
 }
@@ -2130,7 +2148,17 @@
 }
 
 .sa-public-chat-error-icon {
-  font-size: 2rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(239,68,68,0.12);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.5rem;
 }
 
 @media (max-width: 640px) {

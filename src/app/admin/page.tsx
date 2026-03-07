@@ -120,7 +120,7 @@ export default function AdminPage() {
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex items-center">
-              <div className="text-red-500 mr-3">⚠️</div>
+              <div className="text-red-500 mr-3">!</div>
               <div>
                 <h3 className="text-red-900 font-medium">Error Loading Data</h3>
                 <p className="text-red-700 text-sm mt-1">{error}</p>
@@ -137,7 +137,9 @@ export default function AdminPage() {
           
           {submissions.length === 0 ? (
             <div className="p-6 text-center">
-              <div className="text-gray-400 text-4xl mb-4">📝</div>
+              <div className="text-gray-400 mb-4">
+                <svg className="w-10 h-10 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+              </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Submissions Yet</h3>
               <p className="text-gray-500">Form submissions will appear here once users start submitting data.</p>
             </div>

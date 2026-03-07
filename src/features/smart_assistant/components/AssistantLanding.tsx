@@ -5,12 +5,12 @@ interface Props {
 }
 
 const capabilities = [
-  { icon: '📊', title: 'Marketing Strategy', desc: 'Get tailored marketing strategies for your business' },
-  { icon: '📱', title: 'Social Media', desc: 'Optimize your social media presence and engagement' },
-  { icon: '✍️', title: 'Content Creation', desc: 'Generate compelling content ideas and copy' },
-  { icon: '📈', title: 'Analytics', desc: 'Understand your marketing performance data' },
-  { icon: '🎯', title: 'Campaigns', desc: 'Plan and optimize ad campaigns effectively' },
-  { icon: '🔒', title: 'Private & Secure', desc: 'Your business data stays confidential' },
+  { title: 'Marketing Strategy', desc: 'Get tailored marketing strategies for your business' },
+  { title: 'Social Media', desc: 'Optimize your social media presence and engagement' },
+  { title: 'Content Creation', desc: 'Generate compelling content ideas and copy' },
+  { title: 'Analytics', desc: 'Understand your marketing performance data' },
+  { title: 'Campaigns', desc: 'Plan and optimize ad campaigns effectively' },
+  { title: 'Private & Secure', desc: 'Your business data stays confidential' },
 ];
 
 export default function AssistantLanding({ onStart }: Props) {
@@ -32,7 +32,7 @@ export default function AssistantLanding({ onStart }: Props) {
       <div className="sa-capabilities">
         {capabilities.map((c) => (
           <div key={c.title} className="sa-capability-card">
-            <span className="sa-capability-icon">{c.icon}</span>
+            <span className="sa-capability-icon">{c.title.charAt(0)}</span>
             <h3>{c.title}</h3>
             <p>{c.desc}</p>
           </div>

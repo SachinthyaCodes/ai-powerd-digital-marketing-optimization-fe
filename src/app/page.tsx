@@ -126,13 +126,13 @@ function Home() {
       setProcessingStatus('Creating your personalised marketing strategy... This usually takes about 30 seconds.');
       await generateStrategy(formData);
 
-      setProcessingStatus('✅ Your strategy is ready! Taking you there now...');
+      setProcessingStatus('Your strategy is ready! Taking you there now...');
       setTimeout(() => {
         router.push('/dashboard/strategy/view');
       }, 1200);
 
     } catch (error) {
-      console.error('❌ Strategy generation failed:', error);
+      console.error('Strategy generation failed:', error);
       setProcessingStatus(`Something went wrong: ${error instanceof Error ? error.message : 'Please try again'}`);
     } finally {
       setIsSubmitting(false);
