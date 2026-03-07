@@ -39,8 +39,8 @@ export class ApiService {
   private strategyGeneratorUrl: string;
 
   constructor(
-    baseUrl: string = 'http://localhost:8000',
-    strategyGeneratorUrl: string = 'http://localhost:8002'
+    baseUrl: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+    strategyGeneratorUrl: string = process.env.NEXT_PUBLIC_STRATEGY_GENERATOR_URL || 'http://localhost:5000'
   ) {
     this.baseUrl = baseUrl;
     this.strategyGeneratorUrl = strategyGeneratorUrl;

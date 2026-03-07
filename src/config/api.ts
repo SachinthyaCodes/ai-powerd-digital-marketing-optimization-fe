@@ -15,7 +15,7 @@
  */
 
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 /** Convenience helper – returns JSON headers, with optional Bearer token */
 export function buildHeaders(token?: string): HeadersInit {

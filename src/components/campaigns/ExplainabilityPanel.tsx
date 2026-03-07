@@ -300,7 +300,11 @@ export default function ExplainabilityPanel({ prediction, formValues, prediction
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shap-lime`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ ...formValues }),
+        body:    JSON.stringify({
+          ...formValues,
+          followers: Number(formValues.followers),
+          ad_boost: formValues.ad_boost ? 1 : 0,
+        }),
         signal,
       });
       if (signal?.aborted) return;
@@ -322,7 +326,13 @@ export default function ExplainabilityPanel({ prediction, formValues, prediction
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/explain`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formValues, ...prediction, predictionId: predictionId ?? undefined }),
+        body: JSON.stringify({
+          ...formValues,
+          followers: Number(formValues.followers),
+          ad_boost: formValues.ad_boost ? 1 : 0,
+          ...prediction,
+          predictionId: predictionId ?? undefined,
+        }),
         signal,
       });
       if (signal?.aborted) return;
