@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   ChartBarIcon, 
-  ChatBubbleLeftRightIcon,
   Cog6ToothIcon,
   UserCircleIcon,
   HomeIcon,
@@ -64,15 +63,6 @@ const navigation: NavEntry[] = [
     shortName: 'Campaign',
     children: [
       { name: 'Performance Predictor', href: '/performance-predictor', icon: ChartBarSquareIcon, shortName: 'Predictor' },
-    ],
-  },
-  {
-    label: 'Assistant',
-    icon: ChatBubbleLeftRightIcon,
-    shortName: 'Assistant',
-    children: [
-      { name: 'Smart Assistant', href: '/smart-assistant', icon: ChatBubbleLeftRightIcon, shortName: 'Chat' },
-      { name: 'Manage Assistant', href: '/smart-assistant/settings', icon: Cog6ToothIcon, shortName: 'Manage' },
     ],
   },
 ];
