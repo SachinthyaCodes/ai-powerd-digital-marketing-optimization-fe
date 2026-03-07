@@ -7,13 +7,16 @@ const nextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
-  // Proxy /api/* to the Node.js backend, but exclude /api/sa-proxy/* which
-  // is handled by the built-in Route Handler (Smart Assistant VM proxy)
+  // Proxy /api/* to the backend.
+  // In production (Vercel) use the HF Spaces URL; locally use localhost:8000.
+  // Exclude /api/sa-proxy/* which is handled by the built-in Route Handler.
   async rewrites() {
+    const backendUrl =
+      process.env.NEXT_PUBLIC_STRATEGY_BASE_URL || 'http://localhost:8000';
     return [
       {
         source: '/api/:path((?!sa-proxy).*)',
-        destination: 'http://localhost:8000/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
     ]
   },
