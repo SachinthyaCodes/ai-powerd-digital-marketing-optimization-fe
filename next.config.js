@@ -12,7 +12,7 @@ const nextConfig = {
   // Exclude /api/sa-proxy/* which is handled by the built-in Route Handler.
   async rewrites() {
     const backendUrl =
-      process.env.NEXT_PUBLIC_STRATEGY_BASE_URL || 'http://localhost:8000';
+      process.env.NEXT_PUBLIC_STRATEGY_BASE_URL || 'https://sachinthya-marketing-stratergy-recommender.hf.space';
     return [
       {
         source: '/api/:path((?!sa-proxy).*)',

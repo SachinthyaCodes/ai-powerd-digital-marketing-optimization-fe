@@ -3,9 +3,13 @@
  * Mirrors the FastAPI /api/v1/calendar/* endpoints.
  */
 
+const PRODUCTION_BACKEND = 'https://sachinthya-marketing-stratergy-recommender.hf.space';
+
 const API_BASE =
   (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_STRATEGY_BASE_URL) ||
-  'http://localhost:8000';
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? PRODUCTION_BACKEND
+    : 'http://localhost:8000');
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
