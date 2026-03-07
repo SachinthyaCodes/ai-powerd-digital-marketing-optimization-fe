@@ -72,6 +72,7 @@ const navigation: NavEntry[] = [
     shortName: 'Assistant',
     children: [
       { name: 'Smart Assistant', href: '/smart-assistant', icon: ChatBubbleLeftRightIcon, shortName: 'Chat' },
+      { name: 'Manage Assistant', href: '/smart-assistant/manage', icon: Cog6ToothIcon, shortName: 'Manage' },
     ],
   },
 ];
@@ -284,7 +285,7 @@ export default function Sidebar() {
     </div>
 
     {/* Spacer to prevent content overlap when sidebar is hidden */}
-    <div className="w-16 flex-shrink-0" />
+    <div className={`flex-shrink-0 transition-all duration-300 ease-in-out ${isExpanded ? 'w-64' : 'w-16'}`} />
     </>
   );
 }
