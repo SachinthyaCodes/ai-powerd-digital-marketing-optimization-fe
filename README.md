@@ -43,7 +43,7 @@ A modern, minimalistic Next.js frontend application for collecting comprehensive
 ### Prerequisites
 
 - Node.js 18+ and npm
-- Git
+- Gittt
 
 ### Installation
 
