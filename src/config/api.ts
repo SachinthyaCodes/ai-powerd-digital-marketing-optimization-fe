@@ -10,12 +10,12 @@
  *    import { API_BASE_URL } from '@/config/api';
  *    fetch(`${API_BASE_URL}/api/your-route`, ...)
  *
- * Set NEXT_PUBLIC_API_URL in your .env.local to
+ * Set NEXT_PUBLIC_API_BASE_URL in your .env.local to
  * point at the backend. Defaults to localhost:8000.
  */
 
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 /** Convenience helper – returns JSON headers, with optional Bearer token */
 export function buildHeaders(token?: string): HeadersInit {

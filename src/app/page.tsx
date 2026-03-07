@@ -77,6 +77,18 @@ function Home() {
 
   const currentStep = STEPS[currentStepIndex];
 
+  // Map step IDs to camelCase keys matching MarketingStrategyFormData
+  const STEP_KEY_MAP: Record<string, keyof MarketingStrategyFormData> = {
+    'business-profile': 'businessProfile',
+    'budget-resources': 'budgetResources',
+    'business-goals': 'businessGoals',
+    'target-audience': 'targetAudience',
+    'platforms-preferences': 'platformsPreferences',
+    'current-challenges': 'currentChallenges',
+    'strengths-opportunities': 'strengthsOpportunities',
+    'market-situation': 'marketSituation',
+  };
+
   const handleNext = () => {
     if (currentStepIndex < STEPS.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
@@ -90,10 +102,13 @@ function Home() {
   };
 
   const handleStepDataUpdate = (stepData: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [currentStep.id.replace('-', '')]: stepData
-    }));
+    const key = STEP_KEY_MAP[currentStep.id];
+    if (key) {
+      setFormData(prev => ({
+        ...prev,
+        [key]: stepData
+      }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -125,8 +140,9 @@ function Home() {
   };
 
   const renderCurrentStep = () => {
+    const key = STEP_KEY_MAP[currentStep.id];
     const stepProps = {
-      data: formData[currentStep.id.replace('-', '') as keyof MarketingStrategyFormData] || {},
+      data: (key ? formData[key] : {}) || {},
       onDataUpdate: handleStepDataUpdate,
     };
 

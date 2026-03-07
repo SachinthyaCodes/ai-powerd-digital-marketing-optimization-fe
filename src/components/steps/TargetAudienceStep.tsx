@@ -70,9 +70,7 @@ export function TargetAudienceStep({ data, onDataUpdate }: TargetAudienceStepPro
 
   useEffect(() => {
     const subscription = watch((value) => {
-      if (value.demographics?.ageRange && value.buyingFrequency) {
-        onDataUpdate(value as TargetAudience);
-      }
+      onDataUpdate(value as TargetAudience);
     });
     return () => subscription.unsubscribe();
   }, [watch, onDataUpdate]);

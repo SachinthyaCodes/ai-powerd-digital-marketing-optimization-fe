@@ -8,7 +8,7 @@
 import { saveSMEProfile } from '@/services/smeProfileService';
 
 const API_BASE =
-  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_BASE_URL) ||
+  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_STRATEGY_BASE_URL) ||
   'http://localhost:8000';
 
 // ── Backend response type ────────────────────────────────────────────────────
@@ -44,14 +44,21 @@ export interface StrategyMeta {
 }
 
 // ── Key helpers ──────────────────────────────────────────────────────────────
-// page.tsx stores step data with key = stepId.replace('-', '') which removes
-// only the FIRST hyphen, e.g. 'business-profile' → 'businessprofile'
-function stepKey(stepId: string): string {
-  return stepId.replace('-', '');
-}
+// page.tsx stores step data under camelCase keys matching MarketingStrategyFormData
+const STEP_CAMEL_MAP: Record<string, string> = {
+  'business-profile': 'businessProfile',
+  'budget-resources': 'budgetResources',
+  'business-goals': 'businessGoals',
+  'target-audience': 'targetAudience',
+  'platforms-preferences': 'platformsPreferences',
+  'current-challenges': 'currentChallenges',
+  'strengths-opportunities': 'strengthsOpportunities',
+  'market-situation': 'marketSituation',
+};
 
 function getSection(formData: any, stepId: string): any {
-  return formData[stepKey(stepId)] || {};
+  const camelKey = STEP_CAMEL_MAP[stepId];
+  return (camelKey && formData[camelKey]) || formData[stepId.replace('-', '')] || {};
 }
 
 // ── Business size mapping ────────────────────────────────────────────────────

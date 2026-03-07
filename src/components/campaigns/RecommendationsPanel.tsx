@@ -541,7 +541,7 @@ export default function RecommendationsPanel({ prediction, formValues }: Recomme
       {/* ── Caption Improvements ── */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
-          <span className={styles.sectionIcon}>✍️</span> Caption Improvements
+          <span className={styles.sectionIcon}></span> Caption Improvements
           <span className={`${styles.sectionBadge} ${captionIssues.length === 0 ? styles.badgeGood : styles.badgeWarn}`}>
             {captionIssues.length === 0 ? 'Optimised' : `${captionIssues.length} issue${captionIssues.length > 1 ? 's' : ''}`}
           </span>
@@ -571,7 +571,7 @@ export default function RecommendationsPanel({ prediction, formValues }: Recomme
       {/* ── Content Improvements ── */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
-          <span className={styles.sectionIcon}>📝</span> Content Improvements
+          <span className={styles.sectionIcon}></span> Content Improvements
           <span className={`${styles.sectionBadge} ${contentIssues.length === 0 ? styles.badgeGood : styles.badgeWarn}`}>
             {contentIssues.length === 0 ? 'Optimised' : `${contentIssues.length} issue${contentIssues.length > 1 ? 's' : ''}`}
           </span>
@@ -601,7 +601,7 @@ export default function RecommendationsPanel({ prediction, formValues }: Recomme
       {/* ── Timing Optimizer ── */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
-          <span className={styles.sectionIcon}>🕐</span> Timing Optimizer
+          <span className={styles.sectionIcon}></span> Timing Optimizer
           <span className={`${styles.sectionBadge} ${inOptimalWindow ? styles.badgeGood : styles.badgeWarn}`}>
             {inOptimalWindow ? 'Optimal' : 'Suboptimal'}
           </span>
@@ -619,7 +619,7 @@ export default function RecommendationsPanel({ prediction, formValues }: Recomme
             <p key={i} className={styles.timingNote}>{t}</p>
           ))}
           {inOptimalWindow && (
-            <p className={styles.timingSuccess}>✓ You are posting in the optimal time window for {formValues.platform}.</p>
+            <p className={styles.timingSuccess}> You are posting in the optimal time window for {formValues.platform}.</p>
           )}
         </div>
       </div>
@@ -651,7 +651,7 @@ export default function RecommendationsPanel({ prediction, formValues }: Recomme
       {/* ── Ad Boost Recommendation ── */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
-          <span className={styles.sectionIcon}>🚀</span> Ad Boost Strategy
+          <span className={styles.sectionIcon}></span> Ad Boost Strategy
         </h3>
         <div className={styles.boostBox}>
           {formValues.ad_boost ? (
@@ -704,7 +704,7 @@ export default function RecommendationsPanel({ prediction, formValues }: Recomme
       {/* ── Quick Wins Checklist ── */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
-          <span className={styles.sectionIcon}>✅</span> Quick Wins Checklist
+          <span className={styles.sectionIcon}></span> Quick Wins Checklist
         </h3>
         <div className={styles.checklistGrid}>
           {[

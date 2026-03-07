@@ -52,9 +52,7 @@ export function BusinessProfileStep({ data, onDataUpdate }: BusinessProfileStepP
 
   useEffect(() => {
     const subscription = watch((value) => {
-      if (value.businessType && value.businessSize && value.businessStage) {
-        onDataUpdate(value as BusinessProfile);
-      }
+      onDataUpdate(value as BusinessProfile);
     });
     return () => subscription.unsubscribe();
   }, [watch, onDataUpdate]);
