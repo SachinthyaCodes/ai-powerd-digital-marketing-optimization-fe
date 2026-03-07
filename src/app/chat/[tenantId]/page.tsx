@@ -13,17 +13,20 @@
 import type { Metadata } from 'next';
 import PublicChatPageClient from './PublicChatPageClient';
 
+// Next.js 15+: params is a Promise and must be awaited before accessing properties.
 interface Props {
-  params: { tenantId: string };
+  params: Promise<{ tenantId: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { tenantId } = await params;
   return {
     title: 'Smart Assistant',
-    description: `Chat with the AI assistant for store ${params.tenantId}`,
+    description: `Chat with the AI assistant for store ${tenantId}`,
   };
 }
 
-export default function PublicChatPage({ params }: Props) {
-  return <PublicChatPageClient tenantId={params.tenantId} />;
+export default async function PublicChatPage({ params }: Props) {
+  const { tenantId } = await params;
+  return <PublicChatPageClient tenantId={tenantId} />;
 }

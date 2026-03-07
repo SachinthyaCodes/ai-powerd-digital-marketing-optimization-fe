@@ -13,30 +13,26 @@ export default function PublicChatPageClient({ tenantId }: Props) {
   const [notFound,   setNotFound]   = useState(false);
   const [loading,    setLoading]    = useState(true);
 
-  // Resolve store display name from tenantId using the public /api/chat validation
-  // (we ping with an empty-ish query just to get the 404 if tenantId is invalid).
-  // Actually, we'll just try to resolve the name via a lightweight check endpoint.
+  // Resolve store display name via the lightweight GET /api/chat/store/:tenantId endpoint.
+  // This does NOT trigger an LLM call — it just checks the service record exists.
   useEffect(() => {
     async function resolveStore() {
       try {
-        // Use the public chat endpoint with a minimal probe to verify tenantId.
-        // A real production app could have a GET /api/store/:tenantId endpoint.
-        // Here we POST a silent probe; if tenantId is invalid we get 404.
-        const res = await fetch(`${API_BASE_URL}/api/chat`, {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ message: 'hello', tenantId, context: [] }),
-        });
+        const res = await fetch(`${API_BASE_URL}/api/chat/store/${encodeURIComponent(tenantId)}`);
 
         if (res.status === 404) {
           setNotFound(true);
           return;
         }
 
+        if (!res.ok) {
+          // Unknown error — still show widget, let it handle its own errors
+          setStoreName(tenantId);
+          return;
+        }
+
         const data = await res.json().catch(() => ({}));
-        // We don't show the response — we just wanted to confirm the store exists.
-        // Extract storeName from any available field in the response, or use tenantId.
-        setStoreName(tenantId.replace(/-[a-z0-9]{6,}$/i, '').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()));
+        setStoreName(data.storeName || tenantId);
       } catch {
         // Network error — still show the widget, it will handle its own errors.
         setStoreName(tenantId);
@@ -77,8 +73,8 @@ export default function PublicChatPageClient({ tenantId }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center p-4">
-      <div className="w-full max-w-lg" style={{ height: 'min(700px, calc(100vh - 2rem))' }}>
+    <div className="min-h-screen bg-[#0B0F14] flex items-end justify-center sm:items-center sm:justify-center p-4 pb-6">
+      <div style={{ width: '100%', maxWidth: '380px', height: 'min(580px, calc(100vh - 2rem))' }}>
         <PublicChatWidget tenantId={tenantId} storeName={storeName || 'Smart Assistant'} />
       </div>
     </div>
