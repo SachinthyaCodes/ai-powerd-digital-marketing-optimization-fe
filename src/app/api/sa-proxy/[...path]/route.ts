@@ -21,12 +21,21 @@ async function proxyRequest(
       if (val) headers.set(key, val);
     }
 
-    const init: RequestInit = { method: req.method, headers };
+    const controller = new AbortController();
+    // 200 s hard timeout — phi3 on CPU can take 20-120s; 180s Ollama timeout + Groq fallback
+    const timer = setTimeout(() => controller.abort(), 200_000);
+
+    const init: RequestInit = { method: req.method, headers, signal: controller.signal };
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       init.body = await req.arrayBuffer();
     }
 
-    const upstream = await fetch(target, init);
+    let upstream: Response;
+    try {
+      upstream = await fetch(target, init);
+    } finally {
+      clearTimeout(timer);
+    }
 
     const respHeaders = new Headers();
     upstream.headers.forEach((v, k) => {
