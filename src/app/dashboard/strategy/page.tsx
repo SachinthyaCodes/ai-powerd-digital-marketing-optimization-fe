@@ -192,7 +192,7 @@ export default function StrategyDashboard() {
               Tell us about your business and we'll create a personalised marketing strategy just for you.
             </p>
             <button
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/create-strategy')}
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#22C55E] text-[#0B0F14] rounded-lg font-medium hover:bg-[#16A34A] transition-all"
             >
               Get Started
