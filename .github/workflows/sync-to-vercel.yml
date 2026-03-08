@@ -9,6 +9,8 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    # Only run on the SOURCE repo, not on the Gimhani09 host repo
+    if: github.repository == 'SachinthyaCodes/ai-powerd-digital-marketing-optimization-fe'
     steps:
       - name: Checkout full history
         uses: actions/checkout@v4
