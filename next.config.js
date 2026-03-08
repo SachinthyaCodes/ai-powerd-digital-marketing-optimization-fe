@@ -1,6 +1,6 @@
 ﻿/** @type {import('next').NextConfig} */
 const path = require('path');
-const CONTENT_API_URL = process.env.NEXT_PUBLIC_CONTENT_API_URL || 'http://localhost:8000';
+const CONTENT_API_URL = process.env.NEXT_PUBLIC_CONTENT_API_URL || 'https://gimhanijayasuriya-content-generator-api.hf.space';
 
 const nextConfig = {
   // Pin Turbopack workspace root to this directory so chunk names stay short
@@ -8,8 +8,16 @@ const nextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
-  // Proxy /api/* to the backend.
-  // In production (Vercel) use the HF Spaces URL; locally use localhost:8000.
+  // Allow Next.js <Image> to load poster images from the content generator HF Space
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'gimhanijayasuriya-content-generator-api.hf.space',
+      },
+    ],
+  },
+  // Proxy /api/* to the strategy backend.
   // Exclude /api/sa-proxy/* which is handled by the built-in Route Handler.
   async rewrites() {
     const backendUrl =

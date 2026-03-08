@@ -3,8 +3,9 @@
  * Connects Research Frontend (Next.js) to Content Generator Backend (FastAPI)
  */
 
-// API Base URL from environment variable
-const API_BASE_URL = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_CONTENT_API_URL) || 'http://localhost:8000';
+// API Base URL — uses env var in development, falls back to HF Spaces production URL
+const API_BASE_URL = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_CONTENT_API_URL) 
+  || 'https://gimhanijayasuriya-content-generator-api.hf.space';
 
 // Type Definitions
 export interface GenerateTextRequest {
