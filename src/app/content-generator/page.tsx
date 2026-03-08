@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import Sidebar from '@/components/Sidebar';
 import { 
@@ -14,7 +14,21 @@ import {
   BuildingStorefrontIcon,
   TicketIcon,
   CalendarIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  ArrowDownTrayIcon,
+  ClipboardDocumentIcon,
+  ShareIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CurrencyDollarIcon,
+  GiftIcon,
+  ClockIcon,
+  BoltIcon,
+  TrophyIcon,
+  StarIcon,
+  TruckIcon,
+  CreditCardIcon,
+  ChatBubbleLeftIcon
 } from '@heroicons/react/24/outline';
 import { generateSmartPoster, getPosterUrl, buildDescription, mapTone } from '@/services/contentApiService';
 
@@ -22,34 +36,56 @@ type PosterSize = 'facebook' | 'instagram' | 'story' | 'twitter';
 type Tag = 'great-value' | 'new-arrival' | 'best-seller' | 'limited-time' | 'special-offer' | 'top-rated' | 'free-delivery' | 'easy-installments';
 
 const PRODUCT_CATEGORIES = {
-  Electronics: [
-    { name: 'Robot Vacuum' },
-    { name: 'Budget Smartphone' },
-    { name: 'Washing Machine' },
+  'Electronics & Appliances': [
+    { name: 'Smartphone' },
     { name: 'Smart TV' },
     { name: 'Laptop' },
+    { name: 'Washing Machine' },
+    { name: 'Robot Vacuum' },
   ],
-  Furniture: [
+  'Fashion & Beauty': [
+    { name: 'Saree Collection' },
+    { name: 'Skincare Set' },
+    { name: 'Handbag' },
+    { name: 'Jewellery Set' },
+  ],
+  'Furniture & Home': [
     { name: 'Sofa Set' },
     { name: 'Dining Table' },
     { name: 'Office Chair' },
     { name: 'Bed Frame' },
   ],
-  Food: [
+  'Food & Restaurant': [
     { name: 'Kottu Promotion' },
-    { name: 'BBQ Ribs' },
     { name: 'Pizza Deal' },
     { name: 'Burger Combo' },
+    { name: 'Lunch Buffet' },
+  ],
+  'Grocery & Retail': [
+    { name: 'Rice & Essentials' },
+    { name: 'Fresh Vegetables' },
+    { name: 'Spice Pack' },
+  ],
+  'Services': [
+    { name: 'Plumbing Service' },
+    { name: 'Tuition Classes' },
+    { name: 'Car Wash' },
+    { name: 'Salon Offer' },
   ],
 };
 
 const SEASONS = [
   'No specific season',
+  'Sinhala & Tamil New Year',
+  'Vesak',
   'Christmas',
   'New Year',
   'Valentine\'s Day',
   'Easter',
+  'Poson',
+  'Deepavali',
   'Ramadan',
+  'Thai Pongal',
   'Summer Sale',
   'Black Friday',
   'Cyber Monday',
@@ -73,39 +109,40 @@ const DISCOUNT_OPTIONS = [
   'Buy 2 Get 1 Free',
 ];
 
-const TAG_CATEGORIES = {
-  'Price & Value': [
-    { id: 'great-value', label: 'Great value', usage: 'Adds "Unbeatable value!" + CTA: "Save Big Today"' },
-    { id: 'special-offer', label: 'Special offer', usage: 'CTA: "Get Yours Now"' },
-  ],
-  'Urgency & Timing': [
-    { id: 'limited-time', label: 'Limited time', usage: 'Adds "Limited time only!" + CTA: "Order Today"' },
-    { id: 'new-arrival', label: 'New arrival', usage: 'CTA: "Check It Out"' },
-  ],
-  'Social Proof': [
-    { id: 'best-seller', label: 'Best seller', usage: 'CTA: "Don\'t Miss Out"' },
-    { id: 'top-rated', label: 'Top-rated', usage: 'CTA: "Experience Top Quality"' },
-  ],
-  'Benefits': [
-    { id: 'free-delivery', label: 'Free delivery', usage: 'CTA: "Order Now with Free Delivery"' },
-    { id: 'easy-installments', label: 'Easy installments', usage: 'CTA: "Shop Now, Pay Later"' },
-  ],
+const MARKETING_HIGHLIGHTS: { id: Tag; label: string; description: string; icon: 'dollar' | 'gift' | 'clock' | 'bolt' | 'trophy' | 'star' | 'truck' | 'credit' }[] = [
+  { id: 'great-value', label: 'Great deal', icon: 'dollar', description: 'Emphasizes value for money' },
+  { id: 'special-offer', label: 'Special offer', icon: 'gift', description: 'Highlights a promotion or deal' },
+  { id: 'limited-time', label: 'Limited time only', icon: 'clock', description: 'Creates urgency to buy now' },
+  { id: 'new-arrival', label: 'New arrival', icon: 'bolt', description: 'Showcases your latest product' },
+  { id: 'best-seller', label: 'Best seller', icon: 'trophy', description: 'Shows customer popularity' },
+  { id: 'top-rated', label: 'Top rated', icon: 'star', description: 'Highlights quality & reviews' },
+  { id: 'free-delivery', label: 'Free delivery', icon: 'truck', description: 'Attracts with free shipping' },
+  { id: 'easy-installments', label: 'Pay in installments', icon: 'credit', description: 'Makes it affordable' },
+];
+
+const HIGHLIGHT_ICONS: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
+  dollar: CurrencyDollarIcon,
+  gift: GiftIcon,
+  clock: ClockIcon,
+  bolt: BoltIcon,
+  trophy: TrophyIcon,
+  star: StarIcon,
+  truck: TruckIcon,
+  credit: CreditCardIcon,
 };
 
 const POSTER_SIZES = [
-  { id: 'facebook', label: 'Facebook (1200x630)' },
-  { id: 'instagram', label: 'Instagram (1080x1080)' },
-  { id: 'story', label: 'Story (1080x1920)' },
-  { id: 'twitter', label: 'Twitter (1200x675)' },
+  { id: 'facebook', label: 'Facebook Post' },
+  { id: 'instagram', label: 'Instagram Post' },
+  { id: 'story', label: 'Instagram / FB Story' },
+  { id: 'twitter', label: 'Twitter / X Post' },
 ];
 
 const LANGUAGES = [
   { code: 'en', label: 'English' },
-  { code: 'si', label: 'Sinhala' },
-  { code: 'en-si', label: 'Bilingual (Singlish)' },
+  { code: 'si', label: 'Sinhala (සිංහල)' },
+  { code: 'en-si', label: 'Bilingual (English + Sinhala)' },
 ];
-
-type PipelineMode = 'gemini+harfbuzz' | 'finetuned+pillow' | '';
 
 export default function ContentGeneratorPage() {
   const [productName, setProductName] = useState('');
@@ -123,10 +160,10 @@ export default function ContentGeneratorPage() {
   const [activeTab, setActiveTab] = useState<'content' | 'poster'>('content');
   const [showPosterModal, setShowPosterModal] = useState(false);
   const [selectedPoster, setSelectedPoster] = useState<any>(null);
-  const [pipelineMode, setPipelineMode] = useState<PipelineMode>('gemini+harfbuzz');
-  const [shapingInfo, setShapingInfo] = useState<any>(null);
-  const [pipelineUsed, setPipelineUsed] = useState<string>('');
   const [hashtags, setHashtags] = useState<string[]>([]);
+  const [copySuccess, setCopySuccess] = useState<string | null>(null);
+  const [activePosterIndex, setActivePosterIndex] = useState(0);
+  const [lastGenerateMode, setLastGenerateMode] = useState<boolean>(false);
 
   const handleProductSuggestion = (label: string) => {
     setProductName(label);
@@ -196,6 +233,22 @@ export default function ContentGeneratorPage() {
     );
   };
 
+  const copyForPlatform = (platform: string) => {
+    if (!generatedContent) return;
+    const hashtagStr = hashtags.length > 0 ? '\n\n' + hashtags.join(' ') : '';
+    const text = generatedContent + hashtagStr;
+    navigator.clipboard.writeText(text);
+    setCopySuccess(platform);
+    setTimeout(() => setCopySuccess(null), 2000);
+  };
+
+  const shareToWhatsApp = () => {
+    if (!generatedContent) return;
+    const hashtagStr = hashtags.length > 0 ? '\n\n' + hashtags.join(' ') : '';
+    const text = encodeURIComponent(generatedContent + hashtagStr);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
   const mapLanguage = (code: string): 'english' | 'sinhala' | 'both' => {
     const mapping: Record<string, 'english' | 'sinhala' | 'both'> = {
       'en': 'english',
@@ -207,12 +260,14 @@ export default function ContentGeneratorPage() {
 
   const handleGenerateContent = async (includePoster: boolean) => {
     if (!productName.trim()) {
-      alert('Please enter a product name');
+      alert('Please enter a product or service name');
       return;
     }
 
     setIsGenerating(true);
     setActiveTab('content');
+    setLastGenerateMode(includePoster);
+    setActivePosterIndex(0);
 
     try {
       const description = buildDescription({
@@ -225,33 +280,33 @@ export default function ContentGeneratorPage() {
       const backendLanguage = mapLanguage(language);
 
       if (includePoster) {
-        const primarySize = selectedSizes[0] || 'facebook';
-        
-        const response = await generateSmartPoster({
-          product_name: productName,
-          description,
-          tone,
-          language: backendLanguage,
-          season: season !== 'No specific season' ? season : undefined,
-          discount: discount || undefined,
-          business_name: businessName || undefined,
-          phone_number: phoneNumber || undefined,
-          tags: selectedTags,
-          size: primarySize,
-          pipeline: pipelineMode || undefined,
-        });
+        const sizesToGenerate = selectedSizes.length > 0 ? selectedSizes : ['facebook' as PosterSize];
 
-        setGeneratedContent(response.content);
-        setPipelineUsed(response.pipeline || '');
-        setShapingInfo(response.shaping_info || null);
-        setHashtags(response.hashtags || []);
+        const posterPromises = sizesToGenerate.map(size =>
+          generateSmartPoster({
+            product_name: productName,
+            description,
+            tone,
+            language: backendLanguage,
+            season: season !== 'No specific season' ? season : undefined,
+            discount: discount || undefined,
+            business_name: businessName || undefined,
+            phone_number: phoneNumber || undefined,
+            tags: selectedTags,
+            size,
+          })
+        );
 
-        const posters = selectedSizes.map(size => ({
-          size,
+        const responses = await Promise.all(posterPromises);
+        const firstResponse = responses[0];
+
+        setGeneratedContent(firstResponse.content);
+        setHashtags(firstResponse.hashtags || []);
+
+        const posters = responses.map((response, index) => ({
+          size: sizesToGenerate[index],
           url: response.poster_path ? getPosterUrl(response.poster_path) : null,
-          dimensions: size === 'facebook' ? '1200x630' : 
-                     size === 'instagram' ? '1080x1080' : 
-                     size === 'story' ? '1080x1920' : '1200x675'
+          label: POSTER_SIZES.find(s => s.id === sizesToGenerate[index])?.label || sizesToGenerate[index],
         })).filter(p => p.url);
         
         setGeneratedPosters(posters);
@@ -265,12 +320,9 @@ export default function ContentGeneratorPage() {
           season: season !== 'No specific season' ? season : undefined,
           discount: discount || undefined,
           tags: selectedTags,
-          pipeline: pipelineMode || undefined,
         });
 
         setGeneratedContent(response.content);
-        setPipelineUsed(response.pipeline || '');
-        setShapingInfo(response.shaping_info || null);
         setHashtags(response.hashtags || []);
         setGeneratedPosters([]);
       }
@@ -279,9 +331,13 @@ export default function ContentGeneratorPage() {
       
     } catch (error) {
       console.error('Error generating content:', error);
-      alert(`Failed to generate content: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(`Something went wrong. Please try again.\n${error instanceof Error ? error.message : ''}`);
       setIsGenerating(false);
     }
+  };
+
+  const handleRegenerate = () => {
+    handleGenerateContent(lastGenerateMode);
   };
 
   return (
@@ -292,34 +348,34 @@ export default function ContentGeneratorPage() {
           <div className="min-h-screen bg-gradient-to-br from-[#0B0F14] via-[#0B0F14] to-[#0d1f1a]">
             {/* Hero Section */}
             <div className="border-b border-[#1F2933]">
-              <div className="max-w-7xl mx-auto px-8 py-20">
+              <div className="max-w-7xl mx-auto px-8 py-16">
                 <div className="max-w-2xl">
-                  <h1 className="text-5xl font-semibold text-[#F9FAFB] mb-4 tracking-tight">AI Marketing Content Generator</h1>
-                  <p className="text-[#CBD5E1] text-lg">Create engaging marketing content and professional posters with AI</p>
+                  <h1 className="text-4xl font-semibold text-[#F9FAFB] mb-3 tracking-tight">Create Your Ad Content</h1>
+                  <p className="text-[#CBD5E1] text-lg">Generate ready-to-post marketing content and professional ad posters for your business in seconds</p>
                 </div>
               </div>
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-8 py-16">
+            <div className="max-w-7xl mx-auto px-8 py-12">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
                 {/* Input Form Section */}
                 <div className="bg-[#0B0F14]/80 backdrop-blur-sm border border-[#1F2933] rounded-2xl overflow-hidden">
-                  <div className="p-10">
-                    <div className="mb-8">
-                      <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#1F2933] mb-6">
+                  <div className="p-8">
+                    <div className="mb-6">
+                      <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#1F2933] mb-4">
                         <DocumentTextIcon className="h-5 w-5 text-[#F9FAFB]" />
                       </div>
-                      <h2 className="text-2xl font-semibold text-[#F9FAFB] mb-2">Input Details</h2>
-                      <p className="text-[#CBD5E1] text-sm">Fill in your product information</p>
+                      <h2 className="text-2xl font-semibold text-[#F9FAFB] mb-1">Tell Us About Your Product</h2>
+                      <p className="text-[#CBD5E1] text-sm">Fill in the details and we&apos;ll create the perfect ad for you</p>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-5">
                       {/* Product Name */}
                       <div>
-                        <label className="block text-sm font-medium text-[#F9FAFB] mb-3">
-                          Product Name <span className="text-red-500">*</span>
+                        <label className="block text-sm font-medium text-[#F9FAFB] mb-2">
+                          What are you selling? <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -329,14 +385,14 @@ export default function ContentGeneratorPage() {
                             setShowProductSuggestions(true);
                           }}
                           onFocus={() => setShowProductSuggestions(true)}
-                          placeholder="Type your product name..."
+                          placeholder="e.g., Samsung Galaxy Phone, Chicken Kottu, Sofa Set..."
                           className="w-full px-4 py-3 bg-[#0B0F14] border border-[#1F2933] rounded-xl focus:outline-none focus:border-[#CBD5E1]/30 text-[#F9FAFB] placeholder:text-[#CBD5E1]/50"
                         />
                         
                         {showProductSuggestions && (
                           <div className="mt-3">
                             <div className="flex items-center justify-between mb-2">
-                              <p className="text-xs text-[#CBD5E1]">Quick suggestions by category:</p>
+                              <p className="text-xs text-[#CBD5E1]">Or pick from popular categories:</p>
                               <button
                                 onClick={() => setShowProductSuggestions(false)}
                                 className="text-xs text-[#CBD5E1] hover:text-[#F9FAFB]"
@@ -344,16 +400,16 @@ export default function ContentGeneratorPage() {
                                 Hide
                               </button>
                             </div>
-                            <div className="space-y-3">
+                            <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
                               {Object.entries(PRODUCT_CATEGORIES).map(([category, products]) => (
                                 <div key={category}>
-                                  <p className="text-xs font-medium text-[#CBD5E1] mb-2">{category}</p>
-                                  <div className="flex flex-wrap gap-2">
+                                  <p className="text-xs font-medium text-[#CBD5E1] mb-1.5">{category}</p>
+                                  <div className="flex flex-wrap gap-1.5">
                                     {products.map((product) => (
                                       <button
                                         key={product.name}
                                         onClick={() => handleProductSuggestion(product.name)}
-                                        className="px-3 py-2 bg-[#1F2933] hover:bg-[#2D3748] border border-[#1F2933] rounded-lg text-sm text-[#F9FAFB] transition-colors"
+                                        className="px-2.5 py-1.5 bg-[#1F2933] hover:bg-[#2D3748] border border-[#1F2933] rounded-lg text-xs text-[#F9FAFB] transition-colors"
                                       >
                                         {product.name}
                                       </button>
@@ -377,7 +433,7 @@ export default function ContentGeneratorPage() {
 
                       {/* Season/Festival */}
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-3">
+                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-2">
                           <CalendarIcon className="h-4 w-4" />
                           Season / Festival <span className="text-[#CBD5E1] text-xs font-normal">(Optional)</span>
                         </label>
@@ -390,14 +446,16 @@ export default function ContentGeneratorPage() {
                             <option key={s} value={s}>{s}</option>
                           ))}
                         </select>
-                        <p className="text-xs text-[#CBD5E1] mt-2">Model trained on seasonal content - will add festive touch</p>
+                        {season !== 'No specific season' && (
+                          <p className="text-xs text-[#22C55E] mt-1.5">Your ad will have a festive {season} touch!</p>
+                        )}
                       </div>
 
                       {/* Discount */}
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-3">
+                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-2">
                           <TicketIcon className="h-4 w-4" />
-                          Discount <span className="text-[#CBD5E1] text-xs font-normal">(Optional)</span>
+                          Discount / Offer <span className="text-[#CBD5E1] text-xs font-normal">(Optional)</span>
                         </label>
                         <select
                           value={discount}
@@ -409,49 +467,47 @@ export default function ContentGeneratorPage() {
                             <option key={d} value={d}>{d}</option>
                           ))}
                         </select>
-                        <p className="text-xs text-[#CBD5E1] mt-2">
-                          {discount ? `Selected: ${discount} - Will appear in content` : 'Select a discount to add to your content'}
-                        </p>
+                        {discount && (
+                          <p className="text-xs text-[#22C55E] mt-1.5">Your {discount} offer will be highlighted in the ad</p>
+                        )}
                       </div>
 
-                      {/* Business Name */}
-                      <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-3">
-                          <BuildingStorefrontIcon className="h-4 w-4" />
-                          Business Name <span className="text-[#CBD5E1] text-xs font-normal">(Optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={businessName}
-                          onChange={(e) => setBusinessName(e.target.value)}
-                          placeholder="e.g., SINGER, Daraz.lk, Your Shop Name"
-                          className="w-full px-4 py-3 bg-[#0B0F14] border border-[#1F2933] rounded-xl focus:outline-none focus:border-[#CBD5E1]/30 text-[#F9FAFB] placeholder:text-[#CBD5E1]/50"
-                        />
-                        <p className="text-xs text-[#CBD5E1] mt-2">Appears on right bottom of poster</p>
+                      {/* Business Name & Phone in a row */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-2">
+                            <BuildingStorefrontIcon className="h-4 w-4" />
+                            Business Name
+                          </label>
+                          <input
+                            type="text"
+                            value={businessName}
+                            onChange={(e) => setBusinessName(e.target.value)}
+                            placeholder="Your Shop Name"
+                            className="w-full px-4 py-3 bg-[#0B0F14] border border-[#1F2933] rounded-xl focus:outline-none focus:border-[#CBD5E1]/30 text-[#F9FAFB] placeholder:text-[#CBD5E1]/50"
+                          />
+                        </div>
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-2">
+                            <PhoneIcon className="h-4 w-4" />
+                            Phone Number
+                          </label>
+                          <input
+                            type="text"
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            placeholder="+94 77 123 4567"
+                            className="w-full px-4 py-3 bg-[#0B0F14] border border-[#1F2933] rounded-xl focus:outline-none focus:border-[#CBD5E1]/30 text-[#F9FAFB] placeholder:text-[#CBD5E1]/50"
+                          />
+                        </div>
                       </div>
 
-                      {/* Phone Number */}
+                      {/* Marketing Highlights (simplified tags) */}
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-3">
-                          <PhoneIcon className="h-4 w-4" />
-                          Phone Number <span className="text-[#CBD5E1] text-xs font-normal">(Optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
-                          placeholder="e.g., 011 5 400 400, +94 77 123 4567"
-                          className="w-full px-4 py-3 bg-[#0B0F14] border border-[#1F2933] rounded-xl focus:outline-none focus:border-[#CBD5E1]/30 text-[#F9FAFB] placeholder:text-[#CBD5E1]/50"
-                        />
-                        <p className="text-xs text-[#CBD5E1] mt-2">Appears on left bottom of poster</p>
-                      </div>
-
-                      {/* Tags */}
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-between mb-2">
                           <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB]">
                             <TagIcon className="h-4 w-4" />
-                            Marketing Tags <span className="text-[#CBD5E1] text-xs font-normal">(Shapes your content)</span>
+                            What do you want to highlight? <span className="text-[#CBD5E1] text-xs font-normal">(Optional)</span>
                           </label>
                           {selectedTags.length > 0 && (
                             <button
@@ -463,69 +519,39 @@ export default function ContentGeneratorPage() {
                           )}
                         </div>
                         
-                        <div className="space-y-4">
-                          {Object.entries(TAG_CATEGORIES).map(([category, tags]) => (
-                            <div key={category}>
-                              <div className="flex items-center gap-2 mb-2">
-                                <p className="text-xs font-medium text-[#CBD5E1]">{category}</p>
-                                <div className="flex-1 h-px bg-[#1F2933]"></div>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {tags.map((tag) => (
-                                  <button
-                                    key={tag.id}
-                                    onClick={() => toggleTag(tag.id as Tag)}
-                                    title={tag.usage}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                      selectedTags.includes(tag.id as Tag)
-                                        ? 'bg-[#22C55E] text-[#0B0F14] shadow-lg shadow-[#22C55E]/20'
-                                        : 'bg-[#1F2933] text-[#F9FAFB] hover:bg-[#2D3748] border border-[#2D3748]'
-                                    }`}
-                                  >
-                                    {tag.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
+                        <div className="flex flex-wrap gap-2">
+                          {MARKETING_HIGHLIGHTS.map((highlight) => {
+                            const IconComp = HIGHLIGHT_ICONS[highlight.icon];
+                            return (
+                              <button
+                                key={highlight.id}
+                                onClick={() => toggleTag(highlight.id)}
+                                title={highlight.description}
+                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                                  selectedTags.includes(highlight.id)
+                                    ? 'bg-[#22C55E] text-[#0B0F14] shadow-lg shadow-[#22C55E]/20'
+                                    : 'bg-[#1F2933] text-[#F9FAFB] hover:bg-[#2D3748] border border-[#2D3748]'
+                                }`}
+                              >
+                                <IconComp className="h-3.5 w-3.5" />
+                                {highlight.label}
+                              </button>
+                            );
+                          })}
                         </div>
                         
-                        <p className="text-xs text-[#CBD5E1] mt-3">
+                        <p className="text-xs text-[#CBD5E1] mt-2">
                           {selectedTags.length > 0 
-                            ? `${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''} selected - Controls CTAs and urgency phrases` 
-                            : 'Select tags to customize your call-to-action and content features'}
+                            ? `${selectedTags.length} selected — your ad will emphasize these points` 
+                            : 'Pick what makes your offer stand out'}
                         </p>
-                        
-                        {selectedTags.length > 0 && (
-                          <div className="mt-3 p-4 bg-[#1F2933] rounded-lg border border-[#2D3748]">
-                            <p className="text-xs font-medium text-[#22C55E] mb-3 flex items-center gap-2">
-                              <CheckCircleIcon className="h-4 w-4" />
-                              How your selected tags will be used:
-                            </p>
-                            <div className="space-y-2">
-                              {selectedTags.map((tagId) => {
-                                const tag = Object.values(TAG_CATEGORIES)
-                                  .flat()
-                                  .find(t => t.id === tagId);
-                                return tag ? (
-                                  <div key={tagId} className="flex items-start gap-2">
-                                    <div>
-                                      <p className="text-xs text-[#F9FAFB] font-medium">{tag.label}</p>
-                                      <p className="text-xs text-[#CBD5E1]">{tag.usage}</p>
-                                    </div>
-                                  </div>
-                                ) : null;
-                              })}
-                            </div>
-                          </div>
-                        )}
                       </div>
 
                       {/* Language */}
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-3">
+                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-2">
                           <GlobeAltIcon className="h-4 w-4" />
-                          Language
+                          Ad Language
                         </label>
                         <select
                           value={language}
@@ -538,107 +564,68 @@ export default function ContentGeneratorPage() {
                         </select>
                       </div>
 
-                      {/* Rendering Pipeline */}
-                      <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-3">
-                          <SparklesIcon className="h-4 w-4" />
-                          Rendering Pipeline
-                        </label>
-                        <div className="grid grid-cols-2 gap-3">
-                          <button
-                            onClick={() => setPipelineMode('gemini+harfbuzz')}
-                            className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors text-left ${
-                              pipelineMode === 'gemini+harfbuzz'
-                                ? 'bg-[#22C55E] text-[#0B0F14]'
-                                : 'bg-[#1F2933] text-[#F9FAFB] hover:bg-[#2D3748]'
-                            }`}
-                          >
-                            <div className="font-semibold">Gemini + HarfBuzz</div>
-                            <div className={`text-xs mt-1 ${pipelineMode === 'gemini+harfbuzz' ? 'text-[#0B0F14]/70' : 'text-[#CBD5E1]'}`}>
-                              API + Browser rendering
-                            </div>
-                          </button>
-                          <button
-                            onClick={() => setPipelineMode('finetuned+pillow')}
-                            className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors text-left ${
-                              pipelineMode === 'finetuned+pillow'
-                                ? 'bg-[#22C55E] text-[#0B0F14]'
-                                : 'bg-[#1F2933] text-[#F9FAFB] hover:bg-[#2D3748]'
-                            }`}
-                          >
-                            <div className="font-semibold">Fine-tuned + Pillow</div>
-                            <div className={`text-xs mt-1 ${pipelineMode === 'finetuned+pillow' ? 'text-[#0B0F14]/70' : 'text-[#CBD5E1]'}`}>
-                              Local models + PIL
-                            </div>
-                          </button>
-                        </div>
-                        <p className="text-xs text-[#CBD5E1] mt-2">
-                          {pipelineMode === 'gemini+harfbuzz' 
-                            ? 'Uses Gemini API for text + Chromium/HarfBuzz for perfect Sinhala shaping' 
-                            : 'Uses fine-tuned GPT-2/mT5 + Pillow for local rendering'}
-                        </p>
-                      </div>
-
                       {/* Poster Sizes */}
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-3">
+                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-2">
                           <PhotoIcon className="h-4 w-4" />
-                          Poster Sizes
+                          Where will you post this?
                         </label>
-                        <div className="grid grid-cols-2 gap-3 mb-2">
+                        <div className="grid grid-cols-2 gap-2">
                           {POSTER_SIZES.map((size) => (
                             <button
                               key={size.id}
                               onClick={() => toggleSize(size.id as PosterSize)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors text-left flex items-center gap-2 ${
+                              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left flex items-center gap-2 ${
                                 selectedSizes.includes(size.id as PosterSize)
                                   ? 'bg-[#22C55E] text-[#0B0F14]'
                                   : 'bg-[#1F2933] text-[#F9FAFB] hover:bg-[#2D3748]'
                               }`}
                             >
-                              {selectedSizes.includes(size.id as PosterSize) && (
+                              {selectedSizes.includes(size.id as PosterSize) ? (
                                 <CheckCircleIcon className="h-4 w-4" />
+                              ) : (
+                                <PhotoIcon className="h-4 w-4" />
                               )}
                               {size.label}
                             </button>
                           ))}
                         </div>
-                        <p className="text-xs text-[#CBD5E1]">Select multiple sizes to generate all at once</p>
+                        <p className="text-xs text-[#CBD5E1] mt-1.5">Select one or more platforms — we&apos;ll create the right size for each</p>
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="grid grid-cols-2 gap-4 pt-4">
+                      <div className="grid grid-cols-2 gap-4 pt-3">
                         <button
                           onClick={() => handleGenerateContent(false)}
                           disabled={isGenerating || !productName.trim()}
-                          className="w-full bg-[#22C55E] text-[#0B0F14] py-4 px-6 rounded-xl font-medium hover:bg-[#16A34A] transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          className="w-full bg-[#22C55E] text-[#0B0F14] py-4 px-6 rounded-xl font-semibold hover:bg-[#16A34A] transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                           {isGenerating ? (
                             <>
                               <ArrowPathIcon className="h-5 w-5 animate-spin" />
-                              Generating...
+                              Creating...
                             </>
                           ) : (
                             <>
                               <DocumentTextIcon className="h-5 w-5" />
-                              Content Only
+                              Generate Ad Text
                             </>
                           )}
                         </button>
                         <button
                           onClick={() => handleGenerateContent(true)}
                           disabled={isGenerating || !productName.trim()}
-                          className="w-full bg-[#0F172A] text-white py-4 px-6 rounded-xl font-medium hover:bg-[#1E2A78] transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          className="w-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] text-white py-4 px-6 rounded-xl font-semibold hover:from-[#6D28D9] hover:to-[#1D4ED8] transition-all disabled:bg-gray-600 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                           {isGenerating ? (
                             <>
                               <ArrowPathIcon className="h-5 w-5 animate-spin" />
-                              Generating...
+                              Creating...
                             </>
                           ) : (
                             <>
                               <SparklesIcon className="h-5 w-5" />
-                              Content + Poster
+                              Create Ad Poster
                             </>
                           )}
                         </button>
@@ -649,17 +636,17 @@ export default function ContentGeneratorPage() {
 
                 {/* Output Section */}
                 <div className="bg-[#0B0F14]/80 backdrop-blur-sm border border-[#1F2933] rounded-2xl overflow-hidden">
-                  <div className="p-10">
-                    <div className="mb-8">
-                      <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#22C55E]/10 mb-6">
+                  <div className="p-8">
+                    <div className="mb-6">
+                      <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#22C55E]/10 mb-4">
                         <SparklesIcon className="h-5 w-5 text-[#22C55E]" />
                       </div>
-                      <h2 className="text-2xl font-semibold text-[#F9FAFB] mb-2">Generated Output</h2>
-                      <p className="text-[#CBD5E1] text-sm">Your AI-generated content will appear here</p>
+                      <h2 className="text-2xl font-semibold text-[#F9FAFB] mb-1">Your Ad Content</h2>
+                      <p className="text-[#CBD5E1] text-sm">Ready to copy, download, and share</p>
                     </div>
 
                     {generatedContent ? (
-                      <div className="space-y-6">
+                      <div className="space-y-5">
                         {/* Tabs */}
                         <div className="flex gap-2 border-b border-[#1F2933]">
                           <button
@@ -671,7 +658,7 @@ export default function ContentGeneratorPage() {
                             }`}
                           >
                             <DocumentTextIcon className="h-4 w-4 inline mr-2" />
-                            Content
+                            Ad Text
                           </button>
                           {generatedPosters.length > 0 && (
                             <button
@@ -691,15 +678,19 @@ export default function ContentGeneratorPage() {
                         {/* Content Tab */}
                         {activeTab === 'content' && (
                           <div className="space-y-4">
-                            <div className="bg-[#1F2933] rounded-xl p-6">
-                              <div className="flex justify-between items-center mb-4">
-                                <h3 className="font-medium text-[#F9FAFB]">Marketing Content</h3>
-                                <button
-                                  onClick={() => navigator.clipboard.writeText(generatedContent)}
-                                  className="px-3 py-1.5 bg-[#0B0F14] text-[#CBD5E1] rounded-lg text-xs hover:bg-[#2D3748] transition-colors"
-                                >
-                                  Copy
-                                </button>
+                            <div className="bg-[#1F2933] rounded-xl p-5">
+                              <div className="flex justify-between items-center mb-3">
+                                <h3 className="font-medium text-[#F9FAFB]">Your Marketing Text</h3>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={handleRegenerate}
+                                    disabled={isGenerating}
+                                    className="px-3 py-1.5 bg-[#0B0F14] text-[#CBD5E1] rounded-lg text-xs hover:bg-[#2D3748] transition-colors flex items-center gap-1 disabled:opacity-50"
+                                  >
+                                    <ArrowPathIcon className={`h-3 w-3 ${isGenerating ? 'animate-spin' : ''}`} />
+                                    Try Again
+                                  </button>
+                                </div>
                               </div>
                               <div className="text-[#CBD5E1] whitespace-pre-line text-sm leading-relaxed">
                                 {generatedContent}
@@ -708,7 +699,7 @@ export default function ContentGeneratorPage() {
                               {/* Hashtags */}
                               {hashtags.length > 0 && (
                                 <div className="mt-4 pt-4 border-t border-[#2D3748]">
-                                  <p className="text-xs text-[#CBD5E1] mb-2">Hashtags:</p>
+                                  <p className="text-xs text-[#CBD5E1] mb-2">Suggested Hashtags:</p>
                                   <div className="flex flex-wrap gap-2">
                                     {hashtags.map((tag, i) => (
                                       <span key={i} className="px-2 py-1 bg-[#0B0F14] text-[#22C55E] rounded text-xs">
@@ -720,84 +711,162 @@ export default function ContentGeneratorPage() {
                               )}
                             </div>
                             
-                            {/* Pipeline & Shaping Info */}
-                            {(pipelineUsed || shapingInfo) && (
-                              <div className="bg-[#1F2933] rounded-xl p-4">
-                                <p className="text-xs font-medium text-[#22C55E] mb-3">Pipeline & Shaping Info</p>
-                                <div className="grid grid-cols-2 gap-3">
-                                  {pipelineUsed && (
-                                    <div className="bg-[#0B0F14] rounded-lg p-3">
-                                      <p className="text-xs text-[#CBD5E1]">Pipeline</p>
-                                      <p className="text-xs text-[#F9FAFB] font-medium mt-1">{pipelineUsed}</p>
-                                    </div>
+                            {/* Copy & Share Actions */}
+                            <div className="bg-[#1F2933] rounded-xl p-4">
+                              <p className="text-xs font-medium text-[#CBD5E1] mb-3">Copy & Share</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  onClick={() => copyForPlatform('Facebook')}
+                                  className="px-3 py-2.5 bg-[#0B0F14] text-[#F9FAFB] rounded-lg text-xs hover:bg-[#2D3748] transition-colors flex items-center justify-center gap-2"
+                                >
+                                  {copySuccess === 'Facebook' ? (
+                                    <><CheckCircleIcon className="h-4 w-4 text-[#22C55E]" /> Copied!</>
+                                  ) : (
+                                    <><ClipboardDocumentIcon className="h-4 w-4" /> Copy for Facebook</>
                                   )}
-                                  {shapingInfo && (
-                                    <>
-                                      <div className="bg-[#0B0F14] rounded-lg p-3">
-                                        <p className="text-xs text-[#CBD5E1]">Sinhala Shaping</p>
-                                        <p className="text-xs text-[#22C55E] font-medium mt-1">
-                                          {shapingInfo.nfc_normalized ? 'NFC Normalized' : 'Raw'}
-                                        </p>
-                                      </div>
-                                      <div className="bg-[#0B0F14] rounded-lg p-3">
-                                        <p className="text-xs text-[#CBD5E1]">ZWJ Sequences</p>
-                                        <p className="text-xs text-[#F9FAFB] font-medium mt-1">{shapingInfo.zwj_count}</p>
-                                      </div>
-                                      <div className="bg-[#0B0F14] rounded-lg p-3">
-                                        <p className="text-xs text-[#CBD5E1]">Conjuncts</p>
-                                        <p className="text-xs text-[#F9FAFB] font-medium mt-1">
-                                          Rakaransaya: {shapingInfo.rakaransaya_count} | Yansaya: {shapingInfo.yansaya_count}
-                                        </p>
-                                      </div>
-                                    </>
+                                </button>
+                                <button
+                                  onClick={() => copyForPlatform('Instagram')}
+                                  className="px-3 py-2.5 bg-[#0B0F14] text-[#F9FAFB] rounded-lg text-xs hover:bg-[#2D3748] transition-colors flex items-center justify-center gap-2"
+                                >
+                                  {copySuccess === 'Instagram' ? (
+                                    <><CheckCircleIcon className="h-4 w-4 text-[#22C55E]" /> Copied!</>
+                                  ) : (
+                                    <><ClipboardDocumentIcon className="h-4 w-4" /> Copy for Instagram</>
                                   )}
-                                </div>
+                                </button>
+                                <button
+                                  onClick={() => copyForPlatform('Twitter')}
+                                  className="px-3 py-2.5 bg-[#0B0F14] text-[#F9FAFB] rounded-lg text-xs hover:bg-[#2D3748] transition-colors flex items-center justify-center gap-2"
+                                >
+                                  {copySuccess === 'Twitter' ? (
+                                    <><CheckCircleIcon className="h-4 w-4 text-[#22C55E]" /> Copied!</>
+                                  ) : (
+                                    <><ClipboardDocumentIcon className="h-4 w-4" /> Copy for Twitter/X</>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={shareToWhatsApp}
+                                  className="px-3 py-2.5 bg-[#22C55E]/20 text-[#22C55E] rounded-lg text-xs hover:bg-[#22C55E]/30 transition-colors flex items-center justify-center gap-2"
+                                >
+                                  <ChatBubbleLeftIcon className="h-4 w-4" />
+                                  Share via WhatsApp
+                                </button>
                               </div>
-                            )}
+                            </div>
+
+                            {/* Quality Badge */}
+                            <div className="flex items-center gap-2 px-4 py-2 bg-[#22C55E]/10 rounded-lg">
+                              <CheckCircleIcon className="h-4 w-4 text-[#22C55E]" />
+                              <p className="text-xs text-[#22C55E] font-medium">Content quality verified — ready to post</p>
+                            </div>
                           </div>
                         )}
 
-                        {/* Poster Tab */}
+                        {/* Poster Tab — Gallery/Carousel */}
                         {activeTab === 'poster' && generatedPosters.length > 0 && (
                           <div className="space-y-4">
-                            {generatedPosters.map((poster, index) => (
-                              <div key={index} className="bg-[#1F2933] rounded-xl p-6">
-                                <div className="flex justify-between items-center mb-4">
-                                  <h3 className="font-medium text-[#F9FAFB]">
-                                    {POSTER_SIZES.find(s => s.id === poster.size)?.label}
-                                  </h3>
+                            {/* Carousel Navigation */}
+                            {generatedPosters.length > 1 && (
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="text-sm text-[#CBD5E1]">
+                                  {generatedPosters[activePosterIndex]?.label} ({activePosterIndex + 1} of {generatedPosters.length})
+                                </p>
+                                <div className="flex gap-2">
                                   <button
-                                    onClick={() => handleDownloadPoster(poster)}
-                                    className="px-3 py-1.5 bg-[#22C55E] text-[#0B0F14] rounded-lg text-xs hover:bg-[#16A34A] transition-colors cursor-pointer"
+                                    onClick={() => setActivePosterIndex(prev => Math.max(0, prev - 1))}
+                                    disabled={activePosterIndex === 0}
+                                    className="p-2 bg-[#1F2933] rounded-lg text-[#F9FAFB] hover:bg-[#2D3748] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                   >
+                                    <ChevronLeftIcon className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => setActivePosterIndex(prev => Math.min(generatedPosters.length - 1, prev + 1))}
+                                    disabled={activePosterIndex === generatedPosters.length - 1}
+                                    className="p-2 bg-[#1F2933] rounded-lg text-[#F9FAFB] hover:bg-[#2D3748] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                  >
+                                    <ChevronRightIcon className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Active Poster Display */}
+                            <div className="bg-[#1F2933] rounded-xl p-5">
+                              <div className="flex justify-between items-center mb-3">
+                                <h3 className="font-medium text-[#F9FAFB]">
+                                  {generatedPosters[activePosterIndex]?.label}
+                                </h3>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleDownloadPoster(generatedPosters[activePosterIndex])}
+                                    className="px-3 py-1.5 bg-[#22C55E] text-[#0B0F14] rounded-lg text-xs hover:bg-[#16A34A] transition-colors cursor-pointer flex items-center gap-1"
+                                  >
+                                    <ArrowDownTrayIcon className="h-3.5 w-3.5" />
                                     Download
                                   </button>
                                 </div>
-                                <div 
-                                  className="bg-[#0B0F14] rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                                  onClick={() => openPosterModal(poster)}
-                                >
-                                  <img 
-                                    src={poster.url} 
-                                    alt={`${poster.size} poster`}
-                                    className="w-full h-auto"
-                                  />
-                                </div>
-                                <p className="text-xs text-[#CBD5E1] mt-3">
-                                  Dimensions: {poster.dimensions} • Click to view full size
-                                </p>
                               </div>
-                            ))}
+                              <div 
+                                className="bg-[#0B0F14] rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => openPosterModal(generatedPosters[activePosterIndex])}
+                              >
+                                <img 
+                                  src={generatedPosters[activePosterIndex]?.url} 
+                                  alt={`${generatedPosters[activePosterIndex]?.label} poster`}
+                                  className="w-full h-auto"
+                                />
+                              </div>
+                              <p className="text-xs text-[#CBD5E1] mt-2">Click poster to view full size</p>
+                            </div>
+
+                            {/* Thumbnail strip for multiple posters */}
+                            {generatedPosters.length > 1 && (
+                              <div className="flex gap-2 overflow-x-auto pb-2">
+                                {generatedPosters.map((poster, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={() => setActivePosterIndex(index)}
+                                    className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${
+                                      index === activePosterIndex
+                                        ? 'border-[#22C55E]'
+                                        : 'border-[#1F2933] hover:border-[#2D3748]'
+                                    }`}
+                                  >
+                                    <img 
+                                      src={poster.url}
+                                      alt={poster.label}
+                                      className="w-20 h-14 object-cover"
+                                    />
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Download All */}
+                            {generatedPosters.length > 1 && (
+                              <button
+                                onClick={() => generatedPosters.forEach(p => handleDownloadPoster(p))}
+                                className="w-full py-3 bg-[#22C55E] text-[#0B0F14] rounded-xl text-sm font-semibold hover:bg-[#16A34A] transition-colors flex items-center justify-center gap-2"
+                              >
+                                <ArrowDownTrayIcon className="h-4 w-4" />
+                                Download All {generatedPosters.length} Posters
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
                     ) : (
-                      <div className="text-center py-12">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#1F2933] mb-4">
-                          <SparklesIcon className="h-8 w-8 text-[#CBD5E1]" />
+                      <div className="text-center py-16">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#22C55E]/10 to-[#7C3AED]/10 mb-5">
+                          <SparklesIcon className="h-10 w-10 text-[#CBD5E1]" />
                         </div>
-                        <h3 className="text-lg font-medium text-[#F9FAFB] mb-2">No Content Generated</h3>
-                        <p className="text-[#CBD5E1] text-sm">Fill in the form and click a generate button to create your content</p>
+                        <h3 className="text-lg font-medium text-[#F9FAFB] mb-2">Your Ad Will Appear Here</h3>
+                        <p className="text-[#CBD5E1] text-sm max-w-xs mx-auto">Enter your product details on the left, then click &quot;Generate Ad Text&quot; or &quot;Create Ad Poster&quot; to get started</p>
+                        <div className="mt-6 p-4 bg-[#1F2933] rounded-xl max-w-xs mx-auto text-left">
+                          <p className="text-xs font-medium text-[#22C55E] mb-2">Quick tip:</p>
+                          <p className="text-xs text-[#CBD5E1]">Just type your product name and click &quot;Create Ad Poster&quot; — we&apos;ll handle the rest! You can always customize more later.</p>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -816,13 +885,13 @@ export default function ContentGeneratorPage() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Modal Header */}
-                  <div className="sticky top-0 bg-[#0B0F14] border-b border-[#1F2933] p-6 flex justify-between items-center">
+                  <div className="sticky top-0 bg-[#0B0F14] border-b border-[#1F2933] p-5 flex justify-between items-center">
                     <div>
                       <h3 className="text-xl font-semibold text-[#F9FAFB]">
-                        {POSTER_SIZES.find(s => s.id === selectedPoster.size)?.label}
+                        {selectedPoster.label}
                       </h3>
                       <p className="text-sm text-[#CBD5E1] mt-1">
-                        {selectedPoster.dimensions} • {productName}
+                        {productName}
                       </p>
                     </div>
                     <div className="flex gap-3">
@@ -830,8 +899,8 @@ export default function ContentGeneratorPage() {
                         onClick={() => handleDownloadPoster(selectedPoster)}
                         className="px-4 py-2 bg-[#22C55E] text-[#0B0F14] rounded-lg text-sm font-medium hover:bg-[#16A34A] transition-colors flex items-center gap-2"
                       >
-                        <ArrowPathIcon className="h-4 w-4" />
-                        Download Poster
+                        <ArrowDownTrayIcon className="h-4 w-4" />
+                        Download
                       </button>
                       <button
                         onClick={closePosterModal}
@@ -847,31 +916,9 @@ export default function ContentGeneratorPage() {
                     <div className="bg-[#1F2933] rounded-lg overflow-hidden">
                       <img 
                         src={selectedPoster.url} 
-                        alt={`${selectedPoster.size} poster preview`}
+                        alt={`${selectedPoster.label} poster preview`}
                         className="w-full h-auto"
                       />
-                    </div>
-                    
-                    {/* Poster Info */}
-                    <div className="mt-6 grid grid-cols-2 gap-4">
-                      <div className="bg-[#1F2933] rounded-lg p-4">
-                        <p className="text-xs text-[#CBD5E1] mb-1">Format</p>
-                        <p className="text-sm text-[#F9FAFB] font-medium">PNG Image</p>
-                      </div>
-                      <div className="bg-[#1F2933] rounded-lg p-4">
-                        <p className="text-xs text-[#CBD5E1] mb-1">Dimensions</p>
-                        <p className="text-sm text-[#F9FAFB] font-medium">{selectedPoster.dimensions}</p>
-                      </div>
-                      <div className="bg-[#1F2933] rounded-lg p-4">
-                        <p className="text-xs text-[#CBD5E1] mb-1">Platform</p>
-                        <p className="text-sm text-[#F9FAFB] font-medium">
-                          {POSTER_SIZES.find(s => s.id === selectedPoster.size)?.label.split(' ')[0]}
-                        </p>
-                      </div>
-                      <div className="bg-[#1F2933] rounded-lg p-4">
-                        <p className="text-xs text-[#CBD5E1] mb-1">Product</p>
-                        <p className="text-sm text-[#F9FAFB] font-medium">{productName}</p>
-                      </div>
                     </div>
                   </div>
                 </div>

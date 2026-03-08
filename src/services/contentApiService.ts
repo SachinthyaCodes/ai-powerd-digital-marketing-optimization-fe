@@ -3,8 +3,9 @@
  * Connects Research Frontend (Next.js) to Content Generator Backend (FastAPI)
  */
 
-// API Base URL from environment variable
-const API_BASE_URL = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_CONTENT_API_URL) || 'http://localhost:8000';
+// API Base URL — uses env var in development, falls back to HF Spaces production URL
+const API_BASE_URL = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_CONTENT_API_URL) 
+  || 'https://gimhanijayasuriya-content-generator-api.hf.space';
 
 // Type Definitions
 export interface GenerateTextRequest {
@@ -25,15 +26,22 @@ export interface GenerateSmartPosterRequest {
   phone_number?: string;
   tags?: string[];
   size?: 'facebook' | 'instagram' | 'story' | 'twitter';
-  pipeline?: 'gemini+harfbuzz' | 'finetuned+pillow' | '';
 }
 
 export interface TextResponse {
+  success: boolean;
   product_name: string;
   content: string;
+  full_post?: string;
   language: string;
-  model_used: string;
-  polished: boolean;
+  model_used?: string;
+  pipeline?: string;
+  hashtags?: string[];
+  gpt2_draft?: string;
+  gemini_polished?: string;
+  description?: string;
+  season?: string;
+  discount?: string;
 }
 
 export interface PosterResponse {
