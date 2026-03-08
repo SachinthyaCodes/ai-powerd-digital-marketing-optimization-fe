@@ -1,0 +1,21 @@
+name: Sync to Vercel Host Repo
+
+# Triggers whenever anyone pushes to main on the team repo
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Gimhani09 host repo (triggers Vercel)
+        run: |
+          git remote add host https://x-access-token:${{ secrets.VERCEL_HOST_REPO_TOKEN }}@github.com/Gimhani09/ai-powerd-digital-marketing-optimization-fe-host.git
+          git push host main --force
