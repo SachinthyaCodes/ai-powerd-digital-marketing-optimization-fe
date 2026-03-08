@@ -332,7 +332,7 @@ export default function MyBusinessPage() {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/create-strategy')}
               className="px-4 py-2 bg-[#0B0F14] text-[#F9FAFB] rounded-lg border border-[#2D3748] hover:border-[#22C55E]/30 transition-all text-sm flex items-center gap-2"
             >
               <SparklesIcon className="h-4 w-4" />
