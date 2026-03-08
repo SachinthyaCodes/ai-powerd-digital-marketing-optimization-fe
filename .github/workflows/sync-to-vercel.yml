@@ -26,6 +26,8 @@ jobs:
           git commit --amend --reset-author --no-edit
 
       - name: Push to Gimhani09 host repo (triggers Vercel)
+        env:
+          TOKEN: ${{ secrets.VERCEL_HOST_REPO_TOKEN }}
         run: |
-          git remote add host https://x-access-token:${{ secrets.VERCEL_HOST_REPO_TOKEN }}@github.com//Gimhani09/ai-powerd-digital-marketing-optimization-fe-host.git
+          git remote add host https://x-access-token:${TOKEN}@github.com/Gimhani09/ai-powerd-digital-marketing-optimization-fe-host.git
           git push host main --force
