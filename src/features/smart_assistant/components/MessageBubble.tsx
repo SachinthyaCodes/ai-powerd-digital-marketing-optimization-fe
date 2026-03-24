@@ -1,5 +1,7 @@
 'use client';
 
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { ChatMessage } from '../types';
 
 interface Props {
@@ -19,7 +21,15 @@ export default function MessageBubble({ message }: Props) {
         </div>
       )}
       <div className={`sa-bubble ${isUser ? 'sa-bubble--user' : 'sa-bubble--assistant'}`}>
-        <div className="sa-bubble-content">{message.content}</div>
+        {isUser ? (
+          <div className="sa-bubble-content">{message.content}</div>
+        ) : (
+          <div className="sa-bubble-content sa-bubble-content--markdown">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {message.content}
+            </ReactMarkdown>
+          </div>
+        )}
         {!isUser && message.knowledgeSource && (
           <span className={`sa-source-badge sa-source-badge--${message.knowledgeSource}`}>
             ✦ {message.knowledgeSource === 'store' ? 'business data' : 'general'}

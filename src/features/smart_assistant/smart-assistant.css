@@ -388,6 +388,110 @@
   white-space: pre-wrap;
 }
 
+/* ── Markdown-rendered assistant content ─────────────────────────────────── */
+.sa-bubble-content--markdown {
+  white-space: normal;
+}
+
+.sa-bubble-content--markdown p {
+  margin: 0 0 0.6rem 0;
+  line-height: 1.7;
+}
+.sa-bubble-content--markdown p:last-child {
+  margin-bottom: 0;
+}
+
+/* Bold category headers (e.g. **Rice and Flour**) */
+.sa-bubble-content--markdown strong {
+  color: var(--sa-accent);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Bullet lists */
+.sa-bubble-content--markdown ul {
+  margin: 0.25rem 0 0.75rem 0;
+  padding-left: 1.25rem;
+  list-style: none;
+}
+.sa-bubble-content--markdown ul li {
+  position: relative;
+  padding-left: 0.25rem;
+  margin-bottom: 0.3rem;
+  line-height: 1.6;
+  color: var(--sa-text);
+}
+.sa-bubble-content--markdown ul li::before {
+  content: '›';
+  position: absolute;
+  left: -1rem;
+  color: var(--sa-accent);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* Numbered lists */
+.sa-bubble-content--markdown ol {
+  margin: 0.25rem 0 0.75rem 0;
+  padding-left: 1.5rem;
+}
+.sa-bubble-content--markdown ol li {
+  margin-bottom: 0.3rem;
+  line-height: 1.6;
+  color: var(--sa-text);
+}
+
+/* Headings (##, ###) */
+.sa-bubble-content--markdown h1,
+.sa-bubble-content--markdown h2,
+.sa-bubble-content--markdown h3 {
+  font-weight: 600;
+  color: var(--sa-text);
+  margin: 0.75rem 0 0.35rem 0;
+  letter-spacing: 0.01em;
+}
+.sa-bubble-content--markdown h2 { font-size: 0.95rem; }
+.sa-bubble-content--markdown h3 { font-size: 0.875rem; color: var(--sa-accent); }
+
+/* Inline code */
+.sa-bubble-content--markdown code {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--sa-accent);
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+  font-size: 0.8125rem;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+}
+
+/* Code blocks */
+.sa-bubble-content--markdown pre {
+  background: #0d1117;
+  border: 1px solid var(--sa-border);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+.sa-bubble-content--markdown pre code {
+  background: none;
+  padding: 0;
+  color: #e6edf3;
+  font-size: 0.8125rem;
+}
+
+/* Horizontal rules as section dividers */
+.sa-bubble-content--markdown hr {
+  border: none;
+  border-top: 1px solid var(--sa-border);
+  margin: 0.75rem 0;
+}
+
+/* "Sources:" line at the bottom */
+.sa-bubble-content--markdown p:last-of-type:has(~ *:not(p)),
+.sa-bubble-content--markdown > :last-child {
+  margin-bottom: 0;
+}
+
 .sa-source-badge {
   display: inline-block;
   margin-top: 0.5rem;
