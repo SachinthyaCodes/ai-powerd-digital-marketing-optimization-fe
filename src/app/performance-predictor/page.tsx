@@ -163,6 +163,13 @@ export default function PerformancePredictorPage() {
   const [viewingItem, setViewingItem]       = useState<HistoryItem | null>(null);
   const [viewDetailTab, setViewDetailTab]   = useState<'results' | 'explain' | 'recommend'>('results');
 
+  // Delete toast
+  const [deleteToast, setDeleteToast]       = useState(false);
+  const showDeleteToast = () => {
+    setDeleteToast(true);
+    setTimeout(() => setDeleteToast(false), 3000);
+  };
+
   const resultsSectionRef = useRef<HTMLDivElement>(null);
 
   const handleResult = (prediction: PredictionOutput, formValues: FormValues, id: string | null) => {
@@ -209,6 +216,7 @@ export default function PerformancePredictorPage() {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Delete failed');
       setHistoryItems((prev) => prev.filter((x) => x._id !== id));
+      showDeleteToast();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Delete failed');
     } finally {
@@ -540,6 +548,7 @@ export default function PerformancePredictorPage() {
                   <>
                     <div style={{ display: activeTab === 'explain' ? 'block' : 'none' }}>
                       <ExplainabilityPanel
+                        key={`explain-${savedId}`}
                         prediction={result}
                         formValues={savedForm}
                         predictionId={savedId}
@@ -548,6 +557,7 @@ export default function PerformancePredictorPage() {
 
                     <div style={{ display: activeTab === 'recommend' ? 'block' : 'none' }}>
                       <RecommendationsPanel
+                        key={`recommend-${savedId}`}
                         prediction={result}
                         formValues={savedForm}
                       />
@@ -591,6 +601,42 @@ export default function PerformancePredictorPage() {
           {renderContent()}
         </main>
       </div>
+
+      {/* Delete success toast */}
+      {deleteToast && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '24px',
+            right: '24px',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            backgroundColor: '#dc2626',
+            color: '#ffffff',
+            padding: '14px 20px',
+            borderRadius: '10px',
+            boxShadow: '0 4px 24px rgba(220,38,38,0.45)',
+            fontSize: '14px',
+            fontWeight: 500,
+            animation: 'fadeInDown 0.3s ease',
+            minWidth: '240px',
+          }}
+        >
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Prediction deleted successfully
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeInDown {
+          from { opacity: 0; transform: translateY(-12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </ProtectedRoute>
   );
 }
