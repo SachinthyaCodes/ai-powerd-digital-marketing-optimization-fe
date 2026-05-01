@@ -217,6 +217,10 @@
 .sideLeft {
   position: sticky;
   top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .sideRight {
@@ -370,6 +374,7 @@
   }
   .sideLeft {
     position: static;
+    max-height: none;
   }
 }
 
