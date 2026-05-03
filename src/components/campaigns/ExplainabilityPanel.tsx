@@ -273,11 +273,12 @@ export default function ExplainabilityPanel({ prediction, formValues, prediction
 
   useEffect(() => {
     if (hasRealData) return; // already have real saved explanation
+    setExplanation(null); // reset so loading state shows
     const controller = new AbortController();
     fetchExplanation(controller.signal);
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [predictionId]);
 
   async function fetchExplanation(signal?: AbortSignal) {
     setLoading(true);

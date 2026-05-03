@@ -1,0 +1,33 @@
+name: Sync to Vercel Host Repo
+
+# Triggers whenever anyone pushes to main on the team repo
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    # Only run on the SOURCE repo, not on the Gimhani09 host repo
+    if: github.repository == 'SachinthyaCodes/ai-powerd-digital-marketing-optimization-fe'
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Vercel (Hobby) blocks deployments if the commit author isn't the project owner.
+      # Re-stamp the latest commit as gimhani09 so Vercel always accepts it.
+      - name: Rewrite commit author to gimhani09 (Vercel project owner)
+        run: |
+          git config user.name "gimhani09"
+          git config user.email "gimhani09@users.noreply.github.com"
+          git commit --amend --reset-author --no-edit
+
+      - name: Push to Gimhani09 host repo (triggers Vercel)
+        env:
+          TOKEN: ${{ secrets.VERCEL_HOST_REPO_TOKEN }}
+        run: |
+          git remote add host https://x-access-token:${TOKEN}@github.com/Gimhani09/ai-powerd-digital-marketing-optimization-fe-host.git
+          git push host main --force

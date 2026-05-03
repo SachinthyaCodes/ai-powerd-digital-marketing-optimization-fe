@@ -3,8 +3,19 @@
  * Connects Research Frontend (Next.js) to Content Generator Backend (FastAPI)
  */
 
-// API Base URL from environment variable
-const API_BASE_URL = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_CONTENT_API_URL) || 'http://localhost:8000';
+// Route all content API calls through the Next.js proxy (/api/content-proxy/*)
+// This avoids browser timeouts on slow HF Space requests (poster generation can take 60-120s)
+// The proxy has maxDuration=300s and forwards to the real HF Space server-to-server.
+const CONTENT_HF_BASE = (
+  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_CONTENT_API_URL) ||
+  'https://gimhanijayasuriya-content-generator-api.hf.space'
+).replace(/\/$/, '');
+
+// In the browser use the same-origin proxy; in SSR fall back to direct HF Space URL
+const API_BASE_URL =
+  typeof window !== 'undefined'
+    ? '/api/content-proxy'
+    : CONTENT_HF_BASE;
 
 // Type Definitions
 export interface GenerateTextRequest {
@@ -25,29 +36,41 @@ export interface GenerateSmartPosterRequest {
   phone_number?: string;
   tags?: string[];
   size?: 'facebook' | 'instagram' | 'story' | 'twitter';
-  pipeline?: 'gemini+harfbuzz' | 'finetuned+pillow' | '';
+  template_style?: 'bold_impact' | 'elegant_sale' | 'dramatic_gradient' | null;
 }
 
 export interface TextResponse {
+  success: boolean;
   product_name: string;
   content: string;
+  full_post?: string;
   language: string;
-  model_used: string;
-  polished: boolean;
+  model_used?: string;
+  pipeline?: string;
+  hashtags?: string[];
+  gpt2_draft?: string;
+  gemini_polished?: string;
+  description?: string;
+  season?: string;
+  discount?: string;
 }
 
 export interface PosterResponse {
   product_name: string;
+  display_product_name?: string;
   content: string;
+  structured_content?: string;  // Has [HEADING]/[BODY] markers — used for render-only calls
   language: string;
   model_used?: string;
   polished?: boolean;
   poster_path: string;
   poster_url?: string;
   background_path?: string;
+  background_path_raw?: string;  // Absolute OS path — sent back to render-only endpoint
   season_detected?: string;
   background_generated?: boolean;
   pipeline?: string;
+  template_style_used?: string | null;
   shaping_info?: {
     has_sinhala: boolean;
     rakaransaya_count: number;
@@ -59,6 +82,26 @@ export interface PosterResponse {
   gpt2_draft?: string;
   gemini_polished?: string;
   context?: Record<string, string>;
+}
+
+export interface RenderPosterOnlyRequest {
+  product_name: string;
+  structured_content: string;
+  background_path_raw?: string | null;
+  size: 'facebook' | 'instagram' | 'story' | 'twitter';
+  template_style?: string | null;
+  discount?: string;
+  business_name?: string;
+  phone_number?: string;
+  season?: string;
+}
+
+export interface RenderPosterOnlyResponse {
+  success: boolean;
+  poster_path: string;
+  poster_url: string;
+  size: string;
+  template_style?: string | null;
 }
 
 export interface HealthResponse {
@@ -159,6 +202,36 @@ export async function generateSmartPoster(data: GenerateSmartPosterRequest): Pro
 }
 
 /**
+ * Render a poster from already-generated content — skips Gemini API + background generation.
+ * Use this to create multiple poster sizes from a single Gemini call.
+ */
+export async function renderPosterOnly(data: RenderPosterOnlyRequest): Promise<RenderPosterOnlyResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/render-poster-only`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorDetail;
+      try {
+        errorDetail = JSON.parse(errorText)?.detail || errorText;
+      } catch {
+        errorDetail = errorText;
+      }
+      throw new Error(typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail));
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in renderPosterOnly:', error);
+    throw error;
+  }
+}
+
+/**
  * Generate poster with uploaded/provided image
  */
 export async function generateWithImage(
@@ -190,7 +263,8 @@ export async function generateWithImage(
  */
 export function getPosterUrl(posterPath: string): string {
   const cleanPath = posterPath.startsWith('/') ? posterPath.substring(1) : posterPath;
-  return `${API_BASE_URL}/${cleanPath}`;
+  // Always use the direct HF Space URL for images (not the proxy)
+  return `${CONTENT_HF_BASE}/${cleanPath}`;
 }
 
 /**
@@ -221,9 +295,9 @@ export function buildDescription(params: {
 }): string {
   const parts: string[] = [];
   
-  if (params.discount) {
-    parts.push(params.discount);
-  }
+  // NOTE: discount is NOT included here — it is sent as a separate `discount` field
+  // to the backend and rendered as large text on the poster. Adding it here would
+  // cause Gemini to receive it twice and potentially include it in the ad copy.
   
   if (params.season && params.season !== 'No specific season') {
     parts.push(`${params.season} special`);
@@ -240,16 +314,19 @@ export function buildDescription(params: {
 }
 
 /**
- * Map frontend tone to backend tone
+ * Map frontend tag selections to backend tone
  */
 export function mapTone(tags: string[]): 'professional' | 'casual' | 'friendly' | 'urgent' | 'luxurious' {
-  if (tags.includes('premium-quality') || tags.includes('limited-stock')) {
+  // top-rated or best-seller → luxurious/premium feel
+  if (tags.includes('top-rated') || tags.includes('best-seller')) {
     return 'luxurious';
   }
-  if (tags.includes('fast-delivery')) {
+  // limited-time creates urgency
+  if (tags.includes('limited-time')) {
     return 'urgent';
   }
-  if (tags.includes('eco-friendly') || tags.includes('family-friendly')) {
+  // great-value or easy-installments → friendly, accessible
+  if (tags.includes('great-value') || tags.includes('easy-installments')) {
     return 'friendly';
   }
   return 'professional';

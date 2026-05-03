@@ -180,7 +180,7 @@ export default function PredictionForm({ onResult, onLoading, loading }: Predict
       <div className={styles.fieldRow}>
         <div className={styles.fieldGroup}>
           <label className={styles.label}>
-            FOLLOWERS <span className={styles.required}>*</span>
+            EXPECTED FOLLOWERS <span className={styles.required}>*</span>
           </label>
           <input
             type="number"

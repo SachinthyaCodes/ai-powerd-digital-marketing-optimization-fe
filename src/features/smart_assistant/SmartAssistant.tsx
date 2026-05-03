@@ -65,6 +65,12 @@ function ChatUI({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
 
   /* ── history panel ─────────────────────────────────────────────── */
   const openHistory = useCallback(async () => {
+    // End current session so its title gets generated before we list
+    if (sessionId) {
+      try { await api.endSession(sessionId); } catch { /* non-blocking */ }
+      // Brief wait for background insights (title generation) to finish
+      await new Promise((r) => setTimeout(r, 1200));
+    }
     setPanelOpen(true);
     try {
       const list = await api.listSessions();
@@ -72,9 +78,13 @@ function ChatUI({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [sessionId]);
 
   const loadSession = useCallback(async (id: string) => {
+    // End the active session before switching (triggers title + memory extraction)
+    if (sessionId && sessionId !== id) {
+      try { await api.endSession(sessionId); } catch { /* non-blocking */ }
+    }
     try {
       const session = await api.getSession(id);
       const msgs: ChatMessage[] = (session.messages || []).map((m, i) => ({
@@ -91,7 +101,7 @@ function ChatUI({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [sessionId]);
 
   const handleDelete = useCallback(async (id: string) => {
     try {
@@ -106,12 +116,15 @@ function ChatUI({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
     }
   }, [sessionId]);
 
-  const handleNewChat = useCallback(() => {
+  const handleNewChat = useCallback(async () => {
+    if (sessionId) {
+      try { await api.endSession(sessionId); } catch { /* non-blocking */ }
+    }
     setMessages([]);
     setSessionId(null);
     setStarted(true);
     setPanelOpen(false);
-  }, []);
+  }, [sessionId]);
 
   /* ── landing page ──────────────────────────────────────────────── */
   if (!started) {
