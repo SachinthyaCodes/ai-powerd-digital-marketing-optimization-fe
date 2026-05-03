@@ -9,7 +9,7 @@ import {
   PhotoIcon,
   ArrowPathIcon,
   TagIcon,
-  GlobeAltIcon,
+
   PhoneIcon,
   BuildingStorefrontIcon,
   TicketIcon,
@@ -138,11 +138,7 @@ const POSTER_SIZES = [
   { id: 'twitter', label: 'Twitter / X Post' },
 ];
 
-const LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'si', label: 'Sinhala (සිංහල)' },
-  { code: 'en-si', label: 'Bilingual (English + Sinhala)' },
-];
+
 
 const GENERATION_STEPS = [
   { id: 'analyzing', label: 'Reading your product details...' },
@@ -161,7 +157,7 @@ export default function ContentGeneratorPage() {
   const [businessName, setBusinessName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-  const [language, setLanguage] = useState('si');
+  const language = 'si'; // Fixed: Sinhala only
   const [selectedSizes, setSelectedSizes] = useState<PosterSize[]>(['facebook']);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingStep, setGeneratingStep] = useState(0);
@@ -261,14 +257,7 @@ export default function ContentGeneratorPage() {
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
-  const mapLanguage = (code: string): 'english' | 'sinhala' | 'both' => {
-    const mapping: Record<string, 'english' | 'sinhala' | 'both'> = {
-      'en': 'english',
-      'si': 'sinhala',
-      'en-si': 'both'
-    };
-    return mapping[code] || 'english';
-  };
+
 
   const startStepTimer = () => {
     setGeneratingStep(0);
@@ -313,7 +302,7 @@ export default function ContentGeneratorPage() {
       const description = [extraDescription.trim(), tagDescription].filter(Boolean).join(' — ') || undefined;
 
       const tone = mapTone(selectedTags);
-      const backendLanguage = mapLanguage(language);
+      const backendLanguage = 'sinhala';
       const sizesToGenerate = includePoster
         ? (selectedSizes.length > 0 ? selectedSizes : ['facebook' as PosterSize])
         : [];
@@ -623,22 +612,7 @@ export default function ContentGeneratorPage() {
                         </p>
                       </div>
 
-                      {/* Language */}
-                      <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-2">
-                          <GlobeAltIcon className="h-4 w-4" />
-                          Ad Language
-                        </label>
-                        <select
-                          value={language}
-                          onChange={(e) => setLanguage(e.target.value)}
-                          className="w-full px-4 py-3 bg-[#0B0F14] border border-[#1F2933] rounded-xl focus:outline-none focus:border-[#CBD5E1]/30 text-[#F9FAFB]"
-                        >
-                          {LANGUAGES.map((lang) => (
-                            <option key={lang.code} value={lang.code}>{lang.label}</option>
-                          ))}
-                        </select>
-                      </div>
+
 
                       {/* Poster Sizes */}
                       <div>
