@@ -30,7 +30,7 @@ import {
   CreditCardIcon,
   ChatBubbleLeftIcon
 } from '@heroicons/react/24/outline';
-import { generateSmartPoster, getPosterUrl, buildDescription, mapTone } from '@/services/contentApiService';
+import { generateSmartPoster, renderPosterOnly, getPosterUrl, buildDescription, mapTone, type PosterResponse } from '@/services/contentApiService';
 
 type PosterSize = 'facebook' | 'instagram' | 'story' | 'twitter';
 type Tag = 'great-value' | 'new-arrival' | 'best-seller' | 'limited-time' | 'special-offer' | 'top-rated' | 'free-delivery' | 'easy-installments';
@@ -144,8 +144,17 @@ const LANGUAGES = [
   { code: 'en-si', label: 'Bilingual (English + Sinhala)' },
 ];
 
+const GENERATION_STEPS = [
+  { id: 'analyzing', label: 'Reading your product details...' },
+  { id: 'generating', label: 'Writing your ad content...' },
+  { id: 'shaping', label: 'Preparing your ad design...' },
+  { id: 'rendering', label: 'Creating your poster image...' },
+  { id: 'finishing', label: 'Almost done...' },
+];
+
 export default function ContentGeneratorPage() {
   const [productName, setProductName] = useState('');
+  const [extraDescription, setExtraDescription] = useState('');
   const [showProductSuggestions, setShowProductSuggestions] = useState(true);
   const [season, setSeason] = useState('No specific season');
   const [discount, setDiscount] = useState('');
@@ -155,6 +164,7 @@ export default function ContentGeneratorPage() {
   const [language, setLanguage] = useState('si');
   const [selectedSizes, setSelectedSizes] = useState<PosterSize[]>(['facebook']);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingStep, setGeneratingStep] = useState(0);
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
   const [generatedPosters, setGeneratedPosters] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'content' | 'poster'>('content');
@@ -164,6 +174,8 @@ export default function ContentGeneratorPage() {
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
   const [activePosterIndex, setActivePosterIndex] = useState(0);
   const [lastGenerateMode, setLastGenerateMode] = useState<boolean>(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleProductSuggestion = (label: string) => {
     setProductName(label);
@@ -258,81 +270,135 @@ export default function ContentGeneratorPage() {
     return mapping[code] || 'english';
   };
 
+  const startStepTimer = () => {
+    setGeneratingStep(0);
+    let step = 0;
+    const delays = [800, 2500, 5000, 8000]; // ms after start to advance each step
+    stepTimerRef.current = setInterval(() => {
+      step++;
+      if (step < GENERATION_STEPS.length) {
+        setGeneratingStep(step);
+      } else {
+        if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+      }
+    }, 3500);
+  };
+
+  const stopStepTimer = () => {
+    if (stepTimerRef.current) {
+      clearInterval(stepTimerRef.current);
+      stepTimerRef.current = null;
+    }
+  };
+
   const handleGenerateContent = async (includePoster: boolean) => {
     if (!productName.trim()) {
-      alert('Please enter a product or service name');
+      setGenerationError('Please enter a product or service name.');
       return;
     }
 
     setIsGenerating(true);
+    setGenerationError(null);
     setActiveTab('content');
     setLastGenerateMode(includePoster);
     setActivePosterIndex(0);
+    startStepTimer();
 
     try {
-      const description = buildDescription({
-        discount,
+      const tagDescription = buildDescription({
         tags: selectedTags,
         season: season !== 'No specific season' ? season : undefined,
       });
+      // Merge user's freeform description with tag-based description
+      const description = [extraDescription.trim(), tagDescription].filter(Boolean).join(' — ') || undefined;
 
       const tone = mapTone(selectedTags);
       const backendLanguage = mapLanguage(language);
+      const sizesToGenerate = includePoster
+        ? (selectedSizes.length > 0 ? selectedSizes : ['facebook' as PosterSize])
+        : [];
 
-      if (includePoster) {
-        const sizesToGenerate = selectedSizes.length > 0 ? selectedSizes : ['facebook' as PosterSize];
+      // ── Single Gemini call for the first (or only) size ──────────────────
+      const firstResponse = await generateSmartPoster({
+        product_name: productName,
+        description,
+        tone,
+        language: backendLanguage,
+        season: season !== 'No specific season' ? season : undefined,
+        discount: discount || undefined,
+        business_name: includePoster ? (businessName || undefined) : undefined,
+        phone_number: includePoster ? (phoneNumber || undefined) : undefined,
+        tags: selectedTags,
+        size: sizesToGenerate[0] ?? 'facebook',
+        template_style: null,
+      });
 
-        const posterPromises = sizesToGenerate.map(size =>
-          generateSmartPoster({
-            product_name: productName,
-            description,
-            tone,
-            language: backendLanguage,
-            season: season !== 'No specific season' ? season : undefined,
+      setGeneratedContent(firstResponse.content);
+      setHashtags(firstResponse.hashtags || []);
+
+      if (!includePoster) {
+        setGeneratedPosters([]);
+        stopStepTimer();
+        setGeneratingStep(GENERATION_STEPS.length - 1);
+        setIsGenerating(false);
+        return;
+      }
+
+      // Build posters list from first response
+      const posters: { size: PosterSize; url: string | null; label: string }[] = [];
+      if (firstResponse.poster_path) {
+        posters.push({
+          size: sizesToGenerate[0],
+          url: getPosterUrl(firstResponse.poster_path),
+          label: POSTER_SIZES.find(s => s.id === sizesToGenerate[0])?.label || sizesToGenerate[0],
+        });
+      }
+
+      // ── Parallel render-only calls for remaining sizes (skip Gemini) ─────
+      if (sizesToGenerate.length > 1 && firstResponse.structured_content) {
+        const renderPromises = sizesToGenerate.slice(1).map(size =>
+          renderPosterOnly({
+            product_name: firstResponse.display_product_name || productName,
+            structured_content: firstResponse.structured_content!,
+            background_path_raw: firstResponse.background_path_raw ?? null,
+            size,
+            template_style: null,
             discount: discount || undefined,
             business_name: businessName || undefined,
             phone_number: phoneNumber || undefined,
-            tags: selectedTags,
-            size,
+            season: season !== 'No specific season' ? season : undefined,
           })
         );
 
-        const responses = await Promise.all(posterPromises);
-        const firstResponse = responses[0];
-
-        setGeneratedContent(firstResponse.content);
-        setHashtags(firstResponse.hashtags || []);
-
-        const posters = responses.map((response, index) => ({
-          size: sizesToGenerate[index],
-          url: response.poster_path ? getPosterUrl(response.poster_path) : null,
-          label: POSTER_SIZES.find(s => s.id === sizesToGenerate[index])?.label || sizesToGenerate[index],
-        })).filter(p => p.url);
-        
-        setGeneratedPosters(posters);
-        
-      } else {
-        const response = await generateSmartPoster({
-          product_name: productName,
-          description,
-          tone,
-          language: backendLanguage,
-          season: season !== 'No specific season' ? season : undefined,
-          discount: discount || undefined,
-          tags: selectedTags,
+        const renderResults = await Promise.all(renderPromises);
+        renderResults.forEach((result, i) => {
+          if (result.poster_path) {
+            posters.push({
+              size: sizesToGenerate[i + 1],
+              url: getPosterUrl(result.poster_path),
+              label: POSTER_SIZES.find(s => s.id === sizesToGenerate[i + 1])?.label || sizesToGenerate[i + 1],
+            });
+          }
         });
-
-        setGeneratedContent(response.content);
-        setHashtags(response.hashtags || []);
-        setGeneratedPosters([]);
       }
 
+      const validPosters = posters.filter(p => p.url);
+      setGeneratedPosters(validPosters);
+      if (validPosters.length > 0) setActiveTab('poster');
+
+      stopStepTimer();
+      setGeneratingStep(GENERATION_STEPS.length - 1);
       setIsGenerating(false);
-      
+
     } catch (error) {
       console.error('Error generating content:', error);
-      alert(`Something went wrong. Please try again.\n${error instanceof Error ? error.message : ''}`);
+      stopStepTimer();
       setIsGenerating(false);
+      setGenerationError(
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong. Please try again.'
+      );
     }
   };
 
@@ -431,12 +497,22 @@ export default function ContentGeneratorPage() {
                         )}
                       </div>
 
+                      {/* Extra Description */}
+                      <div>
+                        <label className="block text-sm font-medium text-[#F9FAFB] mb-2">
+                          Extra Details <span className="text-[#CBD5E1] text-xs font-normal">(Optional — helps the AI)</span>
+                        </label>
+                        <textarea
+                          value={extraDescription}
+                          onChange={(e) => setExtraDescription(e.target.value)}
+                          placeholder="e.g., Imported from Japan, available in 3 colors, suitable for all ages..."
+                          rows={2}
+                          className="w-full px-4 py-3 bg-[#0B0F14] border border-[#1F2933] rounded-xl focus:outline-none focus:border-[#CBD5E1]/30 text-[#F9FAFB] placeholder:text-[#CBD5E1]/50 resize-none"
+                        />
+                      </div>
+
                       {/* Season/Festival */}
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-[#F9FAFB] mb-2">
-                          <CalendarIcon className="h-4 w-4" />
-                          Season / Festival <span className="text-[#CBD5E1] text-xs font-normal">(Optional)</span>
-                        </label>
                         <select
                           value={season}
                           onChange={(e) => setSeason(e.target.value)}
@@ -755,11 +831,10 @@ export default function ContentGeneratorPage() {
                               </div>
                             </div>
 
-                            {/* Quality Badge */}
                             <div className="flex items-center gap-2 px-4 py-2 bg-[#22C55E]/10 rounded-lg">
-                              <CheckCircleIcon className="h-4 w-4 text-[#22C55E]" />
-                              <p className="text-xs text-[#22C55E] font-medium">Content quality verified — ready to post</p>
-                            </div>
+                                <CheckCircleIcon className="h-4 w-4 text-[#22C55E]" />
+                                <p className="text-xs text-[#22C55E] font-medium">Content ready — copy, download, and share!</p>
+                              </div>
                           </div>
                         )}
 
@@ -857,16 +932,65 @@ export default function ContentGeneratorPage() {
                         )}
                       </div>
                     ) : (
-                      <div className="text-center py-16">
-                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#22C55E]/10 to-[#7C3AED]/10 mb-5">
-                          <SparklesIcon className="h-10 w-10 text-[#CBD5E1]" />
-                        </div>
-                        <h3 className="text-lg font-medium text-[#F9FAFB] mb-2">Your Ad Will Appear Here</h3>
-                        <p className="text-[#CBD5E1] text-sm max-w-xs mx-auto">Enter your product details on the left, then click &quot;Generate Ad Text&quot; or &quot;Create Ad Poster&quot; to get started</p>
-                        <div className="mt-6 p-4 bg-[#1F2933] rounded-xl max-w-xs mx-auto text-left">
-                          <p className="text-xs font-medium text-[#22C55E] mb-2">Quick tip:</p>
-                          <p className="text-xs text-[#CBD5E1]">Just type your product name and click &quot;Create Ad Poster&quot; — we&apos;ll handle the rest! You can always customize more later.</p>
-                        </div>
+                      <div className="text-center py-10">
+                        {/* Inline Error */}
+                        {generationError && (
+                          <div className="mb-6 p-4 bg-red-900/30 border border-red-700/50 rounded-xl text-left">
+                            <p className="text-sm font-medium text-red-400 mb-1">Generation failed</p>
+                            <p className="text-xs text-red-300">{generationError}</p>
+                            <button
+                              onClick={() => setGenerationError(null)}
+                              className="mt-2 text-xs text-red-400 hover:text-red-300 underline"
+                            >
+                              Dismiss
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Loading Steps */}
+                        {isGenerating ? (
+                          <div className="space-y-4 text-left">
+                            <p className="text-sm font-medium text-[#F9FAFB] mb-4">Generating your ad...</p>
+                            {GENERATION_STEPS.map((step, i) => {
+                              const isDone = i < generatingStep;
+                              const isActive = i === generatingStep;
+                              return (
+                                <div key={step.id} className={`flex items-center gap-3 transition-opacity ${i > generatingStep ? 'opacity-30' : 'opacity-100'}`}>
+                                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                    isDone ? 'bg-[#22C55E]' : isActive ? 'bg-[#7C3AED]' : 'bg-[#1F2933]'
+                                  }`}>
+                                    {isDone ? (
+                                      <CheckCircleIcon className="h-4 w-4 text-white" />
+                                    ) : isActive ? (
+                                      <ArrowPathIcon className="h-3.5 w-3.5 text-white animate-spin" />
+                                    ) : (
+                                      <span className="w-2 h-2 rounded-full bg-[#4B5563]" />
+                                    )}
+                                  </div>
+                                  <span className={`text-sm ${isActive ? 'text-[#F9FAFB] font-medium' : isDone ? 'text-[#22C55E]' : 'text-[#4B5563]'}`}>
+                                    {step.label}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <>
+                            {!generationError && (
+                              <>
+                                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#22C55E]/10 to-[#7C3AED]/10 mb-5">
+                                  <SparklesIcon className="h-10 w-10 text-[#CBD5E1]" />
+                                </div>
+                                <h3 className="text-lg font-medium text-[#F9FAFB] mb-2">Your Ad Will Appear Here</h3>
+                                <p className="text-[#CBD5E1] text-sm max-w-xs mx-auto">Enter your product details on the left, then click &quot;Generate Ad Text&quot; or &quot;Create Ad Poster&quot; to get started</p>
+                                <div className="mt-6 p-4 bg-[#1F2933] rounded-xl max-w-xs mx-auto text-left">
+                                  <p className="text-xs font-medium text-[#22C55E] mb-2">Quick tip:</p>
+                                  <p className="text-xs text-[#CBD5E1]">Just type your product name and click &quot;Create Ad Poster&quot; — we&apos;ll handle the rest! You can always customize more later.</p>
+                                </div>
+                              </>
+                            )}
+                          </>
+                        )}
                       </div>
                     )}
                   </div>

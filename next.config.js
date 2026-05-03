@@ -18,13 +18,13 @@ const nextConfig = {
     ],
   },
   // Proxy /api/* to the strategy backend.
-  // Exclude /api/sa-proxy/* which is handled by the built-in Route Handler.
+  // Exclude /api/sa-proxy/* and /api/content-proxy/* — handled by built-in Route Handlers.
   async rewrites() {
     const backendUrl =
       process.env.NEXT_PUBLIC_STRATEGY_BASE_URL || 'https://sachinthya-marketing-strategy-recommender.hf.space';
     return [
       {
-        source: '/api/:path((?!sa-proxy).*)',
+        source: '/api/:path((?!sa-proxy|content-proxy).*)',
         destination: `${backendUrl}/api/:path*`,
       },
     ]
