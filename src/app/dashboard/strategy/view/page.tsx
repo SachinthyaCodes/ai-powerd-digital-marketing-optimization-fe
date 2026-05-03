@@ -588,7 +588,7 @@ function StrategyViewContent() {
                           </Pie>
                           <ReTooltip
                             contentStyle={{ background: '#1F2933', border: '1px solid #2D3748', borderRadius: 8, color: '#F9FAFB', fontSize: 12 }}
-                            formatter={(val: number) => [`${val}%`, 'Budget Share']}
+                            formatter={(val: any) => [`${val}%`, 'Budget Share']}
                           />
                         </PieChart>
                       </ResponsiveContainer>
@@ -678,7 +678,7 @@ function StrategyViewContent() {
                       />
                       <ReTooltip
                         contentStyle={{ background: '#1F2933', border: '1px solid #2D3748', borderRadius: 8, color: '#F9FAFB', fontSize: 12 }}
-                        formatter={(val: number) => [`${val}%`, 'Score']}
+                        formatter={(val: any) => [`${val}%`, 'Score']}
                       />
                     </RadarChart>
                   </ResponsiveContainer>
