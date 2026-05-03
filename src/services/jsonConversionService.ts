@@ -88,7 +88,7 @@ export class FormDataProcessor {
    * Convert raw form data to structured JSON format
    */
   static convertToStructuredJSON(
-    formData: MarketingStrategyFormData,
+    formData: any,
     options: ConversionOptions = {}
   ): ProcessedFormData {
     const {
@@ -162,7 +162,7 @@ export class FormDataProcessor {
 
     // Process market situation
     const marketSituation = {
-      seasonality: (formData.marketSituation?.seasonality || []).map(item => ({
+      seasonality: (formData.marketSituation?.seasonality || []).map((item: any) => ({
         category: item.category,
         factors: item.subcategories,
       })),
@@ -313,7 +313,7 @@ export class FormDataProcessor {
     return availabilityMap[availability || ''] || availability || '';
   }
 
-  private static calculateCompletionRate(formData: MarketingStrategyFormData): number {
+  private static calculateCompletionRate(formData: any): number {
     const requiredFields = [
       formData.businessProfile?.businessType,
       formData.businessProfile?.industry,

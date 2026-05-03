@@ -562,10 +562,10 @@ export default function CalendarPage() {
                 Week {currentWeekIdx + 1} of {weeks.length}
                 {weeks[currentWeekIdx] && (
                   <span className="text-[#CBD5E1] ml-2">
-                    ({formatDateShort(weeks[currentWeekIdx][0].date)} –{' '}
+                    ({formatDateShort(weeks[currentWeekIdx][0].task.date)} –{' '}
                     {formatDateShort(
                       weeks[currentWeekIdx][weeks[currentWeekIdx].length - 1]
-                        .date,
+                        .task.date,
                     )}
                     )
                   </span>
