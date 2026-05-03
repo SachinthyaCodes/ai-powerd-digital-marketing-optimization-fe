@@ -1,4 +1,6 @@
 // Types for the marketing strategy form data
+
+// ── Step 1: Business Profile ──────────────────────────────────────────────────
 export interface BusinessProfile {
   businessType: string;
   industry: string;
@@ -10,24 +12,21 @@ export interface BusinessProfile {
   businessStage: 'new' | 'growing' | 'established';
   productsServices: string;
   uniqueSellingProposition: string;
+  hasLogo: boolean; // moved from old PlatformsPreferences step
 }
 
-export interface MarketingBudgetResources {
+// ── Step 2: Budget & Goals (merged Budget + Goals) ───────────────────────────
+export interface BudgetAndGoals {
   monthlyBudget: string;
-  hasMarketingTeam: string;
-  teamSize?: number;
+  hasMarketingTeam: string; // 'true' | 'false' string (radio value)
   contentCreationCapacity: string[];
-}
-
-export interface BusinessGoals {
   primaryGoal: 'brand-awareness' | 'leads' | 'sales' | 'customer-retention' | 'local-visits' | 'online-traffic';
-  secondaryGoals: string[];
 }
 
+// ── Step 3: Your Customers ────────────────────────────────────────────────────
 export interface TargetAudience {
   demographics: {
     ageRange: string;
-    gender: string[];
     incomeLevel: string;
   };
   location: string;
@@ -35,59 +34,32 @@ export interface TargetAudience {
   buyingFrequency: 'rare' | 'monthly' | 'weekly' | 'daily';
 }
 
-export interface PlatformsPreferences {
-  preferredPlatforms: string[];
-  platformExperience: Record<string, 'none' | 'beginner' | 'intermediate' | 'advanced'>;
-  brandAssets: {
-    hasLogo: boolean;
-    hasBrandStyle: boolean;
-    brandColors: string[];
-  };
-}
-
-export interface CurrentChallenges {
+// ── Step 4: Market Context (merged Challenges + Strengths + Market Situation) ─
+export interface MarketContext {
   challenges: string[];
   additionalChallenges?: string;
-}
-
-export interface StrengthsOpportunities {
   strengths: string[];
-  opportunities: string[];
   additionalNotes?: string;
-}
-
-export interface MarketSituation {
   seasonality: {
     category: string;
     subcategories: string[];
   }[];
   seasonalityOther?: string;
-  competitorBehavior: string;
-  stockAvailability: 'always-available' | 'seasonal' | 'limited' | 'pre-order';
-  recentPriceChanges: string;
-  priceChangeDetails?: string;
+  competitorBehavior?: string;
 }
 
 export interface MarketingStrategyFormData {
   businessProfile: BusinessProfile;
-  budgetResources: MarketingBudgetResources;
-  businessGoals: BusinessGoals;
+  budgetAndGoals: BudgetAndGoals;
   targetAudience: TargetAudience;
-  platformsPreferences: PlatformsPreferences;
-  currentChallenges: CurrentChallenges;
-  strengthsOpportunities: StrengthsOpportunities;
-  marketSituation: MarketSituation;
+  marketContext: MarketContext;
 }
 
-export type FormStep = 
+export type FormStep =
   | 'business-profile'
-  | 'budget-resources' 
-  | 'business-goals'
+  | 'budget-and-goals'
   | 'target-audience'
-  | 'platforms-preferences'
-  | 'current-challenges'
-  | 'strengths-opportunities'
-  | 'market-situation'
+  | 'market-context'
   | 'review';
 
 export interface StepConfig {

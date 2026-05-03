@@ -2,7 +2,7 @@
  * Main form data processor that handles language detection, translation, and JSON conversion
  */
 
-import { MarketingStrategyFormData } from '@/types';
+// Type definition removed since formDataProcessor uses an outdated structure.
 import { detectLanguagesInFormData, getTextFieldsForTranslation } from '@/utils/languageDetection';
 import { TranslationService, createTranslationService, TranslationResponse } from '@/services/translationService';
 import { FormDataProcessor, ProcessedFormData, exportFormDataAsJSON } from '@/services/jsonConversionService';
@@ -42,7 +42,7 @@ export class FormDataProcessorService {
   /**
    * Convert form data with step-based keys to expected structure
    */
-  private normalizeFormData(formData: any): MarketingStrategyFormData {
+  private normalizeFormData(formData: any): any {
     return {
       businessProfile: formData.businessProfile || formData.businessprofile || {},
       targetAudience: formData.targetAudience || formData.targetaudience || {},

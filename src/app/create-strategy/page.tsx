@@ -1,64 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AuthHeader } from '@/components/AuthHeader';
 import Sidebar from '@/components/Sidebar';
 import { StepIndicator } from '@/components/StepIndicator';
 import { BusinessProfileStep } from '@/components/steps/BusinessProfileStep';
-import { BudgetResourcesStep } from '@/components/steps/BudgetResourcesStep';
-import { BusinessGoalsStep } from '@/components/steps/BusinessGoalsStep';
+import { BudgetAndGoalsStep } from '@/components/steps/BudgetAndGoalsStep';
 import { TargetAudienceStep } from '@/components/steps/TargetAudienceStep';
-import { PlatformsPreferencesStep } from '@/components/steps/PlatformsPreferencesStep';
-import { CurrentChallengesStep } from '@/components/steps/CurrentChallengesStep';
-import { StrengthsOpportunitiesStep } from '@/components/steps/StrengthsOpportunitiesStep';
-import { MarketSituationStep } from '@/components/steps/MarketSituationStep';
+import { MarketContextStep } from '@/components/steps/MarketContextStep';
 import { ReviewStep } from '@/components/steps/ReviewStep';
-import { type FormStep, type MarketingStrategyFormData, type StepConfig } from '@/types';
-import { formDataProcessor, ProcessingOptions } from '@/services/formDataProcessor';
-import { generateStrategy } from '@/services/strategyApiService';
+import { type MarketingStrategyFormData, type StepConfig } from '@/types';
+import { generateStrategyStream } from '@/services/strategyApiService';
+
+const DRAFT_KEY = 'strategy_form_draft';
 
 const STEPS: StepConfig[] = [
   {
     id: 'business-profile',
     title: 'Business Profile',
-    description: ''
+    description: 'Tell us about your business'
   },
   {
-    id: 'budget-resources',
-    title: 'Budget & Resources',
-    description: ''
-  },
-  {
-    id: 'business-goals',
-    title: 'Business Goals',
-    description: ''
+    id: 'budget-and-goals',
+    title: 'Budget & Goals',
+    description: 'Your resources and primary objective'
   },
   {
     id: 'target-audience',
-    title: 'Target Audience',
-    description: ''
+    title: 'Your Customers',
+    description: 'Who are you trying to reach?'
   },
   {
-    id: 'platforms-preferences',
-    title: 'Platforms & Assets',
-    description: ''
-  },
-  {
-    id: 'current-challenges',
-    title: 'Current Challenges',
-    description: ''
-  },
-  {
-    id: 'strengths-opportunities',
-    title: 'Strengths & Opportunities',
-    description: ''
-  },
-  {
-    id: 'market-situation',
-    title: 'Market Situation',
-    description: ''
+    id: 'market-context',
+    title: 'Market Context',
+    description: 'Challenges, strengths, and seasonal factors'
   },
   {
     id: 'review',
@@ -67,51 +44,105 @@ const STEPS: StepConfig[] = [
   }
 ];
 
+// Map step IDs to the camelCase keys used in MarketingStrategyFormData
+const STEP_KEY_MAP: Record<string, keyof MarketingStrategyFormData> = {
+  'business-profile': 'businessProfile',
+  'budget-and-goals': 'budgetAndGoals',
+  'target-audience': 'targetAudience',
+  'market-context': 'marketContext',
+};
+
 function Home() {
   const router = useRouter();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [formData, setFormData] = useState<Partial<MarketingStrategyFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<string>('');
-  const [processingResult, setProcessingResult] = useState<any>(null);
+  const [streamingText, setStreamingText] = useState<string>('');
+  const [processingResult] = useState<any>(null);
   const [showErrors, setShowErrors] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [saveIndicator, setSaveIndicator] = useState<'saving' | 'saved' | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Load draft from localStorage on first mount ──────────────────────
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.formData && Object.keys(parsed.formData).length > 0) {
+          setFormData(parsed.formData);
+          if (typeof parsed.stepIndex === 'number') {
+            setCurrentStepIndex(Math.min(parsed.stepIndex, STEPS.length - 2)); // don't restore review step
+          }
+          setDraftRestored(true);
+          // Auto-hide the banner after 5 seconds
+          setTimeout(() => setDraftRestored(false), 5000);
+        }
+      }
+    } catch {
+      // Corrupt draft — ignore silently
+    }
+  }, []);
+
+  // ── Debounced draft saver ─────────────────────────────────────────────
+  const saveDraft = useCallback((data: Partial<MarketingStrategyFormData>, stepIndex: number) => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    setSaveIndicator('saving');
+    debounceTimer.current = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ formData: data, stepIndex }));
+        setSaveIndicator('saved');
+        setTimeout(() => setSaveIndicator(null), 2000);
+      } catch {
+        setSaveIndicator(null);
+      }
+    }, 600);
+  }, []);
+
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setFormData({});
+    setCurrentStepIndex(0);
+    setDraftRestored(false);
+  };
 
   const currentStep = STEPS[currentStepIndex];
 
-  // Map step IDs to camelCase keys matching MarketingStrategyFormData
-  const STEP_KEY_MAP: Record<string, keyof MarketingStrategyFormData> = {
-    'business-profile': 'businessProfile',
-    'budget-resources': 'budgetResources',
-    'business-goals': 'businessGoals',
-    'target-audience': 'targetAudience',
-    'platforms-preferences': 'platformsPreferences',
-    'current-challenges': 'currentChallenges',
-    'strengths-opportunities': 'strengthsOpportunities',
-    'market-situation': 'marketSituation',
-  };
-
   const validateCurrentStep = (): boolean => {
     const key = STEP_KEY_MAP[currentStep.id];
-    if (!key) return true;
+    if (!key) return true; // review step
     const d = formData[key] as any;
     if (!d) return false;
+
     switch (currentStep.id) {
       case 'business-profile':
-        return !!(d.businessType && d.businessSize && d.businessStage && d.location?.city && d.productsServices?.trim() && d.uniqueSellingProposition?.trim());
-      case 'budget-resources':
-        return !!(d.monthlyBudget && d.hasMarketingTeam && d.contentCreationCapacity?.length > 0);
-      case 'business-goals':
-        return !!d.primaryGoal;
+        return !!(
+          d.businessType &&
+          d.businessSize &&
+          d.businessStage &&
+          d.location?.city &&
+          d.productsServices?.trim() &&
+          d.uniqueSellingProposition?.trim()
+        );
+      case 'budget-and-goals':
+        return !!(
+          d.monthlyBudget &&
+          d.hasMarketingTeam &&
+          d.contentCreationCapacity?.length > 0 &&
+          d.primaryGoal
+        );
       case 'target-audience':
-        return !!(d.demographics?.ageRange && d.demographics?.incomeLevel && d.demographics?.gender?.length > 0 && d.location?.trim() && d.interests?.length > 0 && d.buyingFrequency);
-      case 'platforms-preferences':
-        return (d.preferredPlatforms?.length ?? 0) > 0;
-      case 'current-challenges':
-        return (d.challenges?.length ?? 0) > 0;
-      case 'strengths-opportunities':
-        return !!(d.strengths?.length > 0 && d.opportunities?.length > 0);
-      case 'market-situation':
-        return !!(d.seasonality?.length > 0 && d.stockAvailability && d.recentPriceChanges);
+        return !!(
+          d.demographics?.ageRange &&
+          d.demographics?.incomeLevel &&
+          d.location?.trim() &&
+          d.interests?.length > 0 &&
+          d.buyingFrequency
+        );
+      case 'market-context':
+        return !!(d.challenges?.length > 0 && d.strengths?.length > 0);
       default:
         return true;
     }
@@ -124,50 +155,56 @@ function Home() {
     }
     setShowErrors(false);
     if (currentStepIndex < STEPS.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
+      const nextIndex = currentStepIndex + 1;
+      setCurrentStepIndex(nextIndex);
+      saveDraft(formData, nextIndex);
     }
   };
 
   const handlePrevious = () => {
     setShowErrors(false);
     if (currentStepIndex > 0) {
-      setCurrentStepIndex(currentStepIndex - 1);
+      const prevIndex = currentStepIndex - 1;
+      setCurrentStepIndex(prevIndex);
+      saveDraft(formData, prevIndex);
     }
   };
 
   const handleStepDataUpdate = (stepData: any) => {
     const key = STEP_KEY_MAP[currentStep.id];
     if (key) {
-      setFormData(prev => ({
-        ...prev,
-        [key]: stepData
-      }));
+      setFormData(prev => {
+        const updated = { ...prev, [key]: stepData };
+        saveDraft(updated, currentStepIndex);
+        return updated;
+      });
     }
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setProcessingStatus('Checking your answers...');
+    setStreamingText('');
 
     try {
-      // Validate form completeness
-      const validation = formDataProcessor.validateFormData(formData as MarketingStrategyFormData);
-      if (!validation.isValid) {
-        throw new Error(`Please fill in these sections: ${validation.missingFields.join(', ')}`);
-      }
+      await generateStrategyStream(
+        formData,
+        (msg) => setProcessingStatus(msg),
+        (chunk) => setStreamingText((prev) => prev + chunk),
+      );
 
-      // Generate strategy via real backend
-      setProcessingStatus('Creating your personalised marketing strategy... This usually takes about 30 seconds.');
-      await generateStrategy(formData);
+      // Clear the draft on success so the form starts fresh next time
+      localStorage.removeItem(DRAFT_KEY);
 
       setProcessingStatus('Your strategy is ready! Taking you there now...');
       setTimeout(() => {
         router.push('/dashboard/strategy/view');
       }, 1200);
-
     } catch (error) {
       console.error('Strategy generation failed:', error);
-      setProcessingStatus(`Something went wrong: ${error instanceof Error ? error.message : 'Please try again'}`);
+      setProcessingStatus(
+        `Something went wrong: ${error instanceof Error ? error.message : 'Please try again'}`
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -176,7 +213,7 @@ function Home() {
   const renderCurrentStep = () => {
     const key = STEP_KEY_MAP[currentStep.id];
     const stepProps = {
-      data: (key ? formData[key] : {}) || {},
+      data: (key ? formData[key] : {}) as any || {},
       onDataUpdate: handleStepDataUpdate,
       showErrors,
     };
@@ -184,28 +221,23 @@ function Home() {
     switch (currentStep.id) {
       case 'business-profile':
         return <BusinessProfileStep {...stepProps} />;
-      case 'budget-resources':
-        return <BudgetResourcesStep {...stepProps} />;
-      case 'business-goals':
-        return <BusinessGoalsStep {...stepProps} />;
+      case 'budget-and-goals':
+        return <BudgetAndGoalsStep {...stepProps} />;
       case 'target-audience':
         return <TargetAudienceStep {...stepProps} />;
-      case 'platforms-preferences':
-        return <PlatformsPreferencesStep {...stepProps} />;
-      case 'current-challenges':
-        return <CurrentChallengesStep {...stepProps} />;
-      case 'strengths-opportunities':
-        return <StrengthsOpportunitiesStep {...stepProps} />;
-      case 'market-situation':
-        return <MarketSituationStep {...stepProps} />;
+      case 'market-context':
+        return <MarketContextStep {...stepProps} />;
       case 'review':
-        return <ReviewStep 
-          data={formData} 
-          onSubmit={handleSubmit} 
-          isSubmitting={isSubmitting}
-          processingStatus={processingStatus}
-          processingResult={processingResult}
-        />;
+        return (
+          <ReviewStep
+            data={formData}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            processingStatus={processingStatus}
+            processingResult={processingResult}
+            streamingText={streamingText}
+          />
+        );
       default:
         return null;
     }
@@ -216,6 +248,7 @@ function Home() {
       <Sidebar />
       <main className="flex-1 overflow-y-auto bg-[#0B0F14]">
         <div className="min-h-screen">
+
           {/* Header */}
           <header className="border-b border-[#1F2933] bg-[#0B0F14] relative">
             <div className="max-w-4xl mx-auto px-8 py-8">
@@ -223,10 +256,23 @@ function Home() {
                 <div>
                   <h1 className="text-2xl font-semibold text-[#F9FAFB] mb-1">Tell Us About Your Business</h1>
                   <p className="text-[#CBD5E1] text-sm">
-                    Answer a few questions and we'll build a marketing plan just for you
+                    Answer a few questions and our AI will build a data-driven marketing plan for you
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
+                  {/* Auto-save indicator */}
+                  {saveIndicator === 'saving' && (
+                    <div className="flex items-center gap-1.5 text-xs text-[#64748B]">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#64748B] animate-pulse" />
+                      <span>Saving draft…</span>
+                    </div>
+                  )}
+                  {saveIndicator === 'saved' && (
+                    <div className="flex items-center gap-1.5 text-xs text-[#22C55E]">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+                      <span>Draft saved</span>
+                    </div>
+                  )}
                   <span className="text-sm text-[#CBD5E1] tabular-nums">
                     Step <span className="text-[#F9FAFB] font-medium">{currentStepIndex + 1}</span> of {STEPS.length}
                   </span>
@@ -239,8 +285,28 @@ function Home() {
                 </div>
               </div>
             </div>
+
+            {/* Draft restored banner */}
+            {draftRestored && (
+              <div className="max-w-4xl mx-auto px-8 pb-4">
+                <div className="flex items-center justify-between px-4 py-2.5 bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#22C55E]">↩</span>
+                    <p className="text-sm text-[#22C55E] font-medium">Draft restored — your previous progress has been loaded.</p>
+                  </div>
+                  <button
+                    onClick={clearDraft}
+                    className="text-xs text-[#64748B] hover:text-[#CBD5E1] transition-colors underline underline-offset-2"
+                  >
+                    Clear &amp; start fresh
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Progress bar */}
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1F2933]">
-              <div 
+              <div
                 className="h-full bg-[#22C55E] transition-all duration-500 ease-out"
                 style={{ width: `${((currentStepIndex + 1) / STEPS.length) * 100}%` }}
               />
@@ -249,8 +315,8 @@ function Home() {
 
           {/* Step Indicator */}
           <div className="max-w-4xl mx-auto px-8 py-12">
-            <StepIndicator 
-              steps={STEPS} 
+            <StepIndicator
+              steps={STEPS}
               currentStepIndex={currentStepIndex}
               onStepClick={setCurrentStepIndex}
             />
@@ -264,9 +330,7 @@ function Home() {
                   {currentStep.title}
                 </h2>
                 {currentStep.description && (
-                  <p className="text-[#CBD5E1]">
-                    {currentStep.description}
-                  </p>
+                  <p className="text-[#CBD5E1] text-sm">{currentStep.description}</p>
                 )}
               </div>
 
@@ -289,18 +353,18 @@ function Home() {
                     >
                       Previous
                     </button>
-                    
                     <button
                       onClick={handleNext}
                       className="px-6 py-3 bg-[#22C55E] text-[#0B0F14] rounded-lg font-medium hover:bg-[#16A34A] transition-all"
                     >
-                      {currentStepIndex === STEPS.length - 2 ? 'Review' : 'Next'}
+                      {currentStepIndex === STEPS.length - 2 ? 'Review' : 'Next →'}
                     </button>
                   </div>
                 </div>
               )}
             </div>
           </div>
+
         </div>
       </main>
     </div>

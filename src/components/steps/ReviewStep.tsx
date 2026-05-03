@@ -1,7 +1,7 @@
 'use client';
 
 import { type MarketingStrategyFormData } from '@/types';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Cpu } from 'lucide-react';
 
 interface ReviewStepProps {
   data: Partial<MarketingStrategyFormData>;
@@ -9,243 +9,185 @@ interface ReviewStepProps {
   isSubmitting: boolean;
   processingStatus?: string;
   processingResult?: any;
+  streamingText?: string;
 }
 
-export function ReviewStep({ data, onSubmit, isSubmitting, processingStatus, processingResult }: ReviewStepProps) {
-  const getCompletionStatus = () => {
-    const sections = [
-      { name: 'Business Profile', data: data.businessProfile },
-      { name: 'Budget & Resources', data: data.budgetResources },
-      { name: 'Business Goals', data: data.businessGoals },
-      { name: 'Target Audience', data: data.targetAudience },
-      { name: 'Platforms & Preferences', data: data.platformsPreferences },
-      { name: 'Current Challenges', data: data.currentChallenges },
-      { name: 'Strengths & Opportunities', data: data.strengthsOpportunities },
-      { name: 'Market Situation', data: data.marketSituation }
-    ];
+export function ReviewStep({ data, onSubmit, isSubmitting, processingStatus, processingResult, streamingText }: ReviewStepProps) {
+  const sections = [
+    { key: 'businessProfile' as const, name: 'Business Profile' },
+    { key: 'budgetAndGoals' as const, name: 'Budget & Goals' },
+    { key: 'targetAudience' as const, name: 'Your Customers' },
+    { key: 'marketContext' as const, name: 'Market Context' },
+  ];
 
-    const completed = sections.filter(section => section.data && Object.keys(section.data).length > 0);
-    return { completed: completed.length, total: sections.length, sections };
-  };
+  const completed = sections.filter(s => {
+    const d = data[s.key] as any;
+    return d && Object.keys(d).length > 0;
+  });
+  const isComplete = completed.length === sections.length;
 
-  const { completed, total, sections } = getCompletionStatus();
-  const isComplete = completed === total;
+  const bp = data.businessProfile as any;
+  const bg = data.budgetAndGoals as any;
+  const ta = data.targetAudience as any;
+  const mc = data.marketContext as any;
 
-  const renderSectionSummary = (sectionName: string, sectionData: any) => {
-    if (!sectionData || Object.keys(sectionData).length === 0) {
-      return (
-        <div className="flex items-center text-yellow-500">
-          <AlertCircle className="w-4 h-4 mr-2" />
-          <span className="text-sm">Incomplete</span>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex items-center text-[#22C55E]">
-        <CheckCircle className="w-4 h-4 mr-2" />
-        <span className="text-sm">Complete</span>
-      </div>
-    );
-  };
-
-  const formatBusinessProfile = (data: any) => {
-    if (!data) return null;
-    return (
-      <div className="space-y-2 text-sm text-[#CBD5E1]">
-        <p><strong>Business:</strong> {data.businessType} {data.industry && `- ${data.industry}`}</p>
-        <p><strong>Size:</strong> {data.businessSize}</p>
-        <p><strong>Stage:</strong> {data.businessStage}</p>
-        <p><strong>Location:</strong> {data.location?.city} {data.location?.district && `, ${data.location.district}`}</p>
-      </div>
-    );
-  };
-
-  const formatBudgetResources = (data: any) => {
-    if (!data) return null;
-    
-    const contentCapacity = Array.isArray(data.contentCreationCapacity) 
-      ? data.contentCreationCapacity 
-      : data.contentCreationCapacity 
-        ? [data.contentCreationCapacity]
-        : [];
-    
-    return (
-      <div className="space-y-2 text-sm text-[#CBD5E1]">
-        <p><strong>Budget:</strong> {data.monthlyBudget}</p>
-        <p><strong>Team:</strong> {data.hasMarketingTeam === 'true' ? `Yes (${data.teamSize || 'size not specified'})` : 'Solo'}</p>
-        <p><strong>Capabilities:</strong> {contentCapacity.length > 0 ? contentCapacity.join(', ') : 'Not specified'}</p>
-      </div>
-    );
-  };
-
-  const formatBusinessGoals = (data: any) => {
-    if (!data) return null;
-    
-    const secondaryGoals = Array.isArray(data.secondaryGoals) 
-      ? data.secondaryGoals 
-      : data.secondaryGoals 
-        ? [data.secondaryGoals]
-        : [];
-    
-    return (
-      <div className="space-y-2 text-sm text-[#CBD5E1]">
-        <p><strong>Primary Goal:</strong> {data.primaryGoal?.replace('-', ' ')}</p>
-        {secondaryGoals.length > 0 && (
-          <p><strong>Secondary Goals:</strong> {secondaryGoals.join(', ')}</p>
-        )}
-      </div>
-    );
-  };
-
-  const formatTargetAudience = (data: any) => {
-    if (!data) return null;
-    
-    const genders = Array.isArray(data.demographics?.gender) 
-      ? data.demographics.gender 
-      : data.demographics?.gender 
-        ? [data.demographics.gender]
-        : [];
-    
-    return (
-      <div className="space-y-2 text-sm text-[#CBD5E1]">
-        <p><strong>Age:</strong> {data.demographics?.ageRange}</p>
-        <p><strong>Gender:</strong> {genders.length > 0 ? genders.join(', ') : 'Not specified'}</p>
-        <p><strong>Income:</strong> {data.demographics?.incomeLevel}</p>
-        <p><strong>Location:</strong> {data.location}</p>
-        <p><strong>Buying Frequency:</strong> {data.buyingFrequency}</p>
-      </div>
-    );
-  };
-
-  const formatPlatforms = (data: any) => {
-    if (!data) return null;
-    
-    const platforms = Array.isArray(data.preferredPlatforms) 
-      ? data.preferredPlatforms 
-      : data.preferredPlatforms 
-        ? [data.preferredPlatforms]
-        : [];
-    
-    return (
-      <div className="space-y-2 text-sm text-[#CBD5E1]">
-        <p><strong>Preferred Platforms:</strong> {platforms.length > 0 ? platforms.join(', ') : 'Not specified'}</p>
-        <p><strong>Brand Assets:</strong> 
-          {data.brandAssets?.hasLogo ? ' Logo' : ''}
-          {data.brandAssets?.hasBrandStyle ? ' Brand Style' : ''}
-          {!data.brandAssets?.hasLogo && !data.brandAssets?.hasBrandStyle ? ' None specified' : ''}
-        </p>
-      </div>
-    );
+  const GOAL_LABELS: Record<string, string> = {
+    'brand-awareness': 'Brand Awareness',
+    'leads': 'Generate Leads',
+    'sales': 'Increase Sales',
+    'customer-retention': 'Customer Retention',
+    'local-visits': 'Local Store Visits',
+    'online-traffic': 'Website Traffic',
   };
 
   return (
     <div className="space-y-6">
-      <div className="bg-[#0B0F14] border border-[#1F2933] rounded-lg p-4">
-        <h3 className="text-lg font-medium text-[#F9FAFB] mb-2">
-          Review Your Information
-        </h3>
-        <p className="text-[#CBD5E1]">
-          Please review all sections below. You can go back to edit any section if needed.
+
+      {/* Header */}
+      <div className="bg-[#22C55E]/[0.05] border border-[#22C55E]/20 rounded-xl p-5">
+        <div className="flex items-center gap-3 mb-1">
+          <Cpu className="w-5 h-5 text-[#22C55E]" />
+          <h3 className="text-base font-semibold text-[#F9FAFB]">Ready to Generate Your Strategy</h3>
+        </div>
+        <p className="text-sm text-[#94A3B8]">
+          Our AI will analyse your profile and recommend the best marketing platforms, budget split, and action plan — entirely based on market data.
         </p>
       </div>
 
-      <div className="bg-[#0B0F14] border border-[#1F2933] rounded-lg p-4">
+      {/* Completion status bar */}
+      <div className="bg-[#0B0F14] border border-[#1F2933] rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="font-medium text-[#F9FAFB]">Completion Status</h4>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-            isComplete ? 'bg-[#22C55E]/20 text-[#22C55E]' : 'bg-yellow-500/20 text-yellow-500'
-          }`}>
-            {completed}/{total} sections complete
+          <h4 className="text-sm font-medium text-[#F9FAFB]">Form Completion</h4>
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isComplete ? 'bg-[#22C55E]/20 text-[#22C55E]' : 'bg-yellow-500/20 text-yellow-400'}`}>
+            {completed.length}/{sections.length} complete
           </span>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sections.map((section, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-[#1F2933] rounded-lg">
-              <span className="font-medium text-[#CBD5E1]">{section.name}</span>
-              {renderSectionSummary(section.name, section.data)}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Section Details */}
-      <div className="space-y-4">
-        {sections.map((section, index) => (
-          section.data && Object.keys(section.data).length > 0 && (
-            <div key={index} className="bg-[#0B0F14] border border-[#1F2933] rounded-lg p-4">
-              <h4 className="font-medium text-[#F9FAFB] mb-3">{section.name}</h4>
-              {section.name === 'Business Profile' && formatBusinessProfile(section.data)}
-              {section.name === 'Budget & Resources' && formatBudgetResources(section.data)}
-              {section.name === 'Business Goals' && formatBusinessGoals(section.data)}
-              {section.name === 'Target Audience' && formatTargetAudience(section.data)}
-              {section.name === 'Platforms & Preferences' && formatPlatforms(section.data)}
-              {(section.name === 'Current Challenges' || 
-                section.name === 'Strengths & Opportunities' || 
-                section.name === 'Market Situation') && (
-                <p className="text-sm text-[#CBD5E1]">Information provided ✓</p>
-              )}
-            </div>
-          )
-        ))}
-      </div>
-
-      {!isComplete && (
-        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-          <div className="flex items-center">
-            <AlertCircle className="w-5 h-5 text-yellow-500 mr-2" />
-            <span className="font-medium text-yellow-500">Incomplete Sections</span>
-          </div>
-          <p className="text-[#CBD5E1] mt-2">
-            Please complete all sections to get the most accurate marketing strategy recommendations.
-          </p>
-        </div>
-      )}
-
-      {/* Processing Status */}
-      {(isSubmitting || processingStatus) && (
-        <div className="bg-[#22C55E]/10 border border-[#22C55E]/30 rounded-lg p-4">
-          <h4 className="font-medium text-[#F9FAFB] mb-2">Processing Your Data</h4>
-          <div className="space-y-2">
-            {isSubmitting && (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#22C55E] mr-2"></div>
-                <span className="text-sm text-[#CBD5E1]">{processingStatus || 'Processing...'}</span>
-              </div>
-            )}
-            
-            {processingResult && (
-              <div className="text-sm text-[#CBD5E1] space-y-1">
-                <p>✅ Language Detection: {processingResult.processingMetadata?.detectedLanguage}</p>
-                {processingResult.processingMetadata?.translationApplied && (
-                  <p>🌐 Translated {processingResult.processingMetadata.translatedFieldsCount} fields</p>
+        <div className="grid grid-cols-2 gap-3">
+          {sections.map(section => {
+            const d = data[section.key] as any;
+            const done = d && Object.keys(d).length > 0;
+            return (
+              <div key={section.key} className="flex items-center justify-between p-3 bg-[#1F2933] rounded-lg">
+                <span className="text-sm text-[#CBD5E1]">{section.name}</span>
+                {done ? (
+                  <CheckCircle className="w-4 h-4 text-[#22C55E]" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-yellow-400" />
                 )}
-                <p>📊 Completion Rate: {processingResult.processingMetadata?.completionRate}%</p>
-                <p>⏱️ Processing Time: {processingResult.processingMetadata?.totalProcessingTime}ms</p>
               </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        {/* Business Profile */}
+        {bp && (
+          <div className="bg-[#0B0F14] border border-[#1F2933] rounded-xl p-5 space-y-1.5">
+            <p className="text-[10px] tracking-[0.2em] uppercase text-[#22C55E]/60 font-semibold mb-3">Business Profile</p>
+            <p className="text-sm text-[#F9FAFB] font-medium">{bp.businessType}{bp.industry ? ` · ${bp.industry}` : ''}</p>
+            <p className="text-xs text-[#94A3B8]">{bp.businessSize} · {bp.businessStage}</p>
+            <p className="text-xs text-[#94A3B8]">📍 {bp.location?.city}{bp.location?.district ? `, ${bp.location.district}` : ''}</p>
+            {bp.hasLogo && <p className="text-xs text-[#22C55E]/70">✓ Has business logo</p>}
+          </div>
+        )}
+
+        {/* Budget & Goals */}
+        {bg && (
+          <div className="bg-[#0B0F14] border border-[#1F2933] rounded-xl p-5 space-y-1.5">
+            <p className="text-[10px] tracking-[0.2em] uppercase text-[#22C55E]/60 font-semibold mb-3">Budget & Goals</p>
+            <p className="text-sm text-[#F9FAFB] font-medium">{bg.monthlyBudget}</p>
+            <p className="text-xs text-[#94A3B8]">🎯 {GOAL_LABELS[bg.primaryGoal] || bg.primaryGoal}</p>
+            <p className="text-xs text-[#94A3B8]">Team: {bg.hasMarketingTeam === 'true' ? 'Yes' : 'Solo'}</p>
+            {Array.isArray(bg.contentCreationCapacity) && bg.contentCreationCapacity.length > 0 && (
+              <p className="text-xs text-[#94A3B8]">🎨 {bg.contentCreationCapacity.slice(0, 2).join(', ')}{bg.contentCreationCapacity.length > 2 ? ` +${bg.contentCreationCapacity.length - 2}` : ''}</p>
             )}
+          </div>
+        )}
+
+        {/* Target Audience */}
+        {ta && (
+          <div className="bg-[#0B0F14] border border-[#1F2933] rounded-xl p-5 space-y-1.5">
+            <p className="text-[10px] tracking-[0.2em] uppercase text-[#22C55E]/60 font-semibold mb-3">Your Customers</p>
+            <p className="text-sm text-[#F9FAFB] font-medium">Age {ta.demographics?.ageRange}</p>
+            <p className="text-xs text-[#94A3B8]">{ta.demographics?.incomeLevel}</p>
+            <p className="text-xs text-[#94A3B8]">📍 {ta.location}</p>
+            <p className="text-xs text-[#94A3B8]">Buys: {ta.buyingFrequency}</p>
+            {Array.isArray(ta.interests) && ta.interests.length > 0 && (
+              <p className="text-xs text-[#94A3B8]">❤ {ta.interests.slice(0, 3).join(', ')}{ta.interests.length > 3 ? ` +${ta.interests.length - 3}` : ''}</p>
+            )}
+          </div>
+        )}
+
+        {/* Market Context */}
+        {mc && (
+          <div className="bg-[#0B0F14] border border-[#1F2933] rounded-xl p-5 space-y-1.5">
+            <p className="text-[10px] tracking-[0.2em] uppercase text-[#22C55E]/60 font-semibold mb-3">Market Context</p>
+            {Array.isArray(mc.challenges) && mc.challenges.length > 0 && (
+              <p className="text-xs text-[#94A3B8]">⚠ {mc.challenges.length} challenge{mc.challenges.length !== 1 ? 's' : ''} identified</p>
+            )}
+            {Array.isArray(mc.strengths) && mc.strengths.length > 0 && (
+              <p className="text-xs text-[#94A3B8]">💪 {mc.strengths.length} strength{mc.strengths.length !== 1 ? 's' : ''} identified</p>
+            )}
+            {Array.isArray(mc.seasonality) && mc.seasonality.length > 0 && (
+              <p className="text-xs text-[#22C55E]/70">📅 Seasonal factors included</p>
+            )}
+            {mc.competitorBehavior && (
+              <p className="text-xs text-[#22C55E]/70">🔍 Competitor context provided</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Incomplete warning */}
+      {!isComplete && (
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-yellow-400">Some sections are incomplete</p>
+            <p className="text-xs text-[#94A3B8] mt-1">Please go back and complete all required fields for the most accurate strategy.</p>
           </div>
         </div>
       )}
 
+      {/* Processing status */}
+      {(isSubmitting || processingStatus) && (
+        <div className="bg-[#22C55E]/10 border border-[#22C55E]/30 rounded-xl p-5 space-y-3">
+          <div className="flex items-center gap-3">
+            {isSubmitting && (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#22C55E]/30 border-t-[#22C55E]" />
+            )}
+            <p className="text-sm text-[#94A3B8]">{processingStatus || 'Processing...'}</p>
+          </div>
+          {streamingText && (
+            <div className="max-h-32 overflow-y-auto rounded-lg bg-[#0B0F14] border border-[#2D3748] p-3">
+              <p className="text-xs text-[#64748B] font-mono leading-relaxed whitespace-pre-wrap break-words">
+                {streamingText}
+                <span className="inline-block w-1.5 h-3 bg-[#22C55E] ml-0.5 animate-pulse" />
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Submit */}
       <div className="border-t border-[#1F2933] pt-6">
         <button
           onClick={onSubmit}
           disabled={!isComplete || isSubmitting}
-          className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 bg-[#22C55E] text-[#0B0F14] rounded-xl font-semibold text-sm hover:bg-[#16A34A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'Generating Strategy...' : 'Get My Marketing Strategy Recommendations'}
+          {isSubmitting ? 'Generating Your Strategy...' : '✨ Get My AI Marketing Strategy'}
         </button>
-        
         {isComplete && !isSubmitting && (
-          <p className="text-sm text-[#CBD5E1] mt-3 text-center">
-            Your personalized marketing strategy will be generated based on the information you've provided.
-            <br />
-            <span className="text-xs">Supports Sinhala and English text with automatic translation.</span>
+          <p className="text-xs text-[#64748B] mt-3 text-center">
+            Our AI analyses your profile against real Sri Lanka market data to recommend the best platforms and plan for your business.
           </p>
         )}
       </div>
+
     </div>
   );
 }

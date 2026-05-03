@@ -122,7 +122,8 @@ export default function StrategyDashboard() {
       // Reload strategy from localStorage (forceRefresh already updated it)
       const stored = loadStrategyFromStorage();
       if (result.strategy && stored) {
-        setStrategy(stored.strategy);
+        // Clear both drift flags — freshly-refreshed strategy is never drifted.
+        setStrategy({ ...stored.strategy, drift_level: 'LOW', regenerate_flag: false });
         setMeta(stored.meta);
       }
       setDriftStatus(null);
@@ -380,14 +381,12 @@ export default function StrategyDashboard() {
                         ? 'bg-red-500/10 text-red-400'
                         : strategy.drift_level === 'MODERATE'
                         ? 'bg-[#F59E0B]/10 text-[#F59E0B]'
-                        : strategy.drift_level === 'LOW'
-                        ? 'bg-[#22C55E]/10 text-[#22C55E]'
-                        : 'text-[#64748B]'
+                        : 'bg-[#22C55E]/10 text-[#22C55E]'
                     }`}>
                       {strategy.drift_level === 'HIGH' ? 'Needs update'
                         : strategy.drift_level === 'MODERATE' ? 'Minor changes'
                         : strategy.drift_level === 'LOW' ? 'Up to date'
-                        : 'N/A'}
+                        : 'Freshly generated'}
                     </span>
                   </div>
                 </div>

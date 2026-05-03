@@ -11,11 +11,15 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   SparklesIcon,
+  ExclamationTriangleIcon,
+  XMarkIcon,
+  LockClosedIcon,
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import {
   generateCalendar,
   getLatestCalendar,
+  completeTask,
   CalendarPlan,
   CalendarTask,
 } from '@/services/calendarService';
@@ -76,15 +80,17 @@ function isPast(iso: string) {
   return d < today;
 }
 
-/** Group tasks into weeks. */
-function groupByWeek(tasks: CalendarTask[]): CalendarTask[][] {
-  if (!tasks.length) return [];
-  const weeks: CalendarTask[][] = [];
-  let currentWeek: CalendarTask[] = [];
+/** Group tasks WITH their global index by ISO week. */
+type IndexedTask = { task: CalendarTask; globalIndex: number };
+
+function groupByWeekIndexed(items: IndexedTask[]): IndexedTask[][] {
+  if (!items.length) return [];
+  const weeks: IndexedTask[][] = [];
+  let currentWeek: IndexedTask[] = [];
   let lastWeekNum = -1;
 
-  for (const task of tasks) {
-    const d = new Date(task.date);
+  for (const item of items) {
+    const d = new Date(item.task.date);
     const startOfYear = new Date(d.getFullYear(), 0, 1);
     const weekNum = Math.ceil(
       ((d.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7,
@@ -93,7 +99,7 @@ function groupByWeek(tasks: CalendarTask[]): CalendarTask[][] {
       weeks.push(currentWeek);
       currentWeek = [];
     }
-    currentWeek.push(task);
+    currentWeek.push(item);
     lastWeekNum = weekNum;
   }
   if (currentWeek.length) weeks.push(currentWeek);
@@ -115,6 +121,12 @@ export default function CalendarPage() {
   const [viewMode, setViewMode] = useState<'week' | 'list'>('week');
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
   const [strategyId, setStrategyId] = useState<string | null>(null);
+  // Task completion
+  const [completedTasks, setCompletedTasks] = useState<Set<number>>(new Set());
+  // Staleness (plan was built on a previous strategy version)
+  const [isStale, setIsStale] = useState(false);
+  const [dismissedStale, setDismissedStale] = useState(false);
+  const [staleStrategyVersion, setStaleStrategyVersion] = useState<number | null>(null);
 
   // ── Load existing calendar or show empty state ──
   useEffect(() => {
@@ -128,10 +140,16 @@ export default function CalendarPage() {
     }
 
     getLatestCalendar(sid)
-      .then((plan) => {
-        if (plan) {
-          setCalendar(plan);
-          setSelectedRange(plan.time_range);
+      .then((result) => {
+        if (result) {
+          setCalendar(result.calendar);
+          setSelectedRange(result.calendar.time_range);
+          setCompletedTasks(new Set(result.calendar.completed_tasks ?? []));
+          if (result.is_stale) {
+            setIsStale(true);
+            const stored = loadStrategyFromStorage();
+            setStaleStrategyVersion(stored?.strategy?.version ?? null);
+          }
         }
       })
       .catch((err) => {
@@ -148,6 +166,10 @@ export default function CalendarPage() {
     try {
       const plan = await generateCalendar(strategyId, selectedRange);
       setCalendar(plan);
+      // Reset completion state and staleness for the new plan
+      setCompletedTasks(new Set(plan.completed_tasks ?? []));
+      setIsStale(false);
+      setDismissedStale(false);
       setCurrentWeekIdx(0);
       setFilterPlatform(null);
     } catch (err: unknown) {
@@ -157,17 +179,37 @@ export default function CalendarPage() {
     }
   }, [strategyId, selectedRange]);
 
+  // Mark a task as done — optimistic update, persisted to DB
+  const handleCompleteTask = useCallback(async (taskIndex: number) => {
+    if (!calendar) return;
+    // Optimistic
+    setCompletedTasks((prev) => new Set([...prev, taskIndex]));
+    try {
+      const updated = await completeTask(calendar.id, taskIndex);
+      setCompletedTasks(new Set(updated));
+    } catch {
+      // Revert on failure
+      setCompletedTasks((prev) => {
+        const next = new Set(prev);
+        next.delete(taskIndex);
+        return next;
+      });
+    }
+  }, [calendar]);
+
   // ── Derived data ──
   const tasks: CalendarTask[] = calendar?.plan_json ?? [];
-  const filteredTasks = filterPlatform
-    ? tasks.filter((t) => t.platform === filterPlatform)
-    : tasks;
-  const weeks = groupByWeek(filteredTasks);
+  // Pair every task with its stable global index (position in plan_json)
+  const tasksWithIndex: IndexedTask[] = tasks.map((task, i) => ({ task, globalIndex: i }));
+  const filteredTasksWithIndex = filterPlatform
+    ? tasksWithIndex.filter(({ task }) => task.platform === filterPlatform)
+    : tasksWithIndex;
+  const weeks = groupByWeekIndexed(filteredTasksWithIndex);
   const platforms = Array.from(new Set(tasks.map((t) => t.platform)));
 
   const totalTasks = tasks.length;
-  const todayTasks = tasks.filter((t) => isToday(t.date)).length;
-  const upcomingTasks = tasks.filter((t) => !isPast(t.date)).length;
+  const completedCount = completedTasks.size;
+  const upcomingTasks = tasks.filter((t, i) => !isPast(t.date) && !completedTasks.has(i)).length;
   const platformBreakdown = platforms.map((p) => ({
     name: p,
     count: tasks.filter((t) => t.platform === p).length,
@@ -387,6 +429,40 @@ export default function CalendarPage() {
           </div>
         )}
 
+        {/* Staleness banner — shown when strategy was updated after this plan was made */}
+        {isStale && !dismissedStale && (
+          <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+            <ExclamationTriangleIcon className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-amber-300">Your strategy has been updated</p>
+              <p className="text-sm text-amber-300/70 mt-0.5">
+                This content plan was built for{' '}
+                {staleStrategyVersion == null
+                  ? 'a previous strategy version'
+                  : `a previous strategy version (your strategy is now v${staleStrategyVersion})`}.
+                {' '}Tasks you’ve already completed are preserved.
+                Recreating the plan will generate a fresh calendar based on your current strategy.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="px-3 py-1.5 bg-amber-500 text-[#0B0F14] rounded-lg text-xs font-semibold hover:bg-amber-400 transition-all disabled:opacity-50"
+              >
+                Recreate Plan
+              </button>
+              <button
+                onClick={() => setDismissedStale(true)}
+                className="p-1.5 hover:bg-amber-500/20 rounded-lg transition-all text-amber-400"
+                aria-label="Dismiss"
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-[#1F2933] border border-[#2D3748] rounded-xl p-4">
@@ -396,10 +472,23 @@ export default function CalendarPage() {
             </div>
           </div>
           <div className="bg-[#1F2933] border border-[#2D3748] rounded-xl p-4">
-            <div className="text-sm text-[#CBD5E1]">Today</div>
-            <div className="text-2xl font-semibold text-[#22C55E] mt-1">
-              {todayTasks}
+            <div className="text-sm text-[#CBD5E1]">Completed</div>
+            <div className="flex items-end gap-2 mt-1">
+              <span className="text-2xl font-semibold text-[#22C55E]">{completedCount}</span>
+              {totalTasks > 0 && (
+                <span className="text-sm text-[#64748B] pb-0.5">
+                  / {totalTasks} ({Math.round((completedCount / totalTasks) * 100)}%)
+                </span>
+              )}
             </div>
+            {totalTasks > 0 && (
+              <div className="mt-2 h-1 bg-[#0B0F14] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#22C55E] rounded-full transition-all"
+                  style={{ width: `${Math.round((completedCount / totalTasks) * 100)}%` }}
+                />
+              </div>
+            )}
           </div>
           <div className="bg-[#1F2933] border border-[#2D3748] rounded-xl p-4">
             <div className="text-sm text-[#CBD5E1]">Upcoming</div>
@@ -431,9 +520,9 @@ export default function CalendarPage() {
             <button
               onClick={() => setFilterPlatform(null)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                !filterPlatform
-                  ? 'bg-[#22C55E] text-[#0B0F14]'
-                  : 'bg-[#1F2933] text-[#CBD5E1] hover:text-[#F9FAFB]'
+                filterPlatform
+                  ? 'bg-[#1F2933] text-[#CBD5E1] hover:text-[#F9FAFB]'
+                  : 'bg-[#22C55E] text-[#0B0F14]'
               }`}
             >
               All
@@ -496,16 +585,19 @@ export default function CalendarPage() {
             </div>
 
             <div className="space-y-3">
-              {(weeks[currentWeekIdx] || []).map((task) => (
+              {(weeks[currentWeekIdx] || []).map(({ task, globalIndex }) => (
                 <TaskCard
-                  key={task.date + task.platform}
+                  key={globalIndex}
                   task={task}
-                  expanded={expandedTask === task.date + task.platform}
+                  globalIndex={globalIndex}
+                  isDone={completedTasks.has(globalIndex)}
+                  onDone={handleCompleteTask}
+                  expanded={expandedTask === String(globalIndex)}
                   onToggle={() =>
                     setExpandedTask(
-                      expandedTask === task.date + task.platform
+                      expandedTask === String(globalIndex)
                         ? null
-                        : task.date + task.platform,
+                        : String(globalIndex),
                     )
                   }
                 />
@@ -517,16 +609,19 @@ export default function CalendarPage() {
         {/* List View */}
         {viewMode === 'list' && (
           <div className="space-y-3">
-            {filteredTasks.map((task) => (
+            {filteredTasksWithIndex.map(({ task, globalIndex }) => (
               <TaskCard
-                key={task.date + task.platform}
+                key={globalIndex}
                 task={task}
-                expanded={expandedTask === task.date + task.platform}
+                globalIndex={globalIndex}
+                isDone={completedTasks.has(globalIndex)}
+                onDone={handleCompleteTask}
+                expanded={expandedTask === String(globalIndex)}
                 onToggle={() =>
                   setExpandedTask(
-                    expandedTask === task.date + task.platform
+                    expandedTask === String(globalIndex)
                       ? null
-                      : task.date + task.platform,
+                      : String(globalIndex),
                   )
                 }
               />
@@ -534,7 +629,7 @@ export default function CalendarPage() {
           </div>
         )}
 
-        {filteredTasks.length === 0 && (
+        {filteredTasksWithIndex.length === 0 && (
           <div className="text-center py-12">
             <p className="text-[#CBD5E1]">
               No tasks found
@@ -547,14 +642,40 @@ export default function CalendarPage() {
   );
 }
 
+// ── Task Card helpers ────────────────────────────────────────────────────────
+
+function taskBorderClass(isDone: boolean, today: boolean): string {
+  if (isDone) return 'border-[#22C55E]/20';
+  if (today) return 'border-[#22C55E]/50 ring-1 ring-[#22C55E]/20';
+  return 'border-[#2D3748] hover:border-[#22C55E]/30';
+}
+
+function taskOpacityClass(isDone: boolean, past: boolean): string {
+  if (isDone) return 'opacity-50 grayscale';
+  if (past) return 'opacity-65';
+  return '';
+}
+
+function dateBadgeClass(isDone: boolean, today: boolean, past: boolean): string {
+  if (isDone || past) return 'bg-[#0B0F14] text-[#64748B]';
+  if (today) return 'bg-[#22C55E]/20 text-[#22C55E]';
+  return 'bg-[#0B0F14] text-[#F9FAFB]';
+}
+
 // ── Task Card ────────────────────────────────────────────────────────────────
 
 function TaskCard({
   task,
+  globalIndex,
+  isDone,
+  onDone,
   expanded,
   onToggle,
 }: Readonly<{
   task: CalendarTask;
+  globalIndex: number;
+  isDone: boolean;
+  onDone: (index: number) => void;
   expanded: boolean;
   onToggle: () => void;
 }>) {
@@ -562,50 +683,40 @@ function TaskCard({
   const today = isToday(task.date);
 
   return (
-    <button
-      type="button"
-      className={`bg-[#1F2933] border rounded-xl transition-all cursor-pointer hover:border-[#22C55E]/30 w-full text-left ${
-        today
-          ? 'border-[#22C55E]/50 ring-1 ring-[#22C55E]/20'
-          : past
-          ? 'border-[#2D3748] opacity-60'
-          : 'border-[#2D3748]'
-      }`}
-      onClick={onToggle}
+    <div
+      className={`bg-[#1F2933] border rounded-xl transition-all ${taskBorderClass(isDone, today)} ${taskOpacityClass(isDone, past)}`}
     >
+      {/* Card header */}
       <div className="flex items-start gap-4 p-4">
-        {/* Date badge */}
-        <div
-          className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl flex-shrink-0 ${
-            today
-              ? 'bg-[#22C55E]/20 text-[#22C55E]'
-              : past
-              ? 'bg-[#0B0F14] text-[#64748B]'
-              : 'bg-[#0B0F14] text-[#F9FAFB]'
-          }`}
+        {/* Date badge — clickable area to expand (not when done) */}
+        <button
+          type="button"
+          disabled={isDone}
+          onClick={isDone ? undefined : onToggle}
+          className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl flex-shrink-0 ${dateBadgeClass(isDone, today, past)} ${isDone ? 'cursor-default' : 'cursor-pointer'}`}
         >
           <span className="text-[10px] uppercase font-medium leading-none">
-            {new Date(task.date).toLocaleDateString('en-US', {
-              month: 'short',
-            })}
+            {new Date(task.date).toLocaleDateString('en-US', { month: 'short' })}
           </span>
           <span className="text-lg font-bold leading-tight">
             {new Date(task.date).getDate()}
           </span>
           <span className="text-[9px] uppercase leading-none">
-            {new Date(task.date).toLocaleDateString('en-US', {
-              weekday: 'short',
-            })}
+            {new Date(task.date).toLocaleDateString('en-US', { weekday: 'short' })}
           </span>
-        </div>
+        </button>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0 space-y-2">
+        {/* Main content — clickable to expand */}
+        <button
+          type="button"
+          disabled={isDone}
+          onClick={isDone ? undefined : onToggle}
+          className={`flex-1 min-w-0 space-y-2 text-left ${isDone ? 'cursor-default' : 'cursor-pointer'}`}
+        >
           <div className="flex items-center gap-2 flex-wrap">
             <span
               className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                PLATFORM_COLORS[task.platform] ||
-                'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                PLATFORM_COLORS[task.platform] || 'bg-gray-500/10 text-gray-400 border-gray-500/20'
               }`}
             >
               {task.platform}
@@ -613,25 +724,18 @@ function TaskCard({
             <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#0B0F14] text-[#CBD5E1] border border-[#2D3748]">
               {task.content_type}
             </span>
-            <span
-              className={`text-xs font-medium ${
-                OBJECTIVE_COLORS[task.objective] || 'text-[#CBD5E1]'
-              }`}
-            >
+            <span className={`text-xs font-medium ${OBJECTIVE_COLORS[task.objective] || 'text-[#CBD5E1]'}`}>
               {task.objective}
             </span>
-            {today && (
+            {today && !isDone && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#22C55E] text-[#0B0F14]">
                 TODAY
               </span>
             )}
-            {past && !today && (
-              <CheckCircleIcon className="h-4 w-4 text-[#64748B]" />
-            )}
           </div>
-
-          <h3 className="text-[#F9FAFB] font-medium truncate">{task.title}</h3>
-
+          <h3 className={`font-medium truncate ${isDone ? 'line-through text-[#64748B]' : 'text-[#F9FAFB]'}`}>
+            {task.title}
+          </h3>
           {!expanded && (
             <div className="flex items-center gap-3 text-xs text-[#CBD5E1]">
               <span className="flex items-center gap-1">
@@ -645,16 +749,36 @@ function TaskCard({
               )}
             </div>
           )}
+        </button>
+
+        {/* Done indicator / Mark Done button */}
+        <div className="flex-shrink-0 flex items-center ml-1">
+          {isDone ? (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-lg">
+              <LockClosedIcon className="h-3.5 w-3.5 text-[#22C55E]" />
+              <span className="text-xs text-[#22C55E] font-medium">Done</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDone(globalIndex);
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#0B0F14] border border-[#2D3748] rounded-lg text-xs font-medium text-[#CBD5E1] hover:border-[#22C55E]/50 hover:text-[#22C55E] hover:bg-[#22C55E]/5 transition-all"
+            >
+              <CheckCircleIcon className="h-3.5 w-3.5" />
+              Mark Done
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Expanded details */}
-      {expanded && (
-        <div className="px-4 pb-4 pt-0 space-y-3 border-t border-[#2D3748] mt-1">
+      {/* Expanded details — only when not done */}
+      {expanded && !isDone && (
+        <div className="px-4 pb-4 pt-0 space-y-3 border-t border-[#2D3748]">
           <div className="pt-3">
-            <p className="text-sm text-[#CBD5E1] leading-relaxed">
-              {task.description}
-            </p>
+            <p className="text-sm text-[#CBD5E1] leading-relaxed">{task.description}</p>
           </div>
           <div className="flex items-center gap-4 text-xs">
             <span className="flex items-center gap-1 text-[#CBD5E1]">
@@ -677,8 +801,16 @@ function TaskCard({
               ))}
             </div>
           )}
+          <button
+            type="button"
+            onClick={() => onDone(globalIndex)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-lg text-sm font-medium text-[#22C55E] hover:bg-[#22C55E]/20 transition-all w-full justify-center"
+          >
+            <CheckCircleIcon className="h-4 w-4" />
+            Mark as Done
+          </button>
         </div>
       )}
-    </button>
+    </div>
   );
 }
