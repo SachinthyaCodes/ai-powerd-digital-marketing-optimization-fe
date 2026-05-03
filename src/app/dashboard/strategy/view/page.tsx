@@ -1,17 +1,21 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   ArrowLeftIcon, 
   ArrowPathIcon, 
+  ArrowDownTrayIcon,
   ClockIcon,
   ChartBarIcon,
   SparklesIcon,
   ExclamationCircleIcon,
   CheckCircleIcon,
 } from '@heroicons/react/24/outline';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import {
+  PieChart, Pie, Cell, Tooltip as ReTooltip, ResponsiveContainer,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+} from 'recharts';
 import {
   loadStrategyFromStorage,
   generateNewVersion,
@@ -21,6 +25,48 @@ import {
   type StrategyMeta,
   type StrategyVersionSummary,
 } from '@/services/strategyApiService';
+
+// Color palette for donut chart slices (theme-consistent)
+const DONUT_COLORS = ['#22C55E', '#3B82F6', '#F59E0B', '#EC4899', '#8B5CF6', '#06B6D4'];
+
+/**
+ * LLM sometimes returns budget_allocation as decimals (0.8) or whole-number percents (80).
+ * Normalise to whole-number percentages for display.
+ */
+function normalizeBudget(raw: Record<string, number>): Record<string, number> {
+  const vals = Object.values(raw);
+  if (!vals.length) return raw;
+  const sum = vals.reduce((a, b) => a + b, 0);
+  const factor = sum <= 2 ? 100 : 1; // decimal → multiply; already % → keep
+  return Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, v * factor]));
+}
+
+/** Consistent label + styling for any drift_level value (including null = first generation). */
+function driftStatusInfo(level: string | null): { label: string; cls: string } {
+  if (level === 'HIGH') return { label: 'Needs update', cls: 'bg-red-500/10 text-red-400' };
+  if (level === 'MODERATE') return { label: 'Minor changes', cls: 'bg-[#F59E0B]/10 text-[#F59E0B]' };
+  if (level === 'LOW') return { label: 'Up to date', cls: 'bg-[#22C55E]/10 text-[#22C55E]' };
+  return { label: 'Freshly generated', cls: 'bg-[#22C55E]/10 text-[#22C55E]' };
+}
+
+/** Parse LLM strategy text into typed blocks for rich rendering. */
+function parseStrategyBlocks(text: string) {
+  return text
+    .split('\n')
+    .map(l => l.trim())
+    .filter(Boolean)
+    .map(line => {
+      const clean = line.replace(/\*\*/g, '').replace(/^#+\s*/, '');
+      // Heading: numbered section title, Week X:, Phase X:, or short line ending in colon
+      if (
+        (/^\d+\.\s+[A-Z]/.test(clean) || /^(Week|Phase|Step|Day)\s+\d+/i.test(clean) || (clean.endsWith(':') && clean.length < 70))
+      ) return { type: 'heading' as const, text: clean.replace(/:$/, '') };
+      // Bullet: starts with dash, bullet, asterisk or digit-dot
+      if (/^[-•*]\s+/.test(line) || /^\d+\.\s+/.test(line))
+        return { type: 'bullet' as const, text: clean.replace(/^[-•*\d.]+\s+/, '') };
+      return { type: 'paragraph' as const, text: clean };
+    });
+}
 
 export default function StrategyViewPage() {
   return (
@@ -52,6 +98,44 @@ function StrategyViewContent() {
   // Version history state
   const [versions, setVersions] = useState<StrategyVersionSummary[]>([]);
   const [versionsLoading, setVersionsLoading] = useState(false);
+
+  // PDF export state
+  const [exporting, setExporting] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPDF = useCallback(async () => {
+    if (!exportRef.current || !strategy || !meta) return;
+    setExporting(true);
+    try {
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+      const canvas = await html2canvas(exportRef.current, {
+        backgroundColor: '#0B0F14',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgH = (canvas.height * pageW) / canvas.width;
+      let y = 0;
+      while (y < imgH) {
+        pdf.addImage(imgData, 'PNG', 0, -y, pageW, imgH);
+        y += pageH;
+        if (y < imgH) pdf.addPage();
+      }
+      const filename = `strategy-v${strategy.version}-${meta.businessType.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+      pdf.save(filename);
+    } catch (err) {
+      console.error('PDF export failed:', err);
+    } finally {
+      setExporting(false);
+    }
+  }, [strategy, meta]);
 
   // Load current strategy from localStorage once
   useEffect(() => {
@@ -95,15 +179,18 @@ function StrategyViewContent() {
     setGenerateError(null);
     try {
       const newStrat = await generateNewVersion(activeId);
-      setCurrentStrategy(newStrat);
+      // New strategy is freshly generated — clear stale drift flags regardless of what backend returns
+      const cleanStrat = { ...newStrat, drift_level: 'LOW', regenerate_flag: false };
+      localStorage.setItem('strategy_result', JSON.stringify(cleanStrat));
+      setCurrentStrategy(cleanStrat);
       // Exit historical view and show the new version
       setIsHistoricalView(false);
-      setStrategy(newStrat);
+      setStrategy(cleanStrat);
       router.replace('/dashboard/strategy/view');
       const stored = loadStrategyFromStorage();
       if (stored) setMeta(stored.meta);
       // Refresh version list
-      const updated = await listVersions(newStrat.strategy_id!);
+      const updated = await listVersions(cleanStrat.strategy_id!);
       setVersions(updated.versions);
     } catch (err: any) {
       setGenerateError(err.message || 'Failed to generate new version');
@@ -117,6 +204,8 @@ function StrategyViewContent() {
     : 'N/A';
 
   const confidencePct = strategy ? Math.round(strategy.confidence_score * 100) : 0;
+  const budgetAllocation = strategy ? normalizeBudget(strategy.budget_allocation) : {};
+  const driftInfo = driftStatusInfo(strategy?.drift_level ?? null);
 
   const tabs = [
     { id: 'overview', name: 'Overview' },
@@ -219,6 +308,14 @@ function StrategyViewContent() {
               </span>
             )}
             <button
+              onClick={handleExportPDF}
+              disabled={exporting}
+              className="px-4 py-2.5 bg-[#1F2933] text-[#CBD5E1] rounded-lg font-medium hover:bg-[#2D3748] border border-[#2D3748] transition-all text-sm flex items-center gap-2 disabled:opacity-50"
+            >
+              <ArrowDownTrayIcon className={`h-4 w-4 ${exporting ? 'animate-bounce' : ''}`} />
+              {exporting ? 'Exporting...' : 'Download PDF'}
+            </button>
+            <button
               onClick={handleGenerateNewVersion}
               disabled={generating || !strategy?.strategy_id}
               className="px-4 py-2.5 bg-[#22C55E] text-[#0B0F14] rounded-lg font-medium hover:bg-[#16A34A] transition-all text-sm flex items-center gap-2 disabled:opacity-50"
@@ -252,13 +349,24 @@ function StrategyViewContent() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-[#1F2933] border border-[#2D3748] rounded-xl p-6">
+        <div ref={exportRef} className="bg-[#1F2933] border border-[#2D3748] rounded-xl p-6">
 
           {/* ── Overview ── */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-[#F9FAFB]">Your Strategy at a Glance</h2>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <h2 className="text-lg font-semibold text-[#F9FAFB]">Your Strategy at a Glance</h2>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-3 py-1 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] text-xs font-medium rounded-full">
+                    {confidencePct}% Confidence
+                  </span>
+                  <span className={`px-3 py-1 text-xs font-medium rounded-full ${driftInfo.cls}`}>
+                    {driftInfo.label}
+                  </span>
+                </div>
+              </div>
 
+              {/* Business info grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
                   <div className="text-xs text-[#64748B] uppercase tracking-wider mb-1">Business Type</div>
@@ -284,20 +392,97 @@ function StrategyViewContent() {
                 </div>
               </div>
 
+              {/* Platform allocation strip */}
+              {Object.keys(budgetAllocation).length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(budgetAllocation)
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([platform, pct], i) => (
+                      <div
+                        key={platform}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-[#0B0F14] border border-[#2D3748] rounded-full"
+                      >
+                        <div
+                          className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }}
+                        />
+                        <span className="text-sm text-[#F9FAFB]">{platform}</span>
+                        <span className="text-xs text-[#64748B]">{Math.round(pct)}%</span>
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              {/* Strategy summary */}
               <div className="p-5 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
                 <div className="flex items-center gap-2 mb-3">
                   <ChartBarIcon className="h-4 w-4 text-[#22C55E]" />
                   <span className="text-sm font-medium text-[#F9FAFB]">Strategy Summary</span>
                 </div>
-                <p className="text-[#CBD5E1] text-sm leading-relaxed whitespace-pre-wrap">{strategy.strategy_summary}</p>
+                <p className="text-[#CBD5E1] text-sm leading-relaxed">{strategy.strategy_summary}</p>
               </div>
 
+              {/* Your Marketing Strategy — parsed content_strategy */}
+              <div className="p-5 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
+                <div className="flex items-center gap-2 mb-4">
+                  <SparklesIcon className="h-4 w-4 text-[#22C55E]" />
+                  <span className="text-sm font-medium text-[#F9FAFB]">Your Marketing Strategy</span>
+                </div>
+                <div className="space-y-2">
+                  {parseStrategyBlocks(strategy.content_strategy).map((block, i) => {
+                    if (block.type === 'heading') {
+                      return (
+                        <h4
+                          key={i}
+                          className="text-sm font-semibold text-[#F9FAFB] pt-4 pb-1 border-t border-[#2D3748] first:pt-0 first:border-t-0"
+                        >
+                          {block.text}
+                        </h4>
+                      );
+                    }
+                    if (block.type === 'bullet') {
+                      return (
+                        <div key={i} className="flex items-start gap-2.5 pl-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E] mt-[0.35rem] flex-shrink-0" />
+                          <p className="text-sm text-[#CBD5E1] leading-relaxed">{block.text}</p>
+                        </div>
+                      );
+                    }
+                    return (
+                      <p key={i} className="text-sm text-[#CBD5E1] leading-relaxed">
+                        {block.text}
+                      </p>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Why We Chose This */}
               <div className="p-5 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
                 <div className="flex items-center gap-2 mb-3">
                   <SparklesIcon className="h-4 w-4 text-[#22C55E]" />
                   <span className="text-sm font-medium text-[#F9FAFB]">Why We Chose This</span>
                 </div>
-                <p className="text-[#CBD5E1] text-sm leading-relaxed whitespace-pre-wrap">{strategy.reasoning}</p>
+                <div className="space-y-2">
+                  {parseStrategyBlocks(strategy.reasoning).map((block, i) => {
+                    if (block.type === 'heading') {
+                      return (
+                        <h4 key={i} className="text-sm font-semibold text-[#F9FAFB] pt-3 pb-1 border-t border-[#2D3748] first:pt-0 first:border-t-0">
+                          {block.text}
+                        </h4>
+                      );
+                    }
+                    if (block.type === 'bullet') {
+                      return (
+                        <div key={i} className="flex items-start gap-2.5 pl-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] mt-[0.35rem] flex-shrink-0" />
+                          <p className="text-sm text-[#CBD5E1] leading-relaxed">{block.text}</p>
+                        </div>
+                      );
+                    }
+                    return <p key={i} className="text-sm text-[#CBD5E1] leading-relaxed">{block.text}</p>;
+                  })}
+                </div>
               </div>
             </div>
           )}
@@ -307,7 +492,7 @@ function StrategyViewContent() {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-[#F9FAFB]">Recommended Platforms</h2>
               {strategy.recommended_platforms.map((platform, index) => {
-                const budgetPct = strategy.budget_allocation[platform] ?? null;
+                const budgetPct = budgetAllocation[platform] ?? null;
                 return (
                   <div key={index} className="p-4 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
                     <div className="flex items-center justify-between flex-wrap gap-2">
@@ -317,7 +502,7 @@ function StrategyViewContent() {
                       </div>
                       {budgetPct != null && (
                         <span className="px-3 py-1 bg-[#22C55E]/10 text-[#22C55E] rounded-full text-sm font-medium border border-[#22C55E]/20">
-                          {budgetPct}% of budget
+                          {Math.round(budgetPct)}% of budget
                         </span>
                       )}
                     </div>
@@ -333,13 +518,13 @@ function StrategyViewContent() {
                 );
               })}
               {/* Any budget items not in recommended_platforms */}
-              {Object.entries(strategy.budget_allocation)
+              {Object.entries(budgetAllocation)
                 .filter(([channel]) => !strategy.recommended_platforms.includes(channel))
                 .map(([channel, pct], index) => (
                   <div key={`extra-${index}`} className="p-4 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
                     <div className="flex items-center justify-between">
                       <h3 className="text-[#CBD5E1] font-medium">{channel}</h3>
-                      <span className="text-sm text-[#64748B]">{pct}% of budget</span>
+                      <span className="text-sm text-[#64748B]">{Math.round(pct)}% of budget</span>
                     </div>
                   </div>
                 ))}
@@ -357,67 +542,147 @@ function StrategyViewContent() {
           )}
 
           {/* ── Budget ── */}
-          {activeTab === 'budget' && (
-            <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-[#F9FAFB]">Where Your Budget Goes</h2>
+          {activeTab === 'budget' && (() => {
+            const budgetEntries = Object.entries(budgetAllocation).sort(([, a], [, b]) => b - a);
+            const donutData = budgetEntries.map(([name, pct]) => ({ name, value: Math.round(pct) }));
+            return (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-[#F9FAFB]">Where Your Budget Goes</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
-                  <div className="text-xs text-[#64748B] uppercase tracking-wider mb-1">Monthly Budget</div>
-                  <div className="text-2xl font-semibold text-[#F9FAFB]">{meta.monthlyBudget}</div>
+                {/* KPI strip */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
+                    <div className="text-xs text-[#64748B] uppercase tracking-wider mb-1">Monthly Budget</div>
+                    <div className="text-2xl font-semibold text-[#F9FAFB]">{meta.monthlyBudget}</div>
+                  </div>
+                  <div className="p-4 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
+                    <div className="text-xs text-[#64748B] uppercase tracking-wider mb-1">Channels</div>
+                    <div className="text-2xl font-semibold text-[#F9FAFB]">{budgetEntries.length}</div>
+                  </div>
+                  <div className="p-4 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
+                    <div className="text-xs text-[#64748B] uppercase tracking-wider mb-1">Strategy Strength</div>
+                    <div className="text-2xl font-semibold text-[#22C55E]">{confidencePct}%</div>
+                  </div>
                 </div>
-                <div className="p-4 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
-                  <div className="text-xs text-[#64748B] uppercase tracking-wider mb-1">Channels</div>
-                  <div className="text-2xl font-semibold text-[#F9FAFB]">{Object.keys(strategy.budget_allocation).length}</div>
-                </div>
-                <div className="p-4 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
-                  <div className="text-xs text-[#64748B] uppercase tracking-wider mb-1">Strategy Strength</div>
-                  <div className="text-2xl font-semibold text-[#22C55E]">{confidencePct}%</div>
-                </div>
-              </div>
 
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-[#CBD5E1]">Channel Breakdown</h3>
-                {Object.entries(strategy.budget_allocation)
-                  .sort(([, a], [, b]) => b - a)
-                  .map(([channel, pct], index) => (
-                    <div key={index} className="p-4 bg-[#0B0F14] rounded-lg border border-[#2D3748]">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[#F9FAFB] font-medium">{channel}</span>
-                        <span className="text-[#22C55E] font-semibold">{pct}%</span>
-                      </div>
-                      <div className="h-1.5 bg-[#1F2933] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-[#22C55E] rounded-full"
-                          style={{ width: `${Math.min(pct, 100)}%` }}
-                        />
-                      </div>
+                {/* Donut chart */}
+                <div className="p-5 bg-[#0B0F14] rounded-xl border border-[#2D3748]">
+                  <h3 className="text-sm font-medium text-[#CBD5E1] mb-4">Channel Breakdown</h3>
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="w-full md:w-64 h-64 flex-shrink-0">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={donutData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={70}
+                            outerRadius={100}
+                            paddingAngle={3}
+                            dataKey="value"
+                            stroke="none"
+                          >
+                            {donutData.map((_, i) => (
+                              <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <ReTooltip
+                            contentStyle={{ background: '#1F2933', border: '1px solid #2D3748', borderRadius: 8, color: '#F9FAFB', fontSize: 12 }}
+                            formatter={(val: number) => [`${val}%`, 'Budget Share']}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
                     </div>
-                  ))}
+
+                    {/* Legend / breakdown list */}
+                    <div className="flex-1 space-y-3 w-full">
+                      {donutData.map(({ name, value }, i) => (
+                        <div key={name}>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+                              <span className="text-sm text-[#F9FAFB] font-medium">{name}</span>
+                            </div>
+                            <span className="text-sm font-semibold" style={{ color: DONUT_COLORS[i % DONUT_COLORS.length] }}>{value}%</span>
+                          </div>
+                          <div className="h-1.5 bg-[#1F2933] rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-700"
+                              style={{ width: `${Math.min(value, 100)}%`, background: DONUT_COLORS[i % DONUT_COLORS.length] }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* ── Strategy Health ── */}
-          {activeTab === 'confidence' && (
+          {activeTab === 'confidence' && (() => {
+            const metrics = [
+              { label: 'Overall', key: 'confidence_score', value: strategy.confidence_score },
+              { label: 'Trends', key: 'trend_recency_score', value: strategy.trend_recency_score },
+              { label: 'Biz Match', key: 'similarity_score', value: strategy.similarity_score },
+              { label: 'Data Quality', key: 'data_coverage_score', value: strategy.data_coverage_score },
+              { label: 'Platform Fit', key: 'platform_stability_score', value: strategy.platform_stability_score },
+            ];
+            const radarData = metrics.map(m => ({
+              metric: m.label,
+              score: m.value != null ? Math.round(m.value * 100) : 0,
+              fullMark: 100,
+            }));
+            return (
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-[#F9FAFB]">How Strong Is Your Strategy?</h2>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { label: 'Overall Strength', value: strategy.confidence_score, highlight: true },
-                  { label: 'Latest Trends', value: strategy.trend_recency_score },
-                  { label: 'Business Match', value: strategy.similarity_score },
-                  { label: 'Data Quality', value: strategy.data_coverage_score },
-                  { label: 'Platform Fit', value: strategy.platform_stability_score },
-                ].map(({ label, value, highlight }) => (
-                  <div key={label} className={`p-4 rounded-lg border ${highlight ? 'bg-[#22C55E]/5 border-[#22C55E]/20' : 'bg-[#0B0F14] border-[#2D3748]'}`}>
+              {/* KPI strip */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {metrics.map(({ label, value }, i) => (
+                  <div key={label} className={`p-4 rounded-lg border ${i === 0 ? 'bg-[#22C55E]/5 border-[#22C55E]/20' : 'bg-[#0B0F14] border-[#2D3748]'}`}>
                     <div className="text-xs text-[#64748B] uppercase tracking-wider mb-1">{label}</div>
-                    <div className={`text-2xl font-semibold ${highlight ? 'text-[#22C55E]' : 'text-[#F9FAFB]'}`}>
+                    <div className={`text-2xl font-semibold ${i === 0 ? 'text-[#22C55E]' : 'text-[#F9FAFB]'}`}>
                       {value != null ? `${Math.round(value * 100)}%` : 'N/A'}
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Radar chart */}
+              <div className="p-5 bg-[#0B0F14] rounded-xl border border-[#2D3748]">
+                <h3 className="text-sm font-medium text-[#CBD5E1] mb-2">Strategy Health Radar</h3>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+                      <PolarGrid stroke="#2D3748" />
+                      <PolarAngleAxis
+                        dataKey="metric"
+                        tick={{ fill: '#CBD5E1', fontSize: 12 }}
+                      />
+                      <PolarRadiusAxis
+                        angle={90}
+                        domain={[0, 100]}
+                        tick={{ fill: '#64748B', fontSize: 10 }}
+                        tickCount={4}
+                      />
+                      <Radar
+                        name="Score"
+                        dataKey="score"
+                        stroke="#22C55E"
+                        fill="#22C55E"
+                        fillOpacity={0.18}
+                        strokeWidth={2}
+                        dot={{ r: 4, fill: '#22C55E', strokeWidth: 0 }}
+                      />
+                      <ReTooltip
+                        contentStyle={{ background: '#1F2933', border: '1px solid #2D3748', borderRadius: 8, color: '#F9FAFB', fontSize: 12 }}
+                        formatter={(val: number) => [`${val}%`, 'Score']}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -425,26 +690,22 @@ function StrategyViewContent() {
                 <div className="p-4 bg-[#0B0F14] rounded-lg border border-[#2D3748] space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[#CBD5E1]">Market Status</span>
-                    <span className={`text-sm font-medium px-3 py-1 rounded-full ${
-                      strategy.drift_level === 'HIGH'
-                        ? 'bg-red-500/10 text-red-400'
-                        : strategy.drift_level === 'MODERATE'
-                        ? 'bg-[#F59E0B]/10 text-[#F59E0B]'
-                        : strategy.drift_level === 'LOW'
-                        ? 'bg-[#22C55E]/10 text-[#22C55E]'
-                        : 'text-[#64748B]'
-                    }`}>
-                      {strategy.drift_level === 'HIGH' ? 'Needs update'
-                        : strategy.drift_level === 'MODERATE' ? 'Minor changes'
-                        : strategy.drift_level === 'LOW' ? 'Up to date'
-                        : 'N/A'}
+                    <span className={`text-sm font-medium px-3 py-1 rounded-full ${driftInfo.cls}`}>
+                      {driftInfo.label}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-[#CBD5E1]">How aligned?</span>
-                    <span className="text-sm font-medium text-[#F9FAFB]">
-                      {strategy.drift_similarity != null ? `${Math.round(strategy.drift_similarity * 100)}%` : 'N/A'}
-                    </span>
+                    <span className="text-sm text-[#CBD5E1]">Market Alignment</span>
+                    {strategy.drift_similarity != null ? (
+                      <span className={`text-sm font-medium ${
+                        strategy.drift_similarity >= 0.85 ? 'text-[#22C55E]' :
+                        strategy.drift_similarity >= 0.70 ? 'text-[#F59E0B]' : 'text-[#EF4444]'
+                      }`}>
+                        {Math.round(strategy.drift_similarity * 100)}%
+                      </span>
+                    ) : (
+                      <span className="text-sm text-[#64748B] italic">Run a market check to measure</span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[#CBD5E1]">Update recommended?</span>
@@ -466,7 +727,8 @@ function StrategyViewContent() {
                 </div>
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {/* ── Past Versions ── */}
           {activeTab === 'versions' && (

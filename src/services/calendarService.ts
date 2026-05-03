@@ -35,6 +35,8 @@ export interface CalendarPlan {
   start_date: string;
   end_date: string;
   auto_generated: boolean;
+  strategy_version: number;          // which strategy version built this plan
+  completed_tasks: number[];         // 0-based indices of tasks marked Done
   created_at: string;
   updated_at: string;
 }
@@ -82,10 +84,13 @@ export async function generateCalendar(
   return response.json();
 }
 
-/** Fetch the latest calendar plan for a strategy. */
+/** Fetch the latest calendar plan for a strategy.
+ * Returns the plan plus an is_stale flag (true when the plan was built
+ * from an older strategy version and the strategy has since been updated).
+ */
 export async function getLatestCalendar(
   strategyId: string,
-): Promise<CalendarPlan | null> {
+): Promise<{ calendar: CalendarPlan; is_stale: boolean } | null> {
   const response = await fetch(
     `${API_BASE}/api/v1/calendar/latest?strategy_id=${encodeURIComponent(strategyId)}`,
   );
@@ -94,7 +99,27 @@ export async function getLatestCalendar(
     throw new Error(err.detail || 'Failed to fetch calendar');
   }
   const data = await response.json();
-  return data.calendar ?? null;
+  if (!data.calendar) return null;
+  return { calendar: data.calendar as CalendarPlan, is_stale: data.is_stale ?? false };
+}
+
+/** Mark a task as done (locked in the UI). Idempotent.
+ * Returns the updated array of completed task indices.
+ */
+export async function completeTask(
+  calendarId: string,
+  taskIndex: number,
+): Promise<number[]> {
+  const response = await fetch(
+    `${API_BASE}/api/v1/calendar/${encodeURIComponent(calendarId)}/tasks/${taskIndex}/done`,
+    { method: 'PATCH' },
+  );
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to mark task complete');
+  }
+  const data = await response.json();
+  return data.completed_tasks as number[];
 }
 
 /** List all calendars for a submission. */

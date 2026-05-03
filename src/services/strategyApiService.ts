@@ -51,18 +51,14 @@ export interface StrategyMeta {
 // page.tsx stores step data under camelCase keys matching MarketingStrategyFormData
 const STEP_CAMEL_MAP: Record<string, string> = {
   'business-profile': 'businessProfile',
-  'budget-resources': 'budgetResources',
-  'business-goals': 'businessGoals',
+  'budget-and-goals': 'budgetAndGoals',
   'target-audience': 'targetAudience',
-  'platforms-preferences': 'platformsPreferences',
-  'current-challenges': 'currentChallenges',
-  'strengths-opportunities': 'strengthsOpportunities',
-  'market-situation': 'marketSituation',
+  'market-context': 'marketContext',
 };
 
 function getSection(formData: any, stepId: string): any {
   const camelKey = STEP_CAMEL_MAP[stepId];
-  return (camelKey && formData[camelKey]) || formData[stepId.replace('-', '')] || {};
+  return (camelKey && formData[camelKey]) || {};
 }
 
 // ── Business size mapping ────────────────────────────────────────────────────
@@ -76,13 +72,9 @@ const SIZE_MAP: Record<string, string> = {
 // ── Form → SMEProfile converter ──────────────────────────────────────────────
 function buildSMEProfile(formData: any): Record<string, unknown> {
   const bp = getSection(formData, 'business-profile');
-  const br = getSection(formData, 'budget-resources');
-  const bg = getSection(formData, 'business-goals');
+  const bg = getSection(formData, 'budget-and-goals');
   const ta = getSection(formData, 'target-audience');
-  const pp = getSection(formData, 'platforms-preferences');
-  const cc = getSection(formData, 'current-challenges');
-  const so = getSection(formData, 'strengths-opportunities');
-  const ms = getSection(formData, 'market-situation');
+  const mc = getSection(formData, 'market-context');
 
   return {
     // Section 1 — Business Profile
@@ -98,20 +90,20 @@ function buildSMEProfile(formData: any): Record<string, unknown> {
     products_services: bp.productsServices || 'General products/services',
     unique_selling_proposition: bp.uniqueSellingProposition || 'Quality and value',
 
-    // Section 2 — Budget & Resources
-    monthly_budget: String(br.monthlyBudget || '0'),
-    has_marketing_team: br.hasMarketingTeam || false,
-    team_size: br.teamSize || null,
-    content_creation_capacity: br.contentCreationCapacity || [],
+    // Section 2 — Budget & Goals (merged)
+    monthly_budget: String(bg.monthlyBudget || '0'),
+    has_marketing_team: bg.hasMarketingTeam === 'true',
+    team_size: null,
+    content_creation_capacity: bg.contentCreationCapacity || [],
 
-    // Section 3 — Goals
+    // Goals (merged into Section 2)
     primary_goal: bg.primaryGoal || 'brand-awareness',
-    secondary_goals: bg.secondaryGoals || [],
+    secondary_goals: [], // removed from form — AI infers from context
 
-    // Section 4 — Target Audience
+    // Section 3 — Target Audience
     demographics: {
       age_range: ta.demographics?.ageRange || '25-34',
-      gender: ta.demographics?.gender || ['all'],
+      gender: ['all'], // removed from form — not relevant to platform selection
       income_level: ta.demographics?.incomeLevel || 'middle',
       education_level: null,
     },
@@ -119,37 +111,38 @@ function buildSMEProfile(formData: any): Record<string, unknown> {
     interests: ta.interests || [],
     buying_frequency: ta.buyingFrequency || 'monthly',
 
-    // Section 5 — Platforms
-    preferred_platforms: pp.preferredPlatforms || [],
-    current_platforms: pp.preferredPlatforms || [],
-    platform_experience: pp.platformExperience || null,
-    brand_assets: {
-      has_logo: pp.brandAssets?.hasLogo || false,
-      has_brand_style: pp.brandAssets?.hasBrandStyle || false,
-      brand_colors: pp.brandAssets?.brandColors || [],
-    },
+    // Section 4 — Market Context (challenges + strengths + seasonality)
+    challenges: mc.challenges || [],
+    additional_challenges: mc.additionalChallenges || null,
+    strengths: mc.strengths || [],
+    opportunities: [], // removed from form — AI derives from goals + RAG knowledge
 
-    // Section 6 — Challenges
-    challenges: cc.challenges || [],
-    additional_challenges: cc.additionalChallenges || null,
+    // Additional notes / context
+    additional_notes: mc.additionalNotes || null,
 
-    // Section 7 — Strengths & Opportunities
-    strengths: so.strengths || [],
-    opportunities: so.opportunities || [],
-    additional_notes: so.additionalNotes || null,
-
-    // Section 8 — Market Situation
-    seasonality: (ms.seasonality || []).map((s: any) => ({
+    // Market situation — simplified
+    seasonality: (mc.seasonality || []).map((s: any) => ({
       category: s.category,
       subcategories: s.subcategories || [],
     })),
-    seasonality_other: ms.seasonalityOther || null,
-    competitor_behavior: ms.competitorBehavior || null,
-    stock_availability: ms.stockAvailability || null,
-    recent_price_changes: ms.recentPriceChanges ?? null,
-    price_change_details: ms.priceChangeDetails || null,
+    seasonality_other: mc.seasonalityOther || null,
+    competitor_behavior: mc.competitorBehavior || null,
+    stock_availability: null, // removed from form
+    recent_price_changes: null, // removed from form
+    price_change_details: null,
+
+    // Section 5 — Platforms (now fully AI/RAG-decided, not user-selected)
+    preferred_platforms: [], // intentionally empty — RAG recommends platforms based on evidence
+    current_platforms: [],
+    platform_experience: null,
+    brand_assets: {
+      has_logo: bp.hasLogo || false,
+      has_brand_style: false,
+      brand_colors: [],
+    },
   };
 }
+
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
@@ -194,8 +187,7 @@ export async function generateStrategy(formData: any): Promise<StrategyResult> {
 
   // Persist strategy and display metadata to localStorage
   const bp = getSection(formData, 'business-profile');
-  const bg = getSection(formData, 'business-goals');
-  const br = getSection(formData, 'budget-resources');
+  const bg = getSection(formData, 'budget-and-goals');
   const ta = getSection(formData, 'target-audience');
 
   const meta: StrategyMeta = {
@@ -203,7 +195,7 @@ export async function generateStrategy(formData: any): Promise<StrategyResult> {
     industry: bp.industry || '',
     city: bp.location?.city || '',
     primaryGoal: bg.primaryGoal || '',
-    monthlyBudget: String(br.monthlyBudget || ''),
+    monthlyBudget: String(bg.monthlyBudget || ''),
     targetLocation: ta.location || '',
     generatedAt: new Date().toISOString(),
     smeProfileId: smeProfileId ?? null,
@@ -213,6 +205,114 @@ export async function generateStrategy(formData: any): Promise<StrategyResult> {
   localStorage.setItem('strategy_meta', JSON.stringify(meta));
 
   return strategy;
+}
+
+/** Parse a single SSE part (between double-newlines) into {event, data}. */
+function parseSsePart(part: string): { event: string; data: string } | null {
+  let event = '';
+  let data = '';
+  for (const line of part.trim().split('\n')) {
+    if (line.startsWith('event: ')) event = line.slice(7).trim();
+    else if (line.startsWith('data: ')) data = line.slice(6).trim();
+  }
+  return event && data ? { event, data } : null;
+}
+
+/** Dispatch a single parsed SSE message. Returns the result payload or null. */
+function dispatchSseMessage(
+  msg: { event: string; data: string },
+  onStatus: (m: string) => void,
+  onToken: (t: string) => void,
+): StrategyResult | null {
+  let payload: any;
+  try { payload = JSON.parse(msg.data); } catch { return null; }
+  if (msg.event === 'status') { onStatus(payload.message ?? ''); return null; }
+  if (msg.event === 'token') { onToken(payload.text ?? ''); return null; }
+  if (msg.event === 'result') return payload as StrategyResult;
+  if (msg.event === 'error') throw new Error(payload.detail || 'Stream error');
+  return null;
+}
+
+/** Read an SSE ReadableStream, dispatching events until the "result" event. */
+async function readSseResponse(
+  body: ReadableStream<Uint8Array>,
+  onStatus: (m: string) => void,
+  onToken: (t: string) => void,
+): Promise<StrategyResult> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let result: StrategyResult | null = null;
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split('\n\n');
+    buffer = parts.pop() ?? '';
+    for (const part of parts) {
+      const msg = parseSsePart(part);
+      if (!msg) continue;
+      const r = dispatchSseMessage(msg, onStatus, onToken);
+      if (r) result = r;
+    }
+  }
+  if (!result) throw new Error('No strategy result received from stream');
+  return result;
+}
+
+/**
+ * Streaming variant of generateStrategy.
+ * Connects to /api/v1/strategy/generate-stream (SSE) and calls:
+ *   onStatus(message)  — progress updates
+ *   onToken(text)      — incremental LLM output chunks (typing effect)
+ * Resolves with the final StrategyResult once "result" event arrives.
+ */
+export async function generateStrategyStream(
+  formData: any,
+  onStatus: (message: string) => void,
+  onToken: (text: string) => void,
+): Promise<StrategyResult> {
+  const profile = buildSMEProfile(formData);
+
+  const profileSavePromise = saveSMEProfile(formData, profile).catch((err) => {
+    console.warn('[strategyApiService] SME profile save failed (non-fatal):', err);
+    return null;
+  });
+
+  const response = await fetch(`${API_BASE}/api/v1/strategy/generate-stream`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(profile),
+  });
+
+  if (!response.ok || !response.body) {
+    let detail = `Strategy stream failed (HTTP ${response.status})`;
+    try { const b = await response.json(); detail = b.detail || detail; } catch { /* ignore */ }
+    throw new Error(detail);
+  }
+
+  const result = await readSseResponse(response.body, onStatus, onToken);
+  const bp = getSection(formData, 'business-profile');
+  const bg = getSection(formData, 'budget-and-goals');
+  const ta = getSection(formData, 'target-audience');
+  const smeProfileId = await profileSavePromise;
+
+  const meta: StrategyMeta = {
+    businessType: bp.businessType || 'Business',
+    industry: bp.industry || '',
+    city: bp.location?.city || '',
+    primaryGoal: bg.primaryGoal || '',
+    monthlyBudget: String(bg.monthlyBudget || ''),
+    targetLocation: ta.location || '',
+    generatedAt: new Date().toISOString(),
+    smeProfileId: smeProfileId ?? null,
+  };
+
+  localStorage.setItem('strategy_result', JSON.stringify(result));
+  localStorage.setItem('strategy_meta', JSON.stringify(meta));
+
+  return result;
 }
 
 /** Load persisted strategy data (null if not yet generated) */
@@ -299,10 +399,16 @@ export async function forceRefresh(strategyId: string): Promise<RefreshResult> {
   }
   const result: RefreshResult = await response.json();
 
-  // Update localStorage with the new strategy (inject strategy_id from response)
+  // Update localStorage with the new strategy (inject strategy_id from response).
+  // Also clear stale drift flags — a freshly-refreshed strategy is never drifted.
   const stored = loadStrategyFromStorage();
   if (result.strategy) {
-    const updatedStrategy = { ...result.strategy, strategy_id: result.new_strategy_id ?? null };
+    const updatedStrategy = {
+      ...result.strategy,
+      strategy_id: result.new_strategy_id ?? null,
+      drift_level: 'LOW',
+      regenerate_flag: false,
+    };
     localStorage.setItem('strategy_result', JSON.stringify(updatedStrategy));
     if (stored?.meta) {
       const updatedMeta = { ...stored.meta, generatedAt: new Date().toISOString() };
@@ -378,13 +484,18 @@ export async function generateNewVersion(strategyId: string): Promise<StrategyRe
   }
   const newStrategy: StrategyResult = await response.json();
 
+  // A freshly-generated strategy has no drift by definition — clear stale flags
+  // before persisting so that neither localStorage reads nor React state ever
+  // show "Needs update" or "HIGH Drift" immediately after generation.
+  const cleanStrategy: StrategyResult = { ...newStrategy, drift_level: 'LOW', regenerate_flag: false };
+
   // Persist to localStorage so dashboard + view pages reflect the new version
-  localStorage.setItem('strategy_result', JSON.stringify(newStrategy));
+  localStorage.setItem('strategy_result', JSON.stringify(cleanStrategy));
   const stored = loadStrategyFromStorage();
   if (stored?.meta) {
     const updatedMeta = { ...stored.meta, generatedAt: new Date().toISOString() };
     localStorage.setItem('strategy_meta', JSON.stringify(updatedMeta));
   }
 
-  return newStrategy;
+  return cleanStrategy;
 }
